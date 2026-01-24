@@ -1,0 +1,203 @@
+<resources>
+    <string name="app_name">TrickTrack</string>
+    <string name="trip_review_channel_id">trip_review_channel</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_diagnostics_title">Diagnose</string>
+    <string name="settings_permissions_check_title">Berechtigungsprüfung</string>
+    <string name="settings_permissions_all_granted_cd">Alle gewährt</string>
+    <string name="settings_permissions_action_needed_cd">Aktion erforderlich</string>
+    <string name="settings_permissions_action_needed_text">Aktion erforderlich</string>
+    <string name="settings_tracking_settings_title">Tracking-Einstellungen</string>
+    <string name="settings_automatic_tracking_title">Automatische Verfolgung</string>
+    <string name="settings_automatic_tracking_description">Zeichnet Fahrten automatisch auf, wenn Sie losfahren.</string>
+    <string name="settings_bluetooth_trigger_title">Start bei Bluetooth-Verbindung</string>
+    <string name="settings_bluetooth_trigger_description">Startet die Verfolgung automatisch, wenn ein ausgewähltes Bluetooth-Gerät verbunden wird.</string>
+    <string name="settings_bluetooth_select_device">Gerät auswählen</string>
+    <string name="settings_bluetooth_change_device">Gerät ändern</string>
+    <string name="settings_smart_location_snapping_title">Intelligente Standort-Anpassung</string>
+    <string name="settings_smart_location_snapping_description">Verwendet Favoritennamen für Adressen in der Nähe von gespeicherten Orten.</string>
+    <string name="settings_smart_location_radius_label">Erfassungsradius (Meter)</string>
+    <string name="settings_schedule_title">Zeitplan für automatische Verfolgung</string>
+    <string name="settings_schedule_description">Tippen, um den täglichen Zeitplan zu bearbeiten</string>
+    <string name="settings_schedule_edit_cd">Zeitplan bearbeiten</string>
+    <string name="settings_trip_defaults_title">Standard-Fahrteinstellungen</string>
+    <string name="settings_default_type_title">Standardtyp</string>
+    <string name="trip_type_business">Geschäftlich</string>
+    <string name="trip_type_personal">Privat</string>
+    <string name="settings_calculate_expenses_title">Fahrtkosten berechnen</string>
+    <string name="settings_expense_rate_label">Rate pro km</string>
+    <string name="settings_expense_currency_label">Währung</string>
+    <string name="settings_export_fields_title">Exportfelder konfigurieren</string>
+    <string name="settings_export_fields_description">Tippen zum Bearbeiten</string>
+    <string name="settings_export_fields_configure_cd">Export konfigurieren</string>
+    <string name="settings_enable_schedule_title">Zeitplan aktivieren</string>
+    <string name="settings_enable_schedule_description">Lassen Sie den Zeitplan das Tracking steuern</string>
+    <string name="settings_controlled_by_schedule">Vom Zeitplan gesteuert</string>
+    <string name="settings_advanced_settings_title">Erweiterte Einstellungen</string>
+    <string name="settings_stillness_timer_label">Stillstand-Timer (Sekunden)</string>
+    <string name="settings_min_speed_label">Mindestgeschwindigkeit (km/h)</string>
+    <string name="settings_all_days">Alle Tage</string>
+
+    <!-- General -->
+    <string name="button_save">Speichern</string>
+    <string name="button_cancel">Abbrechen</string>
+    <string name="button_ok">OK</string>
+    <string name="button_done">Fertig</string>
+    <string name="button_close">Schließen</string>
+    <string name="unknown_device">Unbekanntes Gerät</string>
+
+    <!-- New strings for SettingsScreen.kt -->
+    <string name="settings_bluetooth_permission_denied_toast">Bluetooth-Berechtigung verweigert. Bluetooth-Trigger kann nicht aktiviert werden.</string>
+    <string name="settings_bluetooth_select_devices_dialog_title">Bluetooth-Geräte auswählen</string>
+    <string name="about_version">Version: %1$s</string>
+    <string name="about_license">Veröffentlicht unter MIT-Lizenz</string>
+    <string name="about_osm_attribution">Kartendaten © OpenStreetMap Mitwirkende</string>
+    <string name="about_copyright">© 2026 OPUM-Labs</string>
+    <string name="about_made_with_love">Erstellt mit ❤️ und 🤖</string>
+
+    <!-- Export Settings Dialog -->
+    <string name="export_column_date">Datum</string>
+    <string name="export_column_time">Start-/Endzeit</string>
+    <string name="export_column_start_location">Startort</string>
+    <string name="export_column_end_location">Zielort</string>
+    <string name="export_column_distance">Distanz</string>
+    <string name="export_column_type">Typ</string>
+    <string name="export_column_expenses">Kosten</string>
+
+    <!-- Schedule Settings Dialog -->
+    <string name="schedule_select_start_time">Startzeit für %1$s auswählen</string>
+    <string name="schedule_select_end_time">Endzeit für %1$s auswählen</string>
+    <string name="schedule_loading">Zeitplan wird geladen…</string>
+    <string name="schedule_from">Von:</string>
+    <string name="schedule_to">Bis:</string>
+    <string name="schedule_reset_cd">Zurücksetzen</string>
+    <string name="schedule_reset_times">Zeiten zurücksetzen</string>
+    <string name="button_apply">Anwenden</string>
+    <string name="schedule_target_automatic">Automatisch</string>
+    <string name="schedule_target_bluetooth">Bluetooth</string>
+    <string name="schedule_target_both">Beide</string>
+
+    <!-- Menu Navigation -->
+
+    <!-- Screen Titles -->
+    <string name="screen_title_review">Überprüfen</string>
+    <string name="screen_title_trips">Fahrten</string>
+    <string name="screen_title_favourites">Favoriten</string>
+    <string name="screen_title_logs">Protokolle</string>
+    <string name="screen_title_settings">Einstellungen</string>
+
+    <!-- Top App Bar Actions -->
+    <string name="action_add_manual_trip">Manuelle Fahrt hinzufügen</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_export">Exportieren</string>
+    <string name="action_about">Über</string>
+    <string name="action_add_place">Ort hinzufügen</string>
+    <string name="action_delete">Löschen</string>
+
+    <!-- Review Screen -->
+    <string name="review_discard_trip_title">Fahrt verwerfen?</string>
+    <string name="review_discard_trip_message">Sind Sie sicher, dass Sie diese Fahrt verwerfen möchten? Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="review_discard_button">Verwerfen</string>
+    <string name="review_no_trips">Keine Fahrten zum Überprüfen!</string>
+    <string name="review_trip_count_and_distance">%1$d Fahrten • %2$.2f km</string>
+    <string name="review_approve_trip">Fahrt genehmigen</string>
+
+    <!-- Add/Edit Place Dialog -->
+    <string name="add_place_title">Ort hinzufügen</string>
+    <string name="edit_place_title">Ort bearbeiten</string>
+    <string name="place_name_label">Name</string>
+    <string name="place_address_label">Adresse</string>
+    <string name="place_favorite_cd">Favorit</string>
+
+    <!-- Permission Dialog -->
+    <string name="permission_status_title">Berechtigungsstatus</string>
+    <string name="permission_granted_cd">Gewährt</string>
+    <string name="permission_denied_cd">Verweigert</string>
+    <string name="open_settings_button">Einstellungen öffnen</string>
+    <string name="permission_precise_location">Genauer Standort</string>
+    <string name="permission_background_location">Standort im Hintergrund</string>
+    <string name="permission_bluetooth">Bluetooth</string>
+    <string name="permission_notifications">Benachrichtigungen</string>
+
+    <!-- Filter Dialog -->
+    <string name="filter_trips_title">Fahrten filtern</string>
+    <string name="filter_keyword_label">Stichwort</string>
+    <string name="filter_trip_type_label">Fahrttyp:</string>
+    <string name="filter_trip_type_all">Alle</string>
+    <string name="filter_start_date_label">Startdatum</string>
+    <string name="filter_end_date_label">Enddatum</string>
+    <string name="filter_reset_button">Zurücksetzen</string>
+
+    <!-- Edit Trip Dialog -->
+    <string name="edit_trip_title">Fahrt bearbeiten</string>
+    <string name="add_manual_trip_title">Manuelle Fahrt hinzufügen</string>
+    <string name="date_label">Datum</string>
+    <string name="start_time_label">Startzeit</string>
+    <string name="end_time_label">Endzeit</string>
+    <string name="start_address_label">Startadresse</string>
+    <string name="end_address_label">Endadresse</string>
+    <string name="distance_km_label">Distanz (km)</string>
+    <string name="description_optional_label">Beschreibung (optional)</string>
+    <string name="delete_trip_cd">Fahrt löschen</string>
+    <string name="button_add">Hinzufügen</string>
+    <string name="end_time_before_start_time_toast">Die Endzeit darf nicht vor der Startzeit liegen.</string>
+    <string name="delete_filtered_trips_title">Gefilterte Fahrten löschen?</string>
+    <string name="delete_filtered_trips_confirmation">Möchten Sie wirklich alle Fahrten löschen, die dem aktuellen Filter entsprechen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+
+    <!-- Trip Summary Dialog -->
+    <string name="trip_summary_title">Fahrtzusammenfassung</string>
+    <string name="total_distance_label">Gesamtdistanz: %.2f km</string>
+
+    <!-- Trip Screen -->
+    <string name="expenses_label">Ausgaben: %1$.2f %2$s</string>
+    <string name="start_trip_button">Start</string>
+    <string name="stop_trip_button">Stopp • %.2f km</string>
+    <string name="remove_filter_cd">Filter entfernen</string>
+    <string name="from_date_label">Von: %s</string>
+    <string name="to_date_label">Bis: %s</string>
+    <string name="trip_count_and_distance_label">%1$d Fahrten • %2$.2f km</string>
+    <string name="daily_total_cost_label">• %1$.2f %2$s</string>
+    <string name="trip_distance_label">%.2f km</string>
+    <string name="trip_cost_label">• %1$.2f %2$s</string>
+    <string name="description_cd">Beschreibung</string>
+    <string name="automatic_trip_cd">Automatische Fahrt</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Fahrtüberprüfungs-Updates</string>
+    <string name="notification_channel_description">Benachrichtigungen für Fahrten, die zur Überprüfung bereit sind.</string>
+    <string name="notification_title">Fahrt zur Überprüfung bereit</string>
+    <string name="notification_content_text">%1$s ➔ %2$s (%3$.2f km)</string>
+    <string name="background_location_required_title">Hintergrund-Standortberechtigung erforderlich</string>
+    <string name="background_location_required_text">Um automatisch zu erkennen, wann Sie losfahren, benötigt diese App den Standortzugriff \'Immer zulassen\'. Bitte wählen Sie auf dem nächsten Bildschirm \'Immer zulassen\'.</string>
+    <string name="open_settings">Einstellungen öffnen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="clear_text">Text löschen</string>
+    <string name="name">Name</string>
+    <string name="enter_the_name">Namen eingeben</string>
+    <string name="logs_title">Protokolle</string>
+    <string name="refresh_logs_cd">Protokolle aktualisieren</string>
+    <string name="share_logs_cd">Protokolle teilen</string>
+    <string name="clear_logs_cd">Protokolle löschen</string>
+    <string name="waiting_for_movement">Warte auf Bewegung…</string>
+    <string name="stop">Stopp</string>
+    <string name="tracking_is_running">Tracking läuft: %.2f km</string>
+    <string name="export_trips_title">Fahrten exportieren</string>
+    <string name="export_as_csv">Als CSV exportieren</string>
+    <string name="export_as_pdf">Als PDF exportieren</string>
+
+    <!-- PDF Export -->
+    <string name="pdf_trip_report_title">Fahrtenbuch</string>
+    <string name="pdf_date_range">Datumsbereich:</string>
+    <string name="pdf_total_distance">Gesamtdistanz:</string>
+    <string name="pdf_total_expenses">Gesamtkosten:</string>
+    <string name="pdf_page_x_of_y">Seite %1$d von %2$d</string>
+    <string name="pdf_header_date">Datum</string>
+    <string name="pdf_header_from">Von</string>
+    <string name="pdf_header_to">Nach</string>
+    <string name="pdf_header_purpose">Zweck</string>
+    <string name="pdf_header_distance">Distanz</string>
+    <string name="pdf_header_expenses">Kosten</string>
+    <string name="pdf_header_start_time">Startzeit</string>
+    <string name="pdf_header_end_time">Endzeit</string>
+</resources>

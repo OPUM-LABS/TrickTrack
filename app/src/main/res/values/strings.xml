@@ -1,0 +1,203 @@
+<resources>
+    <string name="app_name">TrickTrack</string>
+    <string name="trip_review_channel_id">trip_review_channel</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_diagnostics_title">Diagnostics</string>
+    <string name="settings_permissions_check_title">Permissions Check</string>
+    <string name="settings_permissions_all_granted_cd">All granted</string>
+    <string name="settings_permissions_action_needed_cd">Action Needed</string>
+    <string name="settings_permissions_action_needed_text">Action Needed</string>
+    <string name="settings_tracking_settings_title">Tracking Settings</string>
+    <string name="settings_automatic_tracking_title">Automatic Tracking</string>
+    <string name="settings_automatic_tracking_description">Automatically records trips when you start driving.</string>
+    <string name="settings_bluetooth_trigger_title">Start on Bluetooth Connection</string>
+    <string name="settings_bluetooth_trigger_description">Automatically start tracking when a selected Bluetooth device connects.</string>
+    <string name="settings_bluetooth_select_device">Select device</string>
+    <string name="settings_bluetooth_change_device">Change device</string>
+    <string name="settings_smart_location_snapping_title">Smart Location Snapping</string>
+    <string name="settings_smart_location_snapping_description">Use Favorite names for addresses near saved locations.</string>
+    <string name="settings_smart_location_radius_label">Snapping Radius (meters)</string>
+    <string name="settings_schedule_title">Automatic Tracking Schedule</string>
+    <string name="settings_schedule_description">Tap to edit the daily schedule</string>
+    <string name="settings_schedule_edit_cd">Edit Schedule</string>
+    <string name="settings_trip_defaults_title">Trip Defaults</string>
+    <string name="settings_default_type_title">Default Type</string>
+    <string name="trip_type_business">Business</string>
+    <string name="trip_type_personal">Personal</string>
+    <string name="settings_calculate_expenses_title">Calculate Trip Expenses</string>
+    <string name="settings_expense_rate_label">Rate per km</string>
+    <string name="settings_expense_currency_label">Currency</string>
+    <string name="settings_export_fields_title">Configure Export Fields</string>
+    <string name="settings_export_fields_description">Tap to edit</string>
+    <string name="settings_export_fields_configure_cd">Configure Export</string>
+    <string name="settings_enable_schedule_title">Enable Schedule</string>
+    <string name="settings_enable_schedule_description">Let the schedule control tracking</string>
+    <string name="settings_controlled_by_schedule">Controlled by Schedule</string>
+    <string name="settings_advanced_settings_title">Advanced Settings</string>
+    <string name="settings_stillness_timer_label">Stillness Timer (seconds)</string>
+    <string name="settings_min_speed_label">Minimum Speed (km/h)</string>
+    <string name="settings_all_days">All Days</string>
+
+    <!-- General -->
+    <string name="button_save">Save</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_ok">OK</string>
+    <string name="button_done">Done</string>
+    <string name="button_close">Close</string>
+    <string name="unknown_device">Unknown Device</string>
+
+    <!-- New strings for SettingsScreen.kt -->
+    <string name="settings_bluetooth_permission_denied_toast">Bluetooth permission denied. Cannot enable Bluetooth trigger.</string>
+    <string name="settings_bluetooth_select_devices_dialog_title">Select Bluetooth Devices</string>
+    <string name="about_version">Version: %1$s</string>
+    <string name="about_license">Released under MIT License</string>
+    <string name="about_osm_attribution">Map data © OpenStreetMap contributors</string>
+    <string name="about_copyright">© 2026 OPUM-Labs</string>
+    <string name="about_made_with_love">created with ❤️ and 🤖</string>
+
+    <!-- Export Settings Dialog -->
+    <string name="export_column_date">Date</string>
+    <string name="export_column_time">Start/End Time</string>
+    <string name="export_column_start_location">Start Location</string>
+    <string name="export_column_end_location">End Location</string>
+    <string name="export_column_distance">Distance</string>
+    <string name="export_column_type">Type</string>
+    <string name="export_column_expenses">Expenses</string>
+
+    <!-- Schedule Settings Dialog -->
+    <string name="schedule_select_start_time">Select Start Time for %1$s</string>
+    <string name="schedule_select_end_time">Select End Time for %1$s</string>
+    <string name="schedule_loading">Loading schedule…</string>
+    <string name="schedule_from">From:</string>
+    <string name="schedule_to">To:</string>
+    <string name="schedule_reset_cd">Reset</string>
+    <string name="schedule_reset_times">Reset Times</string>
+    <string name="button_apply">Apply</string>
+    <string name="schedule_target_automatic">Automatic</string>
+    <string name="schedule_target_bluetooth">Bluetooth</string>
+    <string name="schedule_target_both">Both</string>
+
+    <!-- Menu Navigation -->
+
+    <!-- Screen Titles -->
+    <string name="screen_title_review">Review</string>
+    <string name="screen_title_trips">Trips</string>
+    <string name="screen_title_favourites">Favourites</string>
+    <string name="screen_title_logs">Logs</string>
+    <string name="screen_title_settings">Settings</string>
+
+    <!-- Top App Bar Actions -->
+    <string name="action_add_manual_trip">Add Manual Trip</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_export">Export</string>
+    <string name="action_about">About</string>
+    <string name="action_add_place">Add Place</string>
+    <string name="action_delete">Delete</string>
+
+    <!-- Review Screen -->
+    <string name="review_discard_trip_title">Discard Trip?</string>
+    <string name="review_discard_trip_message">Are you sure you want to discard this trip? This cannot be undone.</string>
+    <string name="review_discard_button">Discard</string>
+    <string name="review_no_trips">No trips to review!</string>
+    <string name="review_trip_count_and_distance">%1$d Trips • %2$.2f km</string>
+    <string name="review_approve_trip">Approve Trip</string>
+
+    <!-- Add/Edit Place Dialog -->
+    <string name="add_place_title">Add Place</string>
+    <string name="edit_place_title">Edit Place</string>
+    <string name="place_name_label">Name</string>
+    <string name="place_address_label">Address</string>
+    <string name="place_favorite_cd">Favorite</string>
+
+    <!-- Permission Dialog -->
+    <string name="permission_status_title">Permission Status</string>
+    <string name="permission_granted_cd">Granted</string>
+    <string name="permission_denied_cd">Denied</string>
+    <string name="open_settings_button">Open Settings</string>
+    <string name="permission_precise_location">Precise Location</string>
+    <string name="permission_background_location">Background Location</string>
+    <string name="permission_bluetooth">Bluetooth</string>
+    <string name="permission_notifications">Notifications</string>
+
+    <!-- Filter Dialog -->
+    <string name="filter_trips_title">Filter Trips</string>
+    <string name="filter_keyword_label">Keyword</string>
+    <string name="filter_trip_type_label">Trip Type:</string>
+    <string name="filter_trip_type_all">All</string>
+    <string name="filter_start_date_label">Start Date</string>
+    <string name="filter_end_date_label">End Date</string>
+    <string name="filter_reset_button">Reset</string>
+
+    <!-- Edit Trip Dialog -->
+    <string name="edit_trip_title">Edit Trip</string>
+    <string name="add_manual_trip_title">Add Manual Trip</string>
+    <string name="date_label">Date</string>
+    <string name="start_time_label">Start Time</string>
+    <string name="end_time_label">End Time</string>
+    <string name="start_address_label">Start Address</string>
+    <string name="end_address_label">End Address</string>
+    <string name="distance_km_label">Distance (km)</string>
+    <string name="description_optional_label">Description (Optional)</string>
+    <string name="delete_trip_cd">Delete Trip</string>
+    <string name="button_add">Add</string>
+    <string name="end_time_before_start_time_toast">End time cannot be before start time.</string>
+    <string name="delete_filtered_trips_title">Delete Filtered Trips?</string>
+    <string name="delete_filtered_trips_confirmation">Are you sure you want to delete all trips that match the current filter? This action cannot be undone.</string>
+
+    <!-- Trip Summary Dialog -->
+    <string name="trip_summary_title">Trip Summary</string>
+    <string name="total_distance_label">Total distance: %.2f km</string>
+
+    <!-- Trip Screen -->
+    <string name="expenses_label">Expenses: %1$.2f %2$s</string>
+    <string name="start_trip_button">Start</string>
+    <string name="stop_trip_button">Stop • %.2f km</string>
+    <string name="remove_filter_cd">Remove filter</string>
+    <string name="from_date_label">From: %s</string>
+    <string name="to_date_label">To: %s</string>
+    <string name="trip_count_and_distance_label">%1$d Trips • %2$.2f km</string>
+    <string name="daily_total_cost_label">• %1$.2f %2$s</string>
+    <string name="trip_distance_label">%.2f km</string>
+    <string name="trip_cost_label">• %1$.2f %2$s</string>
+    <string name="description_cd">Description</string>
+    <string name="automatic_trip_cd">Automatic Trip</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Trip Review Updates</string>
+    <string name="notification_channel_description">Notifications for trips that are ready for review.</string>
+    <string name="notification_title">Track ready for review</string>
+    <string name="notification_content_text">%1$s ➔ %2$s (%3$.2f km)</string>
+    <string name="background_location_required_title">Background Location Required</string>
+    <string name="background_location_required_text">To detect when you start driving automatically, this app needs location access \'All the time\'. Please select \'Allow all the time\' on the next screen.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="clear_text">Clear text</string>
+    <string name="name">Name</string>
+    <string name="enter_the_name">Enter the name</string>
+    <string name="logs_title">Logs</string>
+    <string name="refresh_logs_cd">Refresh Logs</string>
+    <string name="share_logs_cd">Share Logs</string>
+    <string name="clear_logs_cd">Clear Logs</string>
+    <string name="waiting_for_movement">Waiting for movement…</string>
+    <string name="stop">Stop</string>
+    <string name="tracking_is_running">Tracking is running: %.2f km</string>
+    <string name="export_trips_title">Export Trips</string>
+    <string name="export_as_csv">Export as CSV</string>
+    <string name="export_as_pdf">Export as PDF</string>
+
+    <!-- PDF Export -->
+    <string name="pdf_trip_report_title">Trip Report</string>
+    <string name="pdf_date_range">Date Range:</string>
+    <string name="pdf_total_distance">Total Distance:</string>
+    <string name="pdf_total_expenses">Total Expenses:</string>
+    <string name="pdf_page_x_of_y">page %1$d of %2$d</string>
+    <string name="pdf_header_date">Date</string>
+    <string name="pdf_header_from">From</string>
+    <string name="pdf_header_to">To</string>
+    <string name="pdf_header_purpose">Purpose</string>
+    <string name="pdf_header_distance">Distance</string>
+    <string name="pdf_header_expenses">Expenses</string>
+    <string name="pdf_header_start_time">Start time</string>
+    <string name="pdf_header_end_time">End time</string>
+</resources>
