@@ -27,6 +27,29 @@
 ### 🎨 Design & Theming
 * **Adaptive Dark/Light Mode:** The UI seamlessly syncs with your system settings.
 * **Material 3:** Built with the latest Android design standards for a modern, fluid, and intuitive user experience.
+
+### 🌍 Translation & Localization
+
+Trick Track is built with multi-language support in mind. Currently, the following languages are available:
+
+| Language | Status                                 |
+| :--- |:---------------------------------------|
+| 🇺🇸 **English** | ✅ Complete (Default)                   |
+| 🇩🇪 **German** | ✅ Complete                             |
+| 🇫🇷 **French** | ⚠️ Complete (machine-translated)       |
+| 🇮🇹 **Italian** | ⚠️ Complete (machine-translated)         |
+
+*Missing your language? Contributions are welcome! Feel free to open a Pull Request.*
+
+<details>
+<summary><b>🛠️ Want to help translate? Click here</b></summary>
+
+1.  Open `app/src/main/res/values/strings.xml` (English source).
+2.  Create a new values folder for your language (e.g., `values-fr` for French).
+3.  Copy the strings and translate them.
+4.  Submit a Pull Request!
+</details>
+
 ---
 
 ## 🛠️ Tech Stack
@@ -62,6 +85,16 @@ Play Store release is in progress
     * Configure your **Schedule** if you only want to track during work hours.
 3.  **Manual Trip:** Tap the "Start" button on the home screen to start a manual trip.
 4.  **Auto Trip:** Just drive! The app handles the rest.
+
+---
+
+## ⚠️ Disclaimer & Development Status
+
+**Trick Track** is a personal hobby project created to solve a specific need: privacy-focused, automated mileage tracking.
+
+* **AI-Assisted Development:** Due to strict time constraints and to bridge the gap in native Android development knowledge, this application was written with significant assistance from **Google Gemini**.
+* **Maintenance:** As this is a side project maintained alongside a full-time job and family commitments, **development speed is limited**.
+* **Support:** This app is primarily built for personal use. While I welcome issues and pull requests, please expect a "hobbyist" pace for updates, features, and bug fixes.
 
 ---
 
