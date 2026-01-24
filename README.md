@@ -1,8 +1,10 @@
-# TrickTrack 📍🚗
+![App Logo](pictures/tricktrack_logo.png)
 
 **TrickTrack** is a smart, automated GPS mileage tracker for Android built with modern Jetpack Compose. It automatically detects when you are driving - either via Bluetooth connection or movement activity - and logs your trips effortlessly. Designed for privacy and battery efficiency.
 
-![App Screenshot](pictures/preview.png) ## ✨ Key Features
+![App Screenshot](pictures/preview.png)
+
+## ✨ Key Features
 
 ### 🧠 Smart Automation
 * **Bluetooth Trigger:** Automatically starts tracking when connected to specific devices (e.g., Car Audio).
@@ -32,12 +34,12 @@
 
 Trick Track is built with multi-language support in mind. Currently, the following languages are available:
 
-| Language | Status                                 |
-| :--- |:---------------------------------------|
-| 🇺🇸 **English** | ✅ Complete (Default)                   |
-| 🇩🇪 **German** | ✅ Complete                             |
-| 🇫🇷 **French** | ⚠️ Complete (machine-translated)       |
-| 🇮🇹 **Italian** | ⚠️ Complete (machine-translated)         |
+| Language          | Status                           |
+|:------------------|:---------------------------------|
+| 🇺🇸 **English**  | ✅ Complete (Default)             |
+| 🇩🇪 **German**   | ✅ Complete                       |
+| 🇫🇷 **French**   | ⚠️ Complete (machine-translated) |
+| 🇮🇹 **Italian**  | ⚠️ Complete (machine-translated) |
 
 *Missing your language? Contributions are welcome! Feel free to open a Pull Request.*
 
