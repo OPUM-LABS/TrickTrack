@@ -10,9 +10,11 @@
 
 * [✨ Key Features](#-key-features)
 * [💡 Motivation](#-motivation)
-* [🛠️ Tech Stack](#-tech-stack)
-* [⚠️ Disclaimer & Development Status](#-disclaimer--development-status)
-* [⚖️ License & Attribution](#-license--attribution)
+* [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
+* [🚀 Installation & Setup](#-installation--setup)
+* [📸 Usage](#-usage)
+* [⚠️ Disclaimer & Development Status](#%EF%B8%8F-disclaimer--development-status)
+* [⚖️ License & Attribution](#%EF%B8%8F-license--attribution)
 ---
 
 ## ✨ Key Features
