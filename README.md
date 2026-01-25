@@ -4,6 +4,17 @@
 
 ![App Screenshot](pictures/preview.png)
 
+---
+
+## 📑 Table of Contents
+
+* [✨ Key Features](#-key-features)
+* [💡 Motivation](#-motivation)
+* [🛠️ Tech Stack](#-tech-stack)
+* [⚠️ Disclaimer & Development Status](#-disclaimer--development-status)
+* [⚖️ License & Attribution](#-license--attribution)
+---
+
 ## ✨ Key Features
 
 ### 🧠 Smart Automation
@@ -54,6 +65,15 @@ Trick Track is built with multi-language support in mind. Currently, the followi
 
 ---
 
+## 💡 Motivation
+The inspiration for this project came from using apps like *Driversnote*. While they are excellent products, I found myself frustrated by a few specific limitations that I wanted to solve for my own daily use:
+
+* **🔋 Battery Efficiency:** Existing solutions often drained my battery significantly. I wanted an app that was lighter on resources.
+* **🚫 No Arbitrary Limits:** The standard "15 free trips per month" wasn't enough, and I believe basic tracking shouldn't require a subscription.
+* **🔒 Privacy First:** I did not want to create a mandatory user account or be forced to sync my location history to a cloud server. Your data stays on your device.
+* **🚙 Native Hardware:** Modern cars already have Bluetooth. I didn't see the need to buy a proprietary "Beacon" when the phone can simply detect the car's existing Bluetooth connection.
+---
+
 ## 🛠️ Tech Stack
 
 * **Language:** [Kotlin](https://kotlinlang.org/) (100%)
@@ -76,7 +96,8 @@ Trick Track is built with multi-language support in mind. Currently, the followi
 1.  **Get the latest version (apk) from the releases page**
 2.  **Install the app**
 
-Play Store release is in progress
+Google Play Store release is in progress
+
 ---
 
 ## 📸 Usage
