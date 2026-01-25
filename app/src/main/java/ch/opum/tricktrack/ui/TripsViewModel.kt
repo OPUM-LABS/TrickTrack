@@ -423,11 +423,20 @@ class TripsViewModel(
     private val _pdfFileCreated = MutableSharedFlow<Uri>()
     val pdfFileCreated: SharedFlow<Uri> = _pdfFileCreated.asSharedFlow()
 
+    private val _showTripSummaryDialog = MutableSharedFlow<Trip>()
+    val showTripSummaryDialog: SharedFlow<Trip> = _showTripSummaryDialog.asSharedFlow()
+
     init {
         // Collect distance updates from LocationService whenever the ViewModel is active
         viewModelScope.launch {
             LocationService.distance.collect { newDistance ->
                 _distance.value = newDistance // Update the StateFlow
+            }
+        }
+
+        viewModelScope.launch {
+            LocationService.tripSavedForSummary.collect { trip ->
+                _showTripSummaryDialog.emit(trip)
             }
         }
 
@@ -523,47 +532,6 @@ class TripsViewModel(
             it.action = LocationService.ACTION_STOP
             context.startService(it)
         }
-
-        viewModelScope.launch {
-            val startLocation = LocationService.startLocation.first()
-            val endLocation = LocationService.lastLocation.first()
-            val isSmartLocationEnabled = userPreferencesRepository.isSmartLocationEnabled.first()
-            val smartLocationRadius = userPreferencesRepository.smartLocationRadius.first()
-            val savedPlaces = repository.getAllSavedPlacesBlocking()
-
-            startLat = startLocation?.latitude
-            startLon = startLocation?.longitude
-            endLat = endLocation?.latitude
-            endLon = endLocation?.longitude
-
-            val geocodedStartAddress = startLocation?.let {
-                geocoderHelper.getAddressFromLocation(it.latitude, it.longitude)
-            } ?: "Unknown Start"
-
-            val geocodedEndAddress = endLocation?.let {
-                geocoderHelper.getAddressFromLocation(it.latitude, it.longitude)
-            } ?: "Unknown End"
-
-            startAddress = geocoderHelper.getSmartAddress(
-                originalAddress = geocodedStartAddress,
-                lat = startLat,
-                lng = startLon,
-                favorites = savedPlaces,
-                isEnabled = isSmartLocationEnabled,
-                radius = smartLocationRadius
-            )
-
-            endAddress = geocoderHelper.getSmartAddress(
-                originalAddress = geocodedEndAddress,
-                lat = endLat,
-                lng = endLon,
-                favorites = savedPlaces,
-                isEnabled = isSmartLocationEnabled,
-                radius = smartLocationRadius
-            )
-
-            showSummaryDialog = true
-        }
     }
 
     fun onToggleAutoTracking(
@@ -576,38 +544,13 @@ class TripsViewModel(
         }
     }
 
-    fun addTrip(
-        startLoc: String,
-        endLoc: String,
-        finalDistance: Double,
-        type: String,
-        description: String?,
-        date: Date,
-        endDate: Long,
-        startLat: Double?,
-        startLon: Double?,
-        endLat: Double?,
-        endLon: Double?,
-        isConfirmed: Boolean
-    ) {
+    fun saveOrUpdateTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
-            val distanceInKm = finalDistance / 1000.0
-            repository.insert(
-                Trip(
-                    startLoc = startLoc,
-                    endLoc = endLoc,
-                    distance = distanceInKm,
-                    type = type,
-                    description = description,
-                    date = date,
-                    endDate = endDate,
-                    startLat = startLat,
-                    startLon = startLon,
-                    endLat = endLat,
-                    endLon = endLon,
-                    isConfirmed = isConfirmed
-                )
-            )
+            if (trip.id == 0L) {
+                repository.insert(trip)
+            } else {
+                repository.updateTrip(trip)
+            }
         }
         showSummaryDialog = false
         _distance.value = 0.0 // Reset distance after adding trip

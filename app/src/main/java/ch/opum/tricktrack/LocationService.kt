@@ -36,6 +36,8 @@ import java.util.Date
 import ch.opum.tricktrack.TripNotificationManager
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.ui.TripTrigger
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 class LocationService : Service() {
 
@@ -115,7 +117,7 @@ class LocationService : Service() {
             }
             ACTION_STOP -> { // Manual stop from UI or stillness timer
                 applicationScope.launch {
-                    stopTripAndPrepareForSummary()
+                    stopTripAndPrepareForSummary(true)
                 }
             }
             ACTION_STOP_MONITORING -> { // Explicit stop monitoring command
@@ -175,7 +177,7 @@ class LocationService : Service() {
             // A trip is active (and not manual), but Bluetooth conditions are no longer met.
             // Or, if it was an auto trip and auto tracking is now disabled.
             AppLogger.log("LocationService", "Trip active, but conditions no longer met. Stopping trip.")
-            stopTripAndPrepareForSummary() // This will call evaluateTrackingState again, which will then decide the next state.
+            stopTripAndPrepareForSummary(false) // This will call evaluateTrackingState again, which will then decide the next state.
         } else if (shouldAutoTrackBeActive) {
             // Auto tracking conditions met, start monitoring
             AppLogger.log("LocationService", "Auto tracking enabled. Starting/Continuing monitoring.")
@@ -487,12 +489,12 @@ class LocationService : Service() {
         AppLogger.log("LocationService", "Stopping automatic trip and saving for review.")
         _isTracking.value = false
         applicationScope.launch {
-            saveTrip()
+            saveTrip(isManualStop = false)
             evaluateTrackingState() // Re-evaluate state after trip ends
         }
     }
 
-    private suspend fun stopTripAndPrepareForSummary() {
+    private suspend fun stopTripAndPrepareForSummary(isManualStop: Boolean) {
         AppLogger.log("LocationService", "Stopping trip for summary.")
         val wasTracking = _isTracking.value
         _isTracking.value = false
@@ -501,14 +503,14 @@ class LocationService : Service() {
         isManualTrip = false
         isBluetoothTriggeredTrip = false
         if (wasTracking) {
-            saveTrip()
+            saveTrip(isManualStop)
         }
         applicationScope.launch {
             evaluateTrackingState() // Re-evaluate state after trip ends
         }
     }
 
-    private suspend fun saveTrip() {
+    private suspend fun saveTrip(isManualStop: Boolean) {
         val finalDistance = _distance.value
         if (finalDistance > 100) { // Only save if distance is more than 100 meters
             val startLocation = _startLocation.value
@@ -548,6 +550,8 @@ class LocationService : Service() {
             val isBusinessDefault = userPreferencesRepository.defaultIsBusiness.first()
             val tripType = if (isBusinessDefault) "Business" else "Personal"
 
+            val isConfirmed = _currentTripTrigger.value == TripTrigger.MANUAL || isManualStop
+
             val trip = Trip(
                 startLoc = startAddress,
                 endLoc = endAddress,
@@ -556,13 +560,13 @@ class LocationService : Service() {
                 description = "",
                 date = tripStartDate ?: Date(),
                 endDate = System.currentTimeMillis(),
-                isConfirmed = false, // Always false as per current logic
+                isConfirmed = isConfirmed,
                 isAutomatic = _currentTripTrigger.value == TripTrigger.AUTOMATIC
             )
             repository.insert(trip)
-            AppLogger.log("LocationService", "Trip saved. Confirmed: false")
+            AppLogger.log("LocationService", "Trip saved. Confirmed: $isConfirmed")
 
-            if (trip.isAutomatic) {
+            if (!isConfirmed) {
                 TripNotificationManager.sendTripReviewNotification(applicationContext, trip)
             }
         } else {
@@ -619,5 +623,8 @@ class LocationService : Service() {
 
         private val _currentTripTrigger = MutableStateFlow(TripTrigger.MANUAL)
         val currentTripTrigger = _currentTripTrigger.asStateFlow()
+
+        private val _tripSavedForSummary = MutableSharedFlow<Trip>()
+        val tripSavedForSummary = _tripSavedForSummary.asSharedFlow()
     }
 }

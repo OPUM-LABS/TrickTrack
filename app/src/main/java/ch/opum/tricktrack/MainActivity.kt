@@ -142,6 +142,7 @@ import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 // Extension function to check background location permission
@@ -232,6 +233,9 @@ fun MainScreen(
 
     val latestIntent by currentIntent.collectAsState()
 
+    var showSummaryDialog by remember { mutableStateOf(false) }
+    var tripToSummarize by remember { mutableStateOf<Trip?>(null) }
+
     LaunchedEffect(Unit) {
         tripsViewModel.pdfFileCreated.collect { uri ->
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -245,6 +249,13 @@ fun MainScreen(
                     "Share trips PDF"
                 )
             )
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        tripsViewModel.showTripSummaryDialog.collectLatest { trip ->
+            tripToSummarize = trip
+            showSummaryDialog = true
         }
     }
 
@@ -343,29 +354,18 @@ fun MainScreen(
         )
     }
 
-    if (tripsViewModel.showSummaryDialog) {
+    if (showSummaryDialog) {
         val defaultIsBusiness by tripsViewModel.defaultIsBusiness.collectAsState()
         TripSummaryDialog(
+            trip = tripToSummarize,
             distance = distance,
-            startAddress = tripsViewModel.startAddress,
-            endAddress = tripsViewModel.endAddress,
+            startAddress = tripToSummarize?.startLoc ?: tripsViewModel.startAddress,
+            endAddress = tripToSummarize?.endLoc ?: tripsViewModel.endAddress,
             defaultIsBusiness = defaultIsBusiness,
-            onDismiss = { tripsViewModel.dismissSummaryDialog() },
-            onSave = { start, end, tripType, description ->
-                tripsViewModel.addTrip(
-                    start,
-                    end,
-                    distance,
-                    tripType,
-                    description,
-                    Date(),
-                    Date().time,
-                    tripsViewModel.startLat,
-                    tripsViewModel.startLon,
-                    tripsViewModel.endLat,
-                    tripsViewModel.endLon,
-                    isConfirmed = true // Manually stopped trips are confirmed
-                )
+            onDismiss = { showSummaryDialog = false },
+            onSave = { trip ->
+                tripsViewModel.saveOrUpdateTrip(trip)
+                showSummaryDialog = false
             }
         )
     }
@@ -524,20 +524,7 @@ fun MainScreen(
                                     trip = null,
                                     onDismiss = { showAddManualTripDialog = false },
                                     onSave = { newTrip ->
-                                        tripsViewModel.addTrip(
-                                            newTrip.startLoc,
-                                            newTrip.endLoc,
-                                            newTrip.distance * 1000,
-                                            newTrip.type,
-                                            newTrip.description,
-                                            newTrip.date,
-                                            newTrip.endDate,
-                                            newTrip.startLat,
-                                            newTrip.startLon,
-                                            newTrip.endLat,
-                                            newTrip.endLon,
-                                            isConfirmed = true // Manually added trips are confirmed
-                                        )
+                                        tripsViewModel.saveOrUpdateTrip(newTrip)
                                         showAddManualTripDialog = false
                                     },
                                     onDelete = { /* Not used in add mode */ },
@@ -1333,12 +1320,13 @@ fun EditTripDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripSummaryDialog(
+    trip: Trip?,
     distance: Double,
     startAddress: String,
     endAddress: String,
     defaultIsBusiness: Boolean,
     onDismiss: () -> Unit,
-    onSave: (String, String, String, String) -> Unit
+    onSave: (Trip) -> Unit
 ) {
     var start by remember { mutableStateOf(startAddress) }
     var end by remember { mutableStateOf(endAddress) }
@@ -1401,7 +1389,24 @@ fun TripSummaryDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(start, end, tripType, description) }) {
+            Button(onClick = {
+                val tripToSave = trip?.copy(
+                    startLoc = start,
+                    endLoc = end,
+                    type = tripType,
+                    description = description
+                ) ?: Trip(
+                    startLoc = start,
+                    endLoc = end,
+                    distance = distance,
+                    type = tripType,
+                    description = description,
+                    date = Date(),
+                    endDate = Date().time,
+                    isConfirmed = true
+                )
+                onSave(tripToSave)
+            }) {
                 Text(stringResource(R.string.button_save))
             }
         },

@@ -26,4 +26,7 @@ interface TripDao {
 
     @Query("SELECT * FROM trips WHERE isConfirmed = 0 ORDER BY date DESC")
     fun getUnconfirmedTrips(): Flow<List<Trip>>
+
+    @Query("SELECT * FROM trips ORDER BY id DESC LIMIT 1")
+    suspend fun getLastTrip(): Trip?
 }
