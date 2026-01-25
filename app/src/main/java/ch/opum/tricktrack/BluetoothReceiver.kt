@@ -11,7 +11,6 @@ import ch.opum.tricktrack.data.UserPreferencesRepository
 import ch.opum.tricktrack.logging.AppLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class BluetoothReceiver : BroadcastReceiver() {
@@ -29,7 +28,7 @@ class BluetoothReceiver : BroadcastReceiver() {
             return
         }
 
-        val userPreferences = UserPreferencesRepository(context)
+        UserPreferencesRepository(context)
         val scope = CoroutineScope(Dispatchers.IO)
 
         scope.launch {
