@@ -13,6 +13,7 @@
 * [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
 * [🚀 Installation & Setup](#-installation--setup)
 * [📸 Usage](#-usage)
+* [📖 Documentation & Help]()
 * [⚠️ Disclaimer & Development Status](#%EF%B8%8F-disclaimer--development-status)
 * [⚖️ License & Attribution](#%EF%B8%8F-license--attribution)
 ---
