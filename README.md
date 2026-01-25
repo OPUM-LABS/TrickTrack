@@ -121,6 +121,8 @@ Need more details? Check out the **[GitHub Wiki](https://github.com/OPUM-LABS/Tr
 * [🚙 Bluetooth Setup](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%9A%99-Bluetooth-Setup)
 * [📅 Scheduler & Working Hours](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%93%85-Scheduler-&-Working-Hours)
 * [🔧 Troubleshooting & FAQ](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%94%A7-Troubleshooting-&-FAQ)
+* [📊 Filtering & Reporting](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%93%8A-Filtering-&-Reporting)
+
 ---
 
 ## ⚠️ Disclaimer & Development Status
