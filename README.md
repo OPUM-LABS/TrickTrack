@@ -45,7 +45,7 @@
 
 ### 🌍 Translation & Localization
 
-Trick Track is built with multi-language support in mind. Currently, the following languages are available:
+TrickTrack is built with multi-language support in mind. Currently, the following languages are available:
 
 | Language          | Status                           |
 |:------------------|:---------------------------------|
@@ -115,7 +115,7 @@ Google Play Store release is in progress
 
 ## ⚠️ Disclaimer & Development Status
 
-**Trick Track** is a personal hobby project created to solve a specific need: privacy-focused, automated mileage tracking.
+**TrickTrack** is a personal hobby project created to solve a specific need: privacy-focused, automated mileage tracking.
 
 * **AI-Assisted Development:** Due to strict time constraints and to bridge the gap in native Android development knowledge, this application was written with significant assistance from **Google Gemini**.
 * **Maintenance:** As this is a side project maintained alongside a full-time job and family commitments, **development speed is limited**.
