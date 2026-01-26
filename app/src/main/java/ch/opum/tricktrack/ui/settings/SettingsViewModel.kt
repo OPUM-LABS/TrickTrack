@@ -2,8 +2,10 @@ package ch.opum.tricktrack.ui.settings
 
 import android.app.Application
 import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import ch.opum.tricktrack.R
 import ch.opum.tricktrack.backup.BackupManager
 import ch.opum.tricktrack.data.TripRepository
 import kotlinx.coroutines.launch
@@ -41,10 +43,14 @@ class SettingsViewModel(
                         tripRepository.restoreTrips(backupData.trips)
                         // You'll need to implement the logic to restore settings
                         // restoreSettings(backupData.settings)
+                        Toast.makeText(getApplication(), R.string.import_successful, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(getApplication(), R.string.import_failed, Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 // Handle exceptions
+                Toast.makeText(getApplication(), R.string.import_failed, Toast.LENGTH_SHORT).show()
             }
         }
     }

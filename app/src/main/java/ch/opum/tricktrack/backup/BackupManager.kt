@@ -9,6 +9,7 @@ class BackupManager {
 
     fun createBackupJson(trips: List<Trip>, settings: Map<String, String>): String {
         val metadata = BackupMetadata(
+            appName = "TrickTrack",
             timestamp = System.currentTimeMillis(),
             version = 1
         )
@@ -22,7 +23,12 @@ class BackupManager {
 
     fun restoreBackupFromJson(json: String): BackupData? {
         return try {
-            gson.fromJson(json, BackupData::class.java)
+            val backupData = gson.fromJson(json, BackupData::class.java)
+            if (backupData.metadata.appName == "TrickTrack") {
+                backupData
+            } else {
+                null
+            }
         } catch (e: Exception) {
             // Handle parsing errors, maybe log them
             null

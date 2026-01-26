@@ -41,6 +41,8 @@
     <string name="settings_backup_restore_title">Backup and Restore</string>
     <string name="settings_export_button">Export</string>
     <string name="settings_import_button">Import</string>
+    <string name="import_successful">Backup imported successfully!</string>
+    <string name="import_failed">Failed to import backup. Please check the file.</string>
 
     <!-- General -->
     <string name="button_save">Save</string>

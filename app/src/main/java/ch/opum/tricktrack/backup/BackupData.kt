@@ -9,6 +9,7 @@ data class BackupData(
 )
 
 data class BackupMetadata(
+    val appName: String,
     val timestamp: Long,
     val version: Int
 )

@@ -101,8 +101,10 @@ import ch.opum.tricktrack.hasBackgroundLocationPermission
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
+import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.format.TextStyle
+import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -789,7 +791,8 @@ fun SettingsScreen(
 
                 Button(
                     onClick = {
-                        exportLauncher.launch("tricktrack_backup.json")
+                        val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
+                        exportLauncher.launch("tricktrack-backup_$timeStamp.json")
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
