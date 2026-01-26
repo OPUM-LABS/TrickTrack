@@ -38,6 +38,9 @@
     <string name="settings_stillness_timer_label">Stillness Timer (seconds)</string>
     <string name="settings_min_speed_label">Minimum Speed (km/h)</string>
     <string name="settings_all_days">All Days</string>
+    <string name="settings_backup_restore_title">Backup and Restore</string>
+    <string name="settings_export_button">Export</string>
+    <string name="settings_import_button">Import</string>
 
     <!-- General -->
     <string name="button_save">Save</string>

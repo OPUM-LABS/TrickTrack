@@ -34,4 +34,12 @@ class TripRepository(private val tripDao: TripDao, private val savedPlaceDao: Sa
     suspend fun deleteTrips(trips: List<Trip>) {
         tripDao.deleteTrips(trips)
     }
+
+    suspend fun getTripsForBackup(): List<Trip> {
+        return tripDao.getTripsForBackup()
+    }
+
+    suspend fun restoreTrips(trips: List<Trip>) {
+        tripDao.restoreTrips(trips)
+    }
 }

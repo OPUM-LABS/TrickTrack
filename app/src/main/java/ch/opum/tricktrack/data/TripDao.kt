@@ -3,6 +3,7 @@ package ch.opum.tricktrack.data
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -29,4 +30,10 @@ interface TripDao {
 
     @Query("SELECT * FROM trips ORDER BY id DESC LIMIT 1")
     suspend fun getLastTrip(): Trip?
+
+    @Query("SELECT * FROM trips")
+    suspend fun getTripsForBackup(): List<Trip>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun restoreTrips(trips: List<Trip>)
 }

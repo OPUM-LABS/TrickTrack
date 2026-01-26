@@ -77,6 +77,9 @@ dependencies {
     implementation(libs.google.play.services.location)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // Gson
+    implementation(libs.google.code.gson)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

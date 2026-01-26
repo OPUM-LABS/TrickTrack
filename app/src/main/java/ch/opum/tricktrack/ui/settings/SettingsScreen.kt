@@ -2,6 +2,7 @@ package ch.opum.tricktrack.ui.settings
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -90,7 +91,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.opum.tricktrack.R
+import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.DaySchedule
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
@@ -115,6 +118,12 @@ fun SettingsScreen(
     showLogsDialog: Boolean,
     onDismissLogsDialog: () -> Unit
 ) {
+    val context = LocalContext.current
+    val application = context.applicationContext as TripApplication
+    val settingsViewModel: SettingsViewModel = viewModel(
+        factory = SettingsViewModelFactory(application, application.repository)
+    )
+
     val isAutoTrackingEnabled by viewModel.isAutoTrackingEnabled.collectAsState()
     val isBluetoothTriggerEnabled by viewModel.isBluetoothTriggerEnabled.collectAsState()
     val selectedBluetoothDevices by viewModel.selectedBluetoothDevices.collectAsState()
@@ -132,7 +141,6 @@ fun SettingsScreen(
     val isBluetoothDeviceSelectionEnabled by viewModel.isBluetoothDeviceSelectionEnabled.collectAsState()
     val stillnessTimer by viewModel.stillnessTimer.collectAsState()
     val minSpeed by viewModel.minSpeed.collectAsState()
-    val context = LocalContext.current
     var pairedDevices by remember { mutableStateOf<Set<BluetoothDevice>>(emptySet()) }
     var showDeviceDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -744,6 +752,60 @@ fun SettingsScreen(
                             }
                         }
                 )
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+        Text(
+            stringResource(R.string.settings_backup_restore_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                val exportLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.CreateDocument("application/json"),
+                    onResult = { uri ->
+                        if (uri != null) {
+                            settingsViewModel.exportBackup(uri)
+                        }
+                    }
+                )
+
+                val importLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.OpenDocument(),
+                    onResult = { uri ->
+                        if (uri != null) {
+                            settingsViewModel.importBackup(uri)
+                        }
+                    }
+                )
+
+                Button(
+                    onClick = {
+                        exportLauncher.launch("tricktrack_backup.json")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.settings_export_button))
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = {
+                        importLauncher.launch(arrayOf("application/json"))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.settings_import_button))
+                }
             }
         }
     }
