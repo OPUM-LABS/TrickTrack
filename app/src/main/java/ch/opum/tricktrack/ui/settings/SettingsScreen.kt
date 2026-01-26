@@ -125,7 +125,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val application = context.applicationContext as TripApplication
     val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModelFactory(application, application.repository)
+        factory = SettingsViewModelFactory(application, application.repository, application.userPreferencesRepository)
     )
 
     val isAutoTrackingEnabled by viewModel.isAutoTrackingEnabled.collectAsState()
@@ -824,6 +824,10 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_import_button))
                     }
                 }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                BackupSettingsSection(viewModel = settingsViewModel)
             }
         }
     }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.DayOfWeek
+import java.util.Calendar
 import java.util.Currency
 import java.util.Locale
 
@@ -39,6 +40,11 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_SNAPSHOT_BLUETOOTH = booleanPreferencesKey("snapshot_bluetooth")
         val STILLNESS_TIMER_S = intPreferencesKey("stillness_timer_s")
         val MIN_SPEED_KMH = intPreferencesKey("min_speed_kmh")
+        val AUTO_BACKUP_ENABLED = booleanPreferencesKey("auto_backup_enabled")
+        val BACKUP_FREQUENCY = stringPreferencesKey("backup_frequency")
+        val BACKUP_DAY_OF_WEEK = intPreferencesKey("backup_day_of_week")
+        val BACKUP_DAY_OF_MONTH = intPreferencesKey("backup_day_of_month")
+        val BACKUP_FOLDER_URI = stringPreferencesKey("backup_folder_uri")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -242,5 +248,69 @@ class UserPreferencesRepository(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.MIN_SPEED_KMH] = speed
         }
+    }
+
+    val autoBackupEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.AUTO_BACKUP_ENABLED] ?: false
+        }
+
+    suspend fun setAutoBackupEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AUTO_BACKUP_ENABLED] = enabled
+        }
+    }
+
+    val backupFrequency: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.BACKUP_FREQUENCY] ?: "DAILY"
+        }
+
+    suspend fun setBackupFrequency(frequency: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BACKUP_FREQUENCY] = frequency
+        }
+    }
+
+    val backupDayOfWeek: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.BACKUP_DAY_OF_WEEK] ?: Calendar.MONDAY
+        }
+
+    suspend fun setBackupDayOfWeek(day: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BACKUP_DAY_OF_WEEK] = day
+        }
+    }
+
+    val backupDayOfMonth: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.BACKUP_DAY_OF_MONTH] ?: 1
+        }
+
+    suspend fun setBackupDayOfMonth(day: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BACKUP_DAY_OF_MONTH] = day
+        }
+    }
+
+    val backupFolderUri: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.BACKUP_FOLDER_URI]
+        }
+
+    suspend fun setBackupFolderUri(uri: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BACKUP_FOLDER_URI] = uri
+        }
+    }
+
+    suspend fun getAllPreferences(): Map<String, String> {
+        val preferences = context.dataStore.data.first()
+        val map = mutableMapOf<String, String>()
+        preferences.asMap().forEach { (key, value) ->
+            map[key.name] = value.toString()
+        }
+        return map
     }
 }
