@@ -38,10 +38,12 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -789,25 +791,38 @@ fun SettingsScreen(
                     }
                 )
 
-                Button(
-                    onClick = {
-                        val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
-                        exportLauncher.launch("tricktrack-backup_$timeStamp.json")
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(stringResource(R.string.settings_export_button))
-                }
+                    Button(
+                        onClick = {
+                            val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
+                            exportLauncher.launch("tricktrack-backup_$timeStamp.json")
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            Icons.Default.Upload,
+                            contentDescription = stringResource(R.string.settings_export_button)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.settings_export_button))
+                    }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = {
-                        importLauncher.launch(arrayOf("application/json"))
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.settings_import_button))
+                    Button(
+                        onClick = {
+                            importLauncher.launch(arrayOf("application/json"))
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = stringResource(R.string.settings_import_button)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.settings_import_button))
+                    }
                 }
             }
         }
