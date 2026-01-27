@@ -123,6 +123,7 @@ Need more details? Check out the **[GitHub Wiki](https://github.com/OPUM-LABS/Tr
 * [🔧 Troubleshooting & FAQ](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%94%A7-Troubleshooting-&-FAQ)
 * [📊 Filtering & Reporting](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%93%8A-Filtering-&-Reporting)
 * [⭐ Favourites & Smart Location Snapping](https://github.com/OPUM-LABS/TrickTrack/wiki/%E2%AD%90-Favourites-&-Smart-Location-Snapping)
+* [💾 Backup and Restore](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%92%BE-Backup-and-Restore)
 
 ---
 
