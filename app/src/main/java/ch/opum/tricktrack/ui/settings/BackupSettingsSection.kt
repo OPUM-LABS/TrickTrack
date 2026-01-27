@@ -29,8 +29,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
+import ch.opum.tricktrack.R
+import java.net.URLDecoder
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,7 +65,7 @@ fun BackupSettingsSection(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Enable Automatic Backups", modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.settings_auto_backup_enable), modifier = Modifier.weight(1f))
             Switch(
                 checked = autoBackupEnabled,
                 onCheckedChange = { viewModel.setAutoBackupEnabled(it) }
@@ -73,11 +76,11 @@ fun BackupSettingsSection(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(onClick = { launcher.launch(null) }) {
-                Text("Select Backup Folder")
+                Text(stringResource(R.string.settings_auto_backup_folder))
             }
 
             backupFolderUri?.let {
-                Text("Selected folder: ${getFolderName(context, it)}")
+                Text(stringResource(R.string.settings_auto_backup_folder_selected, Uri.parse(it).toUserFriendlyString()))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -87,10 +90,15 @@ fun BackupSettingsSection(
                 onExpandedChange = { frequencyExpanded = !frequencyExpanded }
             ) {
                 TextField(
-                    value = backupFrequency,
+                    value = when (backupFrequency) {
+                        "DAILY" -> stringResource(R.string.settings_auto_backup_frequency_daily)
+                        "WEEKLY" -> stringResource(R.string.settings_auto_backup_frequency_weekly)
+                        "MONTHLY" -> stringResource(R.string.settings_auto_backup_frequency_monthly)
+                        else -> ""
+                    },
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Backup Frequency") },
+                    label = { Text(stringResource(R.string.settings_auto_backup_frequency)) },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = frequencyExpanded)
                     },
@@ -101,21 +109,21 @@ fun BackupSettingsSection(
                     onDismissRequest = { frequencyExpanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Daily") },
+                        text = { Text(stringResource(R.string.settings_auto_backup_frequency_daily)) },
                         onClick = {
                             viewModel.setBackupFrequency("DAILY")
                             frequencyExpanded = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Weekly") },
+                        text = { Text(stringResource(R.string.settings_auto_backup_frequency_weekly)) },
                         onClick = {
                             viewModel.setBackupFrequency("WEEKLY")
                             frequencyExpanded = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Monthly") },
+                        text = { Text(stringResource(R.string.settings_auto_backup_frequency_monthly)) },
                         onClick = {
                             viewModel.setBackupFrequency("MONTHLY")
                             frequencyExpanded = false
@@ -135,7 +143,7 @@ fun BackupSettingsSection(
                             value = dayOfWeekToString(backupDayOfWeek),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Day of Week") },
+                            label = { Text(stringResource(R.string.settings_auto_backup_day_of_week)) },
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = dayOfWeekExpanded)
                             },
@@ -166,7 +174,7 @@ fun BackupSettingsSection(
                 }
                 "MONTHLY" -> {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Day of Month: $backupDayOfMonth")
+                    Text(stringResource(R.string.settings_auto_backup_day_of_month, backupDayOfMonth))
                     Slider(
                         value = backupDayOfMonth.toFloat(),
                         onValueChange = { viewModel.setBackupDayOfMonth(it.toInt()) },
@@ -192,8 +200,20 @@ private fun dayOfWeekToString(day: Int): String {
     }
 }
 
-private fun getFolderName(context: Context, uriString: String): String {
-    val uri = Uri.parse(uriString)
-    val documentFile = DocumentFile.fromTreeUri(context, uri)
-    return documentFile?.name ?: uriString
+fun Uri.toUserFriendlyString(): String {
+    try {
+        // Android SAF URIs usually look like: content://com.android.externalstorage.documents/tree/primary%3ADownloads%2FBackup
+        val pathPart = this.path?.split(":")?.lastOrNull() ?: return "Unknown Location"
+
+        val decodedPath = URLDecoder.decode(pathPart, "UTF-8")
+
+        return if (this.toString().contains("primary")) {
+            "Internal Storage > $decodedPath"
+        } else {
+            // It's likely an SD Card or External Drive
+            "SD Card > $decodedPath"
+        }
+    } catch (e: Exception) {
+        return "Custom Folder"
+    }
 }
