@@ -39,10 +39,26 @@
     <string name="settings_min_speed_label">Minimum Speed (km/h)</string>
     <string name="settings_all_days">All Days</string>
     <string name="settings_backup_restore_title">Backup and Restore</string>
-    <string name="settings_export_button">Export</string>
-    <string name="settings_import_button">Import</string>
+    <string name="settings_backup_button">Backup</string>
+    <string name="settings_restore_button">Restore</string>
     <string name="import_successful">Backup imported successfully!</string>
     <string name="import_failed">Failed to import backup. Please check the file.</string>
+    <string name="settings_auto_backup_enable">Enable Automatic Backups</string>
+    <string name="settings_auto_backup_folder">Select Backup Folder</string>
+    <string name="settings_auto_backup_folder_selected">Selected folder: %1$s</string>
+    <string name="settings_auto_backup_frequency">Backup Frequency</string>
+    <string name="settings_auto_backup_frequency_daily">Daily</string>
+    <string name="settings_auto_backup_frequency_weekly">Weekly</string>
+    <string name="settings_auto_backup_frequency_monthly">Monthly</string>
+    <string name="settings_auto_backup_day_of_week">Day of Week</string>
+    <string name="settings_auto_backup_day_of_month">Day of Month: %1$d</string>
+    <string name="day_monday">Monday</string>
+    <string name="day_tuesday">Tuesday</string>
+    <string name="day_wednesday">Wednesday</string>
+    <string name="day_thursday">Thursday</string>
+    <string name="day_friday">Friday</string>
+    <string name="day_saturday">Saturday</string>
+    <string name="day_sunday">Sunday</string>
 
     <!-- General -->
     <string name="button_save">Save</string>

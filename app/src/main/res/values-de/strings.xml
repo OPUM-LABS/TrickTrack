@@ -38,6 +38,27 @@
     <string name="settings_stillness_timer_label">Stillstand-Timer (Sekunden)</string>
     <string name="settings_min_speed_label">Mindestgeschwindigkeit (km/h)</string>
     <string name="settings_all_days">Alle Tage</string>
+    <string name="settings_backup_restore_title">Sicherung und Wiederherstellung</string>
+    <string name="settings_backup_button">Sichern</string>
+    <string name="settings_restore_button">Wiederherstellen</string>
+    <string name="import_successful">Sicherung erfolgreich importiert!</string>
+    <string name="import_failed">Fehler beim Importieren der Sicherung. Bitte überprüfen Sie die Datei.</string>
+    <string name="settings_auto_backup_enable">Automatische Sicherungen aktivieren</string>
+    <string name="settings_auto_backup_folder">Sicherungsordner auswählen</string>
+    <string name="settings_auto_backup_folder_selected">Ausgewählter Ordner: %1$s</string>
+    <string name="settings_auto_backup_frequency">Sicherungshäufigkeit</string>
+    <string name="settings_auto_backup_frequency_daily">Täglich</string>
+    <string name="settings_auto_backup_frequency_weekly">Wöchentlich</string>
+    <string name="settings_auto_backup_frequency_monthly">Monatlich</string>
+    <string name="settings_auto_backup_day_of_week">Wochentag</string>
+    <string name="settings_auto_backup_day_of_month">Tag des Monats: %1$d</string>
+    <string name="day_monday">Montag</string>
+    <string name="day_tuesday">Dienstag</string>
+    <string name="day_wednesday">Mittwoch</string>
+    <string name="day_thursday">Donnerstag</string>
+    <string name="day_friday">Freitag</string>
+    <string name="day_saturday">Samstag</string>
+    <string name="day_sunday">Sonntag</string>
 
     <!-- General -->
     <string name="button_save">Speichern</string>

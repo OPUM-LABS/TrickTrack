@@ -478,7 +478,7 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(Modifier.padding(16.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -806,10 +806,10 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             Icons.Default.Upload,
-                            contentDescription = stringResource(R.string.settings_export_button)
+                            contentDescription = stringResource(R.string.settings_backup_button)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.settings_export_button))
+                        Text(stringResource(R.string.settings_backup_button))
                     }
 
                     Button(
@@ -820,10 +820,10 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             Icons.Default.Download,
-                            contentDescription = stringResource(R.string.settings_import_button)
+                            contentDescription = stringResource(R.string.settings_restore_button)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.settings_import_button))
+                        Text(stringResource(R.string.settings_restore_button))
                     }
                 }
 
@@ -1000,7 +1000,7 @@ fun ScheduleSettingsDialog(
             val timePickerState = rememberTimePickerState(initialHour = schedule.startHour, initialMinute = schedule.startMinute)
             AlertDialog(
                 onDismissRequest = { selectedDayForStartTime = null },
-                title = { Text(stringResource(R.string.schedule_select_start_time, day.getDisplayName(TextStyle.FULL, Locale.getDefault()))) },
+                title = { Text(stringResource(R.string.schedule_select_start_time, stringResource(dayToResId(day)))) },
                 text = { TimePicker(state = timePickerState) },
                 confirmButton = {
                     Button(onClick = {
@@ -1026,7 +1026,7 @@ fun ScheduleSettingsDialog(
             val timePickerState = rememberTimePickerState(initialHour = schedule.endHour, initialMinute = schedule.endMinute)
             AlertDialog(
                 onDismissRequest = { selectedDayForEndTime = null },
-                title = { Text(stringResource(R.string.schedule_select_end_time, day.getDisplayName(TextStyle.FULL, Locale.getDefault()))) },
+                title = { Text(stringResource(R.string.schedule_select_end_time, stringResource(dayToResId(day)))) },
                 text = { TimePicker(state = timePickerState) },
                 confirmButton = {
                     Button(onClick = {
@@ -1163,7 +1163,7 @@ fun ScheduleSettingsDialog(
                                                 contentColor = if (schedule.isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                             )
                                         ) {
-                                            Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
+                                            Text(stringResource(dayToResId(day)))
                                         }
 
                                         OutlinedButton(
@@ -1238,5 +1238,18 @@ fun ScheduleSettingsDialog(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun dayToResId(day: DayOfWeek): Int {
+    return when (day) {
+        DayOfWeek.MONDAY -> R.string.day_monday
+        DayOfWeek.TUESDAY -> R.string.day_tuesday
+        DayOfWeek.WEDNESDAY -> R.string.day_wednesday
+        DayOfWeek.THURSDAY -> R.string.day_thursday
+        DayOfWeek.FRIDAY -> R.string.day_friday
+        DayOfWeek.SATURDAY -> R.string.day_saturday
+        DayOfWeek.SUNDAY -> R.string.day_sunday
     }
 }
