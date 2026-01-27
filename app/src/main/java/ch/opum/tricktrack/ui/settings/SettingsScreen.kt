@@ -59,6 +59,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -89,6 +90,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -1043,95 +1045,75 @@ fun ScheduleSettingsDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_schedule_title)) },
-        text = {
-            if (tempSchedule.isEmpty()) {
-                // Show a loading indicator or an empty state while the schedule is being loaded
-                Text(stringResource(R.string.schedule_loading))
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val targets = listOf(ScheduleTarget.AUTOMATIC, ScheduleTarget.BLUETOOTH, ScheduleTarget.BOTH)
-                    val targetLabels = listOf(
-                        stringResource(R.string.schedule_target_automatic),
-                        stringResource(R.string.schedule_target_bluetooth),
-                        stringResource(R.string.schedule_target_both)
-                    )
-                    val targetIcons: (ScheduleTarget) -> ImageVector = { target ->
-                        when (target) {
-                            ScheduleTarget.AUTOMATIC -> Icons.Default.DirectionsCar
-                            ScheduleTarget.BLUETOOTH -> Icons.Default.Bluetooth
-                            ScheduleTarget.BOTH -> Icons.Default.Layers
-                        }
-                    }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = stringResource(R.string.settings_schedule_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                        targets.forEachIndexed { index, target ->
-                            SegmentedButton(
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = targets.size),
-                                onClick = { selectedTarget = target },
-                                selected = selectedTarget == target,
-                                icon = {
-                                    Icon(
-                                        imageVector = targetIcons(target),
-                                        contentDescription = targetLabels[index],
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                }
-                            ) {
-                                Text(targetLabels[index])
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Spacer(modifier = Modifier.width(80.dp)) // Align with day buttons
-                        Text(stringResource(R.string.schedule_from), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text(stringResource(R.string.schedule_to), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
-                    }
-
-                    Row(
+                if (tempSchedule.isEmpty()) {
+                    // Show a loading indicator or an empty state while the schedule is being loaded
+                    Text(stringResource(R.string.schedule_loading))
+                } else {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            .weight(1f, fill = false)
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        Text(
-                            text = stringResource(R.string.settings_all_days),
-                            modifier = Modifier.width(80.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            val targets = listOf(ScheduleTarget.AUTOMATIC, ScheduleTarget.BLUETOOTH, ScheduleTarget.BOTH)
+                            val targetLabels = listOf(
+                                stringResource(R.string.schedule_target_automatic),
+                                stringResource(R.string.schedule_target_bluetooth),
+                                stringResource(R.string.schedule_target_both)
+                            )
+                            val targetIcons: (ScheduleTarget) -> ImageVector = { target ->
+                                when (target) {
+                                    ScheduleTarget.AUTOMATIC -> Icons.Default.DirectionsCar
+                                    ScheduleTarget.BLUETOOTH -> Icons.Default.Bluetooth
+                                    ScheduleTarget.BOTH -> Icons.Default.Layers
+                                }
+                            }
 
-                        OutlinedButton(
-                            onClick = { showAllDaysStartTimePicker = true },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(String.format(Locale.getDefault(), "%02d:%02d", allDaysStartTime.first, allDaysStartTime.second))
-                        }
-                        OutlinedButton(
-                            onClick = { showAllDaysEndTimePicker = true },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(String.format(Locale.getDefault(), "%02d:%02d", allDaysEndTime.first, allDaysEndTime.second))
-                        }
-                        Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
-                    }
+                            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                                targets.forEachIndexed { index, target ->
+                                    SegmentedButton(
+                                        shape = SegmentedButtonDefaults.itemShape(index = index, count = targets.size),
+                                        onClick = { selectedTarget = target },
+                                        selected = selectedTarget == target,
+                                        icon = {
+                                            Icon(
+                                                imageVector = targetIcons(target),
+                                                contentDescription = targetLabels[index],
+                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                                            )
+                                        }
+                                    ) {
+                                        Text(targetLabels[index])
+                                    }
+                                }
+                            }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                    DayOfWeek.values().forEach { day ->
-                        val schedule = tempSchedule[day]
-                        if (schedule != null) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Spacer(modifier = Modifier.width(80.dp)) // Align with day buttons
+                                Text(stringResource(R.string.schedule_from), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Text(stringResource(R.string.schedule_to), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
+                            }
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -1139,85 +1121,122 @@ fun ScheduleSettingsDialog(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Button(
-                                    onClick = { tempSchedule[day] = schedule.copy(isEnabled = !schedule.isEnabled) },
+                                Text(
+                                    text = stringResource(R.string.settings_all_days),
                                     modifier = Modifier.width(80.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (schedule.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                                        contentColor = if (schedule.isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                                    )
-                                ) {
-                                    Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
-                                }
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
 
                                 OutlinedButton(
-                                    onClick = { selectedDayForStartTime = day },
-                                    modifier = Modifier.weight(1f),
-                                    enabled = schedule.isEnabled
+                                    onClick = { showAllDaysStartTimePicker = true },
+                                    modifier = Modifier.weight(1f)
                                 ) {
-                                    Text(String.format(Locale.getDefault(), "%02d:%02d", schedule.startHour, schedule.startMinute))
+                                    Text(String.format(Locale.getDefault(), "%02d:%02d", allDaysStartTime.first, allDaysStartTime.second))
                                 }
                                 OutlinedButton(
-                                    onClick = { selectedDayForEndTime = day },
-                                    modifier = Modifier.weight(1f),
-                                    enabled = schedule.isEnabled
+                                    onClick = { showAllDaysEndTimePicker = true },
+                                    modifier = Modifier.weight(1f)
                                 ) {
-                                    Text(String.format(Locale.getDefault(), "%02d:%02d", schedule.endHour, schedule.endMinute))
+                                    Text(String.format(Locale.getDefault(), "%02d:%02d", allDaysEndTime.first, allDaysEndTime.second))
                                 }
-                                IconButton(onClick = {
-                                    tempSchedule[day] = schedule.copy(
-                                        startHour = 0,
-                                        startMinute = 0,
-                                        endHour = 23,
-                                        endMinute = 59
-                                    )
-                                }) {
-                                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.schedule_reset_cd))
+                                Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                            DayOfWeek.values().forEach { day ->
+                                val schedule = tempSchedule[day]
+                                if (schedule != null) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(IntrinsicSize.Min),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Button(
+                                            onClick = { tempSchedule[day] = schedule.copy(isEnabled = !schedule.isEnabled) },
+                                            modifier = Modifier.width(80.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (schedule.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                                                contentColor = if (schedule.isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        ) {
+                                            Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
+                                        }
+
+                                        OutlinedButton(
+                                            onClick = { selectedDayForStartTime = day },
+                                            modifier = Modifier.weight(1f),
+                                            enabled = schedule.isEnabled
+                                        ) {
+                                            Text(String.format(Locale.getDefault(), "%02d:%02d", schedule.startHour, schedule.startMinute))
+                                        }
+                                        OutlinedButton(
+                                            onClick = { selectedDayForEndTime = day },
+                                            modifier = Modifier.weight(1f),
+                                            enabled = schedule.isEnabled
+                                        ) {
+                                            Text(String.format(Locale.getDefault(), "%02d:%02d", schedule.endHour, schedule.endMinute))
+                                        }
+                                        IconButton(onClick = {
+                                            tempSchedule[day] = schedule.copy(
+                                                startHour = 0,
+                                                startMinute = 0,
+                                                endHour = 23,
+                                                endMinute = 59
+                                            )
+                                        }) {
+                                            Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.schedule_reset_cd))
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-        },
-        confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(onClick = {
-                    allDaysStartTime = 0 to 0
-                    allDaysEndTime = 23 to 59
-                    DayOfWeek.values().forEach { day ->
-                        tempSchedule[day]?.let {
-                            tempSchedule[day] = it.copy(
-                                isEnabled = true,
-                                startHour = 0,
-                                startMinute = 0,
-                                endHour = 23,
-                                endMinute = 59
-                            )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = {
+                        allDaysStartTime = 0 to 0
+                        allDaysEndTime = 23 to 59
+                        DayOfWeek.values().forEach { day ->
+                            tempSchedule[day]?.let {
+                                tempSchedule[day] = it.copy(
+                                    isEnabled = true,
+                                    startHour = 0,
+                                    startMinute = 0,
+                                    endHour = 23,
+                                    endMinute = 59
+                                )
+                            }
                         }
+                    }) {
+                        Text(stringResource(R.string.schedule_reset_times))
                     }
-                }) {
-                    Text(stringResource(R.string.schedule_reset_times))
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.button_cancel))
-                }
-                Button(onClick = {
-                    val newSettings = ScheduleSettings(
-                        target = selectedTarget,
-                        dailySchedules = tempSchedule.toMap()
-                    )
-                    viewModel.updateScheduleSettings(newSettings)
-                    onDismiss()
-                }) {
-                    Text(stringResource(R.string.button_apply))
+                    Spacer(modifier = Modifier.weight(1f))
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.button_cancel))
+                    }
+                    Button(onClick = {
+                        val newSettings = ScheduleSettings(
+                            target = selectedTarget,
+                            dailySchedules = tempSchedule.toMap()
+                        )
+                        viewModel.updateScheduleSettings(newSettings)
+                        onDismiss()
+                    }) {
+                        Text(stringResource(R.string.button_apply))
+                    }
                 }
             }
         }
-    )
+    }
 }
