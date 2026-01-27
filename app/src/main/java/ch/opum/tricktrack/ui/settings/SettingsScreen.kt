@@ -159,15 +159,19 @@ fun SettingsScreen(
         }
     }
 
+// 1. Load the string safely in the Composable scope
+// This ensures that if the language changes, this variable updates automatically.
+    val deniedMessage = stringResource(R.string.settings_bluetooth_permission_denied_toast)
     val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             viewModel.setBluetoothTriggerEnabled(true)
         } else {
+            // 2. Use the captured variable inside the callback
             Toast.makeText(
                 context,
-                context.getString(R.string.settings_bluetooth_permission_denied_toast),
+                deniedMessage, // Use the pre-loaded string variable
                 Toast.LENGTH_SHORT
             ).show()
         }
