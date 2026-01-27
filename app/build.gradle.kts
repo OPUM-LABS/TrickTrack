@@ -81,11 +81,11 @@ dependencies {
     implementation(libs.google.code.gson)
 
     // WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.11.0")
-    androidTestImplementation("androidx.work:work-testing:2.11.0")
+    implementation(libs.androidx.work.runtime.ktx)
+    androidTestImplementation(libs.androidx.work.testing)
 
     // DocumentFile
-    implementation("androidx.documentfile:documentfile:1.0.1")
+    implementation(libs.androidx.documentfile)
 
 
     testImplementation(libs.junit)

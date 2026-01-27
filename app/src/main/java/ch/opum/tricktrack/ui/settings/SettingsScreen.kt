@@ -1163,7 +1163,7 @@ fun ScheduleSettingsDialog(
 
                             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                            DayOfWeek.values().forEach { day ->
+                            DayOfWeek.entries.forEach { day ->
                                 val schedule = tempSchedule[day]
                                 if (schedule != null) {
                                     Row(
@@ -1244,7 +1244,7 @@ fun ScheduleSettingsDialog(
                     TextButton(onClick = {
                         allDaysStartTime = 0 to 0
                         allDaysEndTime = 23 to 59
-                        DayOfWeek.values().forEach { day ->
+                        DayOfWeek.entries.forEach { day ->
                             tempSchedule[day]?.let {
                                 tempSchedule[day] = it.copy(
                                     isEnabled = true,

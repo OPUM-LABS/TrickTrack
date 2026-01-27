@@ -156,9 +156,7 @@ class PlacesViewModel(
                     val postcode = properties.optString("postcode")
 
                     // Requirement 1: Display Name (Title)
-                    val title = if (name.isNotBlank()) {
-                        name
-                    } else {
+                    val title = name.ifBlank {
                         listOf(street, housenumber).filter { it.isNotBlank() }.joinToString(" ")
                     }
 
@@ -183,7 +181,7 @@ class PlacesViewModel(
                                 isFavorite = false,
                                 latitude = coordinates.getDouble(1),
                                 longitude = coordinates.getDouble(0),
-                                postalCode = if (postcode.isNotBlank()) postcode else null
+                                postalCode = postcode.ifBlank { null }
                             )
                         )
                     }
@@ -191,7 +189,7 @@ class PlacesViewModel(
                 suggestions
             } catch (e: Exception) {
                 Log.e("PhotonSearch", "Error fetching from Photon API", e)
-                emptyList<LocationSuggestion>()
+                emptyList()
             }
 
             suggestionsState.value = (localSuggestions + photonSuggestions).distinctBy { it.fullAddress }

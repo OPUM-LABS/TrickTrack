@@ -49,7 +49,7 @@ fun FilterDialog(
     onDismiss: () -> Unit
 ) {
     var keyword by remember { mutableStateOf(currentFilterState.keyword) }
-    var selectedType by remember { mutableStateOf<TripType?>(currentFilterState.type.takeIf { it != TripType.ALL }) }
+    var selectedType by remember { mutableStateOf(currentFilterState.type.takeIf { it != TripType.ALL }) }
     var startDate by remember { mutableStateOf(currentFilterState.startDate) }
     var endDate by remember { mutableStateOf(currentFilterState.endDate) }
 
