@@ -3,9 +3,7 @@ package ch.opum.tricktrack.ui.place
 import android.app.Application
 import android.location.Address
 import android.location.Geocoder
-import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
@@ -28,12 +26,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import java.io.BufferedReader
-import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class PlacesViewModel(
     application: Application,

@@ -2,13 +2,10 @@ package ch.opum.tricktrack.ui.settings
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -30,7 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
@@ -73,7 +69,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -107,11 +102,8 @@ import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
-import java.time.format.TextStyle
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 @SuppressLint("ShowToast")
 @OptIn(ExperimentalMaterial3Api::class)

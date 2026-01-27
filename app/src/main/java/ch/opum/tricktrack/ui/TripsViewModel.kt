@@ -5,7 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
 import android.net.Uri
 import android.os.Build
 import androidx.compose.runtime.getValue
@@ -27,7 +26,6 @@ import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.settings.PermissionItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -43,7 +41,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
 import java.util.Calendar
 import java.util.Currency
 import java.util.Date

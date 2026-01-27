@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.graphics.Color
 import android.location.Location
 import android.os.Build
 import android.os.CountDownTimer
@@ -18,6 +17,7 @@ import androidx.core.content.ContextCompat
 import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.logging.AppLogger
+import ch.opum.tricktrack.ui.TripTrigger
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -25,7 +25,9 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -33,11 +35,6 @@ import kotlinx.coroutines.withContext
 import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
-import ch.opum.tricktrack.TripNotificationManager
-import ch.opum.tricktrack.GeocoderHelper
-import ch.opum.tricktrack.ui.TripTrigger
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 
 class LocationService : Service() {
 

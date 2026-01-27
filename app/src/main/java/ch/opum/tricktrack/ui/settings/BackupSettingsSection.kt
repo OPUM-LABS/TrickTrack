@@ -1,17 +1,13 @@
 package ch.opum.tricktrack.ui.settings
 
-import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -31,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.documentfile.provider.DocumentFile
 import ch.opum.tricktrack.R
 import java.net.URLDecoder
 import java.util.Calendar
@@ -50,7 +45,7 @@ fun BackupSettingsSection(
     var frequencyExpanded by remember { mutableStateOf(false) }
     var dayOfWeekExpanded by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
+    LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),

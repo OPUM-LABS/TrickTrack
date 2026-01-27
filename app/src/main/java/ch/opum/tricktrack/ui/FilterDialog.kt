@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import ch.opum.tricktrack.R
-import ch.opum.tricktrack.ui.ClearableTextField // Import ClearableTextField
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
