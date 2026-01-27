@@ -154,35 +154,41 @@ class PlacesViewModel(
                     val geometry = feature.getJSONObject("geometry")
                     val coordinates = geometry.getJSONArray("coordinates")
 
-                    val name = properties.optString("name", "")
-                    val street = properties.optString("street", "")
-                    val housenumber = properties.optString("housenumber", "")
-                    val city = properties.optString("city", "")
-                    val postcode = properties.optString("postcode", "")
+                    val name = properties.optString("name")
+                    val street = properties.optString("street")
+                    val housenumber = properties.optString("housenumber")
+                    val city = properties.optString("city")
+                    val postcode = properties.optString("postcode")
 
-                    val streetAndNumber = listOfNotNull(street, housenumber).filter { it.isNotBlank() }.joinToString(" ")
-                    val postcodeAndCity = listOfNotNull(postcode, city).filter { it.isNotBlank() }.joinToString(" ")
-                    val formattedAddress = listOfNotNull(streetAndNumber, postcodeAndCity).filter { it.isNotBlank() }.joinToString(", ")
-
-                    val suggestionTitle = name ?: formattedAddress
-                    val suggestionSubtitle = formattedAddress
-
-                    val suggestionFullAddress = if (name != null && name != formattedAddress) {
-                        "$name, $formattedAddress"
+                    // Requirement 1: Display Name (Title)
+                    val title = if (name.isNotBlank()) {
+                        name
                     } else {
-                        formattedAddress
+                        listOf(street, housenumber).filter { it.isNotBlank() }.joinToString(" ")
                     }
 
-                    if (suggestionTitle.isNotBlank()) {
+                    // Requirement 2: Full Address (Subtitle)
+                    val streetAndNumber = listOf(street, housenumber).filter { it.isNotBlank() }.joinToString(" ")
+                    val postcodeAndCity = listOf(postcode, city).filter { it.isNotBlank() }.joinToString(" ")
+                    val subtitle = listOf(streetAndNumber, postcodeAndCity).filter { it.isNotBlank() }.joinToString(", ")
+
+                    // For the full address to be passed when selected
+                    val fullAddressForSelection = if (name.isNotBlank() && name != streetAndNumber) {
+                        "$name, $subtitle"
+                    } else {
+                        subtitle
+                    }
+
+                    if (title.isNotBlank()) {
                         suggestions.add(
                             LocationSuggestion(
-                                title = suggestionTitle,
-                                subtitle = suggestionSubtitle,
-                                fullAddress = suggestionFullAddress,
+                                title = title,
+                                subtitle = subtitle,
+                                fullAddress = fullAddressForSelection, // This is what is used for display and selection
                                 isFavorite = false,
                                 latitude = coordinates.getDouble(1),
                                 longitude = coordinates.getDouble(0),
-                                postalCode = postcode
+                                postalCode = if (postcode.isNotBlank()) postcode else null
                             )
                         )
                     }
