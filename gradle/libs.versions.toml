@@ -16,7 +16,7 @@ room = "2.8.4"
 datastorePreferences = "1.2.0"
 playServicesLocation = "21.3.0"
 kotlinxCoroutinesPlayServices = "1.10.2"
-gson = "2.10.1"
+gson = "2.13.2"
 workRuntimeKtx = "2.11.0"
 workTesting = "2.11.0"
 
