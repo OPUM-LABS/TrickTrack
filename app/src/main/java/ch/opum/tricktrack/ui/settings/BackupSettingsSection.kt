@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import java.net.URLDecoder
 import java.util.Calendar
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +76,7 @@ fun BackupSettingsSection(
             }
 
             backupFolderUri?.let {
-                Text(stringResource(R.string.settings_auto_backup_folder_selected, Uri.parse(it).toUserFriendlyString()))
+                Text(stringResource(R.string.settings_auto_backup_folder_selected, it.toUri().toUserFriendlyString()))
             }
 
             Spacer(modifier = Modifier.height(16.dp))

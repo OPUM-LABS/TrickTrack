@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 class BackupWorker(
     appContext: Context,
@@ -72,7 +73,8 @@ class BackupWorker(
 
             try {
                 if (backupFolderUriString != null) {
-                    val backupDir = DocumentFile.fromTreeUri(application, Uri.parse(backupFolderUriString))
+                    val backupDir = DocumentFile.fromTreeUri(application,
+                        backupFolderUriString.toUri())
                     if (backupDir != null && backupDir.canWrite()) {
                         val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
                         val fileName = "tricktrack-backup_$timeStamp.json"
