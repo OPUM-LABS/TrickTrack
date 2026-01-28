@@ -51,6 +51,13 @@ android {
     }
 }
 
+androidComponents.onVariants { variant ->
+    variant.outputs.forEach { output ->
+        val outputImpl = output as com.android.build.api.variant.impl.VariantOutputImpl
+        outputImpl.outputFileName.set("TrickTrack-v${android.defaultConfig.versionName}.apk")
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
