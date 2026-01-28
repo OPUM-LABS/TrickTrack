@@ -1,13 +1,20 @@
 package ch.opum.tricktrack.backup
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.dataStore
 import kotlinx.coroutines.flow.first
@@ -92,6 +99,7 @@ class BackupWorker(
                                     backups[i].delete()
                                 }
                             }
+                            showBackupNotification(true)
                             return Result.success()
                         }
                     }
@@ -115,10 +123,43 @@ class BackupWorker(
                     backups[i].delete()
                 }
             }
+            showBackupNotification(true)
             return Result.success()
 
         } catch (e: Exception) {
+            showBackupNotification(false)
             return Result.failure()
+        }
+    }
+
+    private fun showBackupNotification(success: Boolean) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                // Cannot post notifications without permission
+                return
+            }
+
+            val notificationManager = NotificationManagerCompat.from(applicationContext)
+            val notificationId = 1001 // Unique ID for backup notifications
+
+            val title = applicationContext.getString(R.string.backup_notification_title)
+            val contentText = if (success) {
+                applicationContext.getString(R.string.backup_notification_text)
+            } else {
+                applicationContext.getString(R.string.import_failed) // Reusing this string for backup failure
+            }
+
+            val builder = NotificationCompat.Builder(applicationContext, "backup_channel")
+                .setSmallIcon(R.drawable.ic_backup)
+                .setContentTitle(title)
+                .setContentText(contentText)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+
+            notificationManager.notify(notificationId, builder.build())
+        } catch (e: SecurityException) {
+            // Handle potential SecurityException
         }
     }
 }

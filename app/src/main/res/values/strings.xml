@@ -221,4 +221,10 @@
     <string name="pdf_header_expenses">Expenses</string>
     <string name="pdf_header_start_time">Start time</string>
     <string name="pdf_header_end_time">End time</string>
+
+    <!-- Backup Notification -->
+    <string name="backup_notification_channel_name">Backup</string>
+    <string name="backup_notification_channel_description">Notifications for automatic backups.</string>
+    <string name="backup_notification_title">Automatic Backup</string>
+    <string name="backup_notification_text">Backup created successfully.</string>
 </resources>
