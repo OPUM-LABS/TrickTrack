@@ -37,6 +37,7 @@ out/
 build/
 .kotlin/
 .gradle/
+/app/build
 
 # Local configuration file (sdk.dir is here)
 
