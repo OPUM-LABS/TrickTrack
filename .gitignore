@@ -68,3 +68,4 @@ captures/
 Thumbs.db
 
 # Gradle cache
+/app/release/baselineProfiles
