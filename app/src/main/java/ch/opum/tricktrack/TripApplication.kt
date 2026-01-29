@@ -3,7 +3,6 @@ package ch.opum.tricktrack
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
 import ch.opum.tricktrack.data.AppDatabase
 import ch.opum.tricktrack.data.BluetoothRepository
 import ch.opum.tricktrack.data.TripRepository
