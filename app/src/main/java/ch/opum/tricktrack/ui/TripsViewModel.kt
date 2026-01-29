@@ -73,7 +73,7 @@ class TripsViewModel(
     private val geocoderHelper: GeocoderHelper // Inject GeocoderHelper
 ) : AndroidViewModel(application) {
 
-    private val distanceRepository = DistanceRepository()
+    private val distanceRepository = DistanceRepository(application)
     var isCalculating by mutableStateOf(false)
     var distanceInput by mutableStateOf("")
 

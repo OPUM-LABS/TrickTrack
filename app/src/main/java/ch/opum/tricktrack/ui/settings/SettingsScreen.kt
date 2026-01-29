@@ -70,6 +70,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -145,6 +146,7 @@ fun SettingsScreen(
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showScheduleDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -310,6 +312,13 @@ fun SettingsScreen(
         ExportSettingsDialog(
             viewModel = viewModel,
             onDismiss = { showExportDialog = false }
+        )
+    }
+
+    if (showServerSettingsDialog) {
+        ServerSettingsDialog(
+            onDismiss = { showServerSettingsDialog = false },
+            context = context
         )
     }
 
@@ -710,7 +719,7 @@ fun SettingsScreen(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
         ) {
             Column(Modifier.padding(16.dp)) {
                 var localStillnessTimer by remember(stillnessTimer) { mutableStateOf(stillnessTimer.toString()) }
@@ -755,6 +764,29 @@ fun SettingsScreen(
                             }
                         }
                 )
+            }
+        }
+
+        // New Card for Server Settings
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showServerSettingsDialog = true },
+            shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.server_settings_title))
+                    Text(
+                        stringResource(R.string.server_settings_description), // Assuming you'll add this string resource
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.server_settings_title))
             }
         }
 
