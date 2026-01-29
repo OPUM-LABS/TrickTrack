@@ -222,4 +222,8 @@
     <string name="pdf_header_expenses">Spese</string>
     <string name="pdf_header_start_time">Ora di inizio</string>
     <string name="pdf_header_end_time">Ora di fine</string>
+    <string name="backup_notification_channel_name">Backup</string>
+    <string name="backup_notification_channel_description">Notifiche per i backup automatici.</string>
+    <string name="backup_notification_title">Backup automatico</string>
+    <string name="backup_notification_text">Backup creato con successo.</string>
 </resources>

@@ -222,4 +222,8 @@
     <string name="pdf_header_expenses">Dépenses</string>
     <string name="pdf_header_start_time">Heure de début</string>
     <string name="pdf_header_end_time">Heure de fin</string>
+    <string name="backup_notification_channel_name">Sauvegarde</string>
+    <string name="backup_notification_channel_description">Notifications pour les sauvegardes automatiques.</string>
+    <string name="backup_notification_title">Sauvegarde automatique</string>
+    <string name="backup_notification_text">Sauvegarde créée avec succès.</string>
 </resources>

@@ -221,4 +221,8 @@
     <string name="pdf_header_expenses">Kosten</string>
     <string name="pdf_header_start_time">Startzeit</string>
     <string name="pdf_header_end_time">Endzeit</string>
+    <string name="backup_notification_channel_name">Sicherung</string>
+    <string name="backup_notification_channel_description">Benachrichtigungen für automatische Sicherungen.</string>
+    <string name="backup_notification_title">Automatische Sicherung</string>
+    <string name="backup_notification_text">Sicherung erfolgreich erstellt.</string>
 </resources>

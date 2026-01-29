@@ -165,7 +165,6 @@
     <string name="end_time_before_start_time_toast">End time cannot be before start time.</string>
     <string name="delete_filtered_trips_title">Delete Filtered Trips?</string>
     <string name="delete_filtered_trips_confirmation">Are you sure you want to delete all trips that match the current filter? This action cannot be undone.</string>
-    <string name="calculate_distance_cd">Calculate distance</string>
 
     <!-- Trip Summary Dialog -->
     <string name="trip_summary_title">Trip Summary</string>
