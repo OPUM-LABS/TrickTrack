@@ -124,7 +124,7 @@ Google Play Store release is in progress
 Need more details? Check out the **[GitHub Wiki](https://github.com/OPUM-LABS/TrickTrack/wiki)** for in-depth guides:
 
 * [🔋 Battery Optimization Guide](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%94%8B-Battery-Optimization-Guide)
-* [🚙 Bluetooth Setup](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%9A%99-Bluetooth-Setup)
+* [🚙 Tracking Setup](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%9A%99-Tracking-Setup)
 * [📅 Scheduler & Working Hours](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%93%85-Scheduler-&-Working-Hours)
 * [🔧 Troubleshooting & FAQ](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%94%A7-Troubleshooting-&-FAQ)
 * [📊 Filtering & Reporting](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%93%8A-Filtering-&-Reporting)
