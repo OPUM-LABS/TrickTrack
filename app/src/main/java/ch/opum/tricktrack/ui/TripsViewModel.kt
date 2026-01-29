@@ -5,8 +5,10 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,6 +24,7 @@ import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.data.TripRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
+import ch.opum.tricktrack.data.repository.DistanceRepository
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.settings.PermissionItem
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +72,10 @@ class TripsViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val geocoderHelper: GeocoderHelper // Inject GeocoderHelper
 ) : AndroidViewModel(application) {
+
+    private val distanceRepository = DistanceRepository()
+    var isCalculating by mutableStateOf(false)
+    var distanceInput by mutableStateOf("")
 
     private val _filterState = MutableStateFlow(FilterState())
     val filterState = _filterState.stateIn(
@@ -241,21 +248,6 @@ class TripsViewModel(
     // Changed distance to StateFlow
     private val _distance = MutableStateFlow(0.0)
     val distance: StateFlow<Double> = _distance.asStateFlow()
-
-    var startAddress by mutableStateOf("Loading...")
-        private set
-
-    var endAddress by mutableStateOf("Loading...")
-        private set
-
-    var startLat by mutableStateOf<Double?>(null)
-        private set
-    var startLon by mutableStateOf<Double?>(null)
-        private set
-    var endLat by mutableStateOf<Double?>(null)
-        private set
-    var endLon by mutableStateOf<Double?>(null)
-        private set
 
     val isScheduleEnabled: StateFlow<Boolean> = userPreferencesRepository.isScheduleEnabled
         .stateIn(
@@ -454,6 +446,37 @@ class TripsViewModel(
                 Intent(context, LocationService::class.java).also {
                     it.action = LocationService.ACTION_START_MONITORING
                     context.startService(it)
+                }
+            }
+        }
+    }
+
+    fun calculateDistance(startAddress: String, endAddress: String) {
+        Log.d("TripsViewModel", "calculateDistance called with start: $startAddress, end: $endAddress")
+        if (startAddress.isNotBlank() && endAddress.isNotBlank()) {
+            isCalculating = true
+            viewModelScope.launch(Dispatchers.IO) {
+                val geocoder = Geocoder(getApplication(), Locale.getDefault())
+                try {
+                    val startAddresses = geocoder.getFromLocationName(startAddress, 1)
+                    val endAddresses = geocoder.getFromLocationName(endAddress, 1)
+
+                    if (startAddresses != null && endAddresses != null && startAddresses.isNotEmpty() && endAddresses.isNotEmpty()) {
+                        val start = startAddresses[0]
+                        val end = endAddresses[0]
+                        val distance = distanceRepository.getDrivingDistance(start.latitude, start.longitude, end.latitude, end.longitude)
+                        withContext(Dispatchers.Main) {
+                            if (distance != null) {
+                                distanceInput = distance.toString()
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("TripsViewModel", "Error calculating distance", e)
+                } finally {
+                    withContext(Dispatchers.Main) {
+                        isCalculating = false
+                    }
                 }
             }
         }

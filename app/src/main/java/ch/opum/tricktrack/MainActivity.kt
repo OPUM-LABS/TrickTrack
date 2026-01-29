@@ -42,6 +42,7 @@ import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoMode
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -59,6 +60,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -87,6 +89,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -359,8 +362,8 @@ fun MainScreen(
         TripSummaryDialog(
             trip = tripToSummarize,
             distance = distance,
-            startAddress = tripToSummarize?.startLoc ?: tripsViewModel.startAddress,
-            endAddress = tripToSummarize?.endLoc ?: tripsViewModel.endAddress,
+            startAddress = tripToSummarize?.startLoc ?: "",
+            endAddress = tripToSummarize?.endLoc ?: "",
             defaultIsBusiness = defaultIsBusiness,
             onDismiss = { showSummaryDialog = false },
             onSave = { trip ->
@@ -869,8 +872,8 @@ fun EditTripDialog(
 ) {
     val isEditMode = trip != null
     val defaultIsBusiness by tripsViewModel.defaultIsBusiness.collectAsState()
-    var startText by remember { mutableStateOf(trip?.startLoc ?: "") } // Changed to String
-    var endText by remember { mutableStateOf(trip?.endLoc ?: "") } // Changed to String
+    var startText by remember { mutableStateOf(trip?.startLoc ?: "") }
+    var endText by remember { mutableStateOf(trip?.endLoc ?: "") }
     var startLat by remember { mutableStateOf(trip?.startLat) }
     var startLon by remember { mutableStateOf(trip?.startLon) }
     var endLat by remember { mutableStateOf(trip?.endLat) }
@@ -881,12 +884,24 @@ fun EditTripDialog(
         )
     }
     var description by remember { mutableStateOf(trip?.description ?: "") }
-    var distanceText by remember {
-        mutableStateOf(
-            if (trip?.distance == 0.0) "" else trip?.distance?.toString() ?: ""
-        )
-    }
     var isError by remember { mutableStateOf(false) }
+
+    // Use the ViewModel's distanceInput for the text field
+    var distanceText by remember(tripsViewModel.distanceInput) { mutableStateOf(tripsViewModel.distanceInput) }
+
+    // When in edit mode, initialize with the trip's distance
+    LaunchedEffect(trip) {
+        if (trip != null) {
+            distanceText = trip.distance.toString()
+        }
+    }
+
+    // Clean up the ViewModel's distance when the dialog is dismissed
+    DisposableEffect(Unit) {
+        onDispose {
+            tripsViewModel.distanceInput = ""
+        }
+    }
 
     val addressSuggestions by placesViewModel.addressSuggestions.collectAsState()
     var startTextFieldSize by remember { mutableStateOf(Size.Zero) }
@@ -1209,23 +1224,32 @@ fun EditTripDialog(
                         }
                     }
                 }
-                ClearableTextField(
-                    value = distanceText,
-                    onValueChange = {
-                        val sanitizedText =
-                            it.replace(',', '.').filter { char -> char == '.' || char.isDigit() }
-                        val dotCount = sanitizedText.count { char -> char == '.' }
-                        if (dotCount <= 1) {
-                            distanceText = sanitizedText
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ClearableTextField(
+                        value = distanceText,
+                        onValueChange = {
+                            val sanitizedText =
+                                it.replace(',', '.').filter { char -> char == '.' || char.isDigit() }
+                            val dotCount = sanitizedText.count { char -> char == '.' }
+                            if (dotCount <= 1) {
+                                distanceText = sanitizedText
+                            }
+                            isError = false
+                        },
+                        label = { Text(stringResource(R.string.distance_km_label)) },
+                        placeholder = { Text("0.0") },
+                        isError = isError,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (tripsViewModel.isCalculating) {
+                        CircularProgressIndicator(modifier = Modifier.padding(start = 8.dp))
+                    } else {
+                        IconButton(onClick = { tripsViewModel.calculateDistance(startText, endText) }) {
+                            Icon(Icons.Default.Calculate, contentDescription = "Calculate distance")
                         }
-                        isError = false
-                    },
-                    label = { Text(stringResource(R.string.distance_km_label)) },
-                    placeholder = { Text("0.0") },
-                    isError = isError,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
                 val icons = listOf(Icons.Default.Work, Icons.Default.Person)

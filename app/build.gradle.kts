@@ -94,6 +94,9 @@ dependencies {
     // DocumentFile
     implementation(libs.androidx.documentfile)
 
+    // OkHttp
+    implementation(libs.okhttp)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
