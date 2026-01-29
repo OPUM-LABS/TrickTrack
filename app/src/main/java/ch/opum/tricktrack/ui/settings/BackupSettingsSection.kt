@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Slider
@@ -98,7 +99,7 @@ fun BackupSettingsSection(
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = frequencyExpanded)
                     },
-                    modifier = Modifier.menuAnchor()
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded = frequencyExpanded,
@@ -143,7 +144,7 @@ fun BackupSettingsSection(
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = dayOfWeekExpanded)
                             },
-                            modifier = Modifier.menuAnchor()
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         )
                         ExposedDropdownMenu(
                             expanded = dayOfWeekExpanded,
@@ -209,7 +210,7 @@ fun Uri.toUserFriendlyString(): String {
             // It's likely an SD Card or External Drive
             "SD Card > $decodedPath"
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         return "Custom Folder"
     }
 }

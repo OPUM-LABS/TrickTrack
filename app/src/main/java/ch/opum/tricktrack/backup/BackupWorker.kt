@@ -103,7 +103,7 @@ class BackupWorker(
                         }
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Fallback to internal storage
             }
 
@@ -125,7 +125,7 @@ class BackupWorker(
             showBackupNotification(true)
             return Result.success()
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             showBackupNotification(false)
             return Result.failure()
         }
@@ -157,7 +157,7 @@ class BackupWorker(
                 .setAutoCancel(true)
 
             notificationManager.notify(notificationId, builder.build())
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             // Handle potential SecurityException
         }
     }
