@@ -4,7 +4,6 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import ch.opum.tricktrack.data.AppDatabase
 import ch.opum.tricktrack.data.BluetoothRepository
 import ch.opum.tricktrack.data.TripRepository
@@ -30,16 +29,14 @@ class TripApplication : Application() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = getString(R.string.backup_notification_channel_name)
-            val descriptionText = getString(R.string.backup_notification_channel_description)
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("backup_channel", name, importance).apply {
-                description = descriptionText
-            }
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+        val name = getString(R.string.backup_notification_channel_name)
+        val descriptionText = getString(R.string.backup_notification_channel_description)
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel("backup_channel", name, importance).apply {
+            description = descriptionText
         }
+        val notificationManager: NotificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 }
