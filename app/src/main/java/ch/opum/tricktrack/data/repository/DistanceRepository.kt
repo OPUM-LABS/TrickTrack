@@ -14,7 +14,7 @@ class DistanceRepository(context: Context) {
     private val prefs = AppPreferences(context)
 
     suspend fun getDrivingDistance(startLat: Double, startLon: Double, endLat: Double, endLon: Double): Double? {
-        val baseUrl = prefs.getOsrmUrl()
+        val baseUrl = prefs.getOsrmUrl().trim().removeSuffix("/")
         val url = "$baseUrl/$startLon,$startLat;$endLon,$endLat?overview=false"
         Log.d("DistanceRepository", "Requesting URL: $url")
         val request = Request.Builder().url(url).build()

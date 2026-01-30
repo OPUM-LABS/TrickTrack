@@ -192,7 +192,6 @@
     <string name="background_location_required_title">Background Location Required</string>
     <string name="background_location_required_text">To detect when you start driving automatically, this app needs location access \'All the time\'. Please select \'Allow all the time\' on the next screen.</string>
     <string name="open_settings">Open Settings</string>
-    <string name="cancel">Cancel</string>
     <string name="clear_text">Clear text</string>
     <string name="name">Name</string>
     <string name="enter_the_name">Enter the name</string>
@@ -240,4 +239,11 @@
     <string name="test_and_save">Test &amp; Save</string>
     <string name="reset_to_defaults">Reset to Defaults</string>
     <string name="reset_to_defaults_message">Server URLs reset to defaults.</string>
+    <string name="cancel">Cancel</string>
+    <string name="reset_to_defaults_message_osrm">OSRM URL reset to default.</string>
+    <string name="reset_to_defaults_message_photon">Photon URL reset to default.</string>
+    <string name="testing_server">Testing server...</string>
+    <string name="server_valid">Server valid!</string>
+    <string name="servers_saved_successfully">Server URLs saved successfully!</string>
+    <string name="test_server">Test</string>
 </resources>

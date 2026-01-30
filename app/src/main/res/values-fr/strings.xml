@@ -226,4 +226,15 @@
     <string name="backup_notification_channel_description">Notifications pour les sauvegardes automatiques.</string>
     <string name="backup_notification_title">Sauvegarde automatique</string>
     <string name="backup_notification_text">Sauvegarde créée avec succès.</string>
+    <string name="server_settings_title">Paramètres du serveur</string>
+    <string name="server_settings_description">Configurez les URL des serveurs OSRM et Photon.</string>
+    <string name="osrm_server_url">URL du serveur OSRM</string>
+    <string name="photon_server_url">URL du serveur Photon</string>
+    <string name="testing_servers">Test des serveurs...</string>
+    <string name="servers_valid_and_saved">Serveurs valides et enregistrés !</string>
+    <string name="osrm_connection_failed">Échec de la connexion OSRM</string>
+    <string name="photon_connection_failed">Échec de la connexion Photon</string>
+    <string name="test_and_save">Tester et enregistrer</string>
+    <string name="reset_to_defaults">Réinitialiser les paramètres par défaut</string>
+    <string name="reset_to_defaults_message">URL des serveurs réinitialisées aux paramètres par défaut.</string>
 </resources>
