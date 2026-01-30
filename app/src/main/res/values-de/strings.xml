@@ -59,6 +59,8 @@
     <string name="day_friday">Freitag</string>
     <string name="day_saturday">Samstag</string>
     <string name="day_sunday">Sonntag</string>
+    <string name="api_settings_title">API-Einstellungen</string>
+    <string name="api_settings_description">Konfigurieren Sie API-Server-URLs.</string>
 
     <!-- General -->
     <string name="button_save">Speichern</string>
@@ -192,7 +194,6 @@
     <string name="background_location_required_title">Hintergrund-Standortberechtigung erforderlich</string>
     <string name="background_location_required_text">Um automatisch zu erkennen, wann Sie losfahren, benötigt diese App den Standortzugriff \'Immer zulassen\'. Bitte wählen Sie auf dem nächsten Bildschirm \'Immer zulassen\'.</string>
     <string name="open_settings">Einstellungen öffnen</string>
-    <string name="cancel">Abbrechen</string>
     <string name="clear_text">Text löschen</string>
     <string name="name">Name</string>
     <string name="enter_the_name">Namen eingeben</string>
@@ -221,12 +222,14 @@
     <string name="pdf_header_expenses">Kosten</string>
     <string name="pdf_header_start_time">Startzeit</string>
     <string name="pdf_header_end_time">Endzeit</string>
+
+    <!-- Backup Notification -->
     <string name="backup_notification_channel_name">Sicherung</string>
     <string name="backup_notification_channel_description">Benachrichtigungen für automatische Sicherungen.</string>
     <string name="backup_notification_title">Automatische Sicherung</string>
     <string name="backup_notification_text">Sicherung erfolgreich erstellt.</string>
-    <string name="server_settings_title">Servereinstellungen</string>
-    <string name="server_settings_description">Konfigurieren Sie die URLs für OSRM und Photon Server.</string>
+
+    <!-- Server Settings Dialog -->
     <string name="osrm_server_url">OSRM-Server-URL</string>
     <string name="photon_server_url">Photon-Server-URL</string>
     <string name="testing_servers">Server werden getestet...</string>
@@ -236,4 +239,11 @@
     <string name="test_and_save">Testen &amp; Speichern</string>
     <string name="reset_to_defaults">Auf Standardwerte zurücksetzen</string>
     <string name="reset_to_defaults_message">Server-URLs auf Standardwerte zurückgesetzt.</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="reset_to_defaults_message_osrm">OSRM-URL auf Standard zurückgesetzt.</string>
+    <string name="reset_to_defaults_message_photon">Photon-URL auf Standard zurückgesetzt.</string>
+    <string name="testing_server">Server wird getestet...</string>
+    <string name="server_valid">Server gültig!</string>
+    <string name="servers_saved_successfully">Server-URLs erfolgreich gespeichert!</string>
+    <string name="test_server">Test</string>
 </resources>

@@ -74,7 +74,8 @@ class SettingsViewModel(
         viewModelScope.launch {
             val trips = tripRepository.getTripsForBackup()
             val settings = userPreferencesRepository.getAllPreferences()
-            val json = backupManager.createBackupJson(trips, settings)
+            val places = tripRepository.getAllSavedPlacesBlocking()
+            val json = backupManager.createBackupJson(trips, settings, places)
 
             try {
                 getApplication<Application>().contentResolver.openOutputStream(uri)?.use {
@@ -94,6 +95,7 @@ class SettingsViewModel(
                     val backupData = backupManager.restoreBackupFromJson(json)
                     if (backupData != null) {
                         tripRepository.restoreTrips(backupData.trips)
+                        tripRepository.restorePlaces(backupData.places)
                         // You'll need to implement the logic to restore settings
                         // restoreSettings(backupData.settings)
                         Toast.makeText(getApplication(), R.string.import_successful, Toast.LENGTH_SHORT).show()

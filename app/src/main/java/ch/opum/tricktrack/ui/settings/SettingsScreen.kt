@@ -101,6 +101,7 @@ import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.hasBackgroundLocationPermission
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.TripsViewModel
+import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -329,356 +330,485 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Text(
-            stringResource(R.string.settings_diagnostics_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-        )
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showPermissionDialog = true },
-            shape = RoundedCornerShape(12.dp)
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_diagnostics_title),
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showPermissionDialog = true },
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text(stringResource(R.string.settings_permissions_check_title), modifier = Modifier.weight(1f))
-                if (isAllPermissionsGranted) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = stringResource(R.string.settings_permissions_all_granted_cd),
-                        tint = Color.Green
-                    )
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.settings_permissions_check_title), modifier = Modifier.weight(1f))
+                    if (isAllPermissionsGranted) {
                         Icon(
-                            Icons.Default.Cancel,
-                            contentDescription = stringResource(R.string.settings_permissions_action_needed_cd),
-                            tint = Color.Red
+                            Icons.Default.CheckCircle,
+                            contentDescription = stringResource(R.string.settings_permissions_all_granted_cd),
+                            tint = Color.Green
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.settings_permissions_action_needed_text), color = Color.Red)
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Cancel,
+                                contentDescription = stringResource(R.string.settings_permissions_action_needed_cd),
+                                tint = Color.Red
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.settings_permissions_action_needed_text), color = Color.Red)
+                        }
                     }
                 }
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-        Text(
-            stringResource(R.string.settings_tracking_settings_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_backup_restore_title),
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
-            Column(Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_automatic_tracking_title))
-                        Text(
-                            stringResource(R.string.settings_automatic_tracking_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (!isAutomaticSwitchEnabled) MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = 0.38f
-                            ) else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (!isAutomaticSwitchEnabled) {
-                            Text(
-                                stringResource(R.string.settings_controlled_by_schedule),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    Switch(
-                        checked = isAutoTrackingEnabled,
-                        onCheckedChange = { enabled ->
-                            viewModel.onToggleAutoTracking(
-                                checked = enabled,
-                                hasBackgroundLocationPermission = context.hasBackgroundLocationPermission()
-                            )
-                        },
-                        enabled = isAutomaticSwitchEnabled
-                    )
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(0.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_bluetooth_trigger_title))
-                        Text(
-                            stringResource(R.string.settings_bluetooth_trigger_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (!isBluetoothSwitchEnabled) MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = 0.38f
-                            ) else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (!isBluetoothSwitchEnabled) {
-                            Text(
-                                stringResource(R.string.settings_controlled_by_schedule),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    Switch(
-                        checked = isBluetoothTriggerEnabled,
-                        onCheckedChange = { enabled ->
-                            if (enabled) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.BLUETOOTH_CONNECT
-                                    ) != PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    bluetoothPermissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
-                                } else {
-                                    viewModel.setBluetoothTriggerEnabled(true)
-                                }
-                            } else {
-                                viewModel.setBluetoothTriggerEnabled(false)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    val exportLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.CreateDocument("application/json"),
+                        onResult = { uri ->
+                            if (uri != null) {
+                                settingsViewModel.exportBackup(uri)
                             }
-                        },
-                        enabled = isBluetoothSwitchEnabled
-                    )
-                }
-
-                if (isBluetoothDeviceSelectionEnabled) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = { showDeviceDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        val text = if (selectedBluetoothDevices.isEmpty()) {
-                            stringResource(R.string.settings_bluetooth_select_device)
-                        } else {
-                            stringResource(R.string.settings_bluetooth_change_device)
-                        }
-                        Text(text)
-                    }
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_enable_schedule_title))
-                        Text(
-                            stringResource(R.string.settings_enable_schedule_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = isScheduleEnabled,
-                        onCheckedChange = {
-                            viewModel.setScheduleEnabled(it)
                         }
                     )
-                }
-                if (isScheduleEnabled) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    val importLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.OpenDocument(),
+                        onResult = { uri ->
+                            if (uri != null) {
+                                settingsViewModel.importBackup(uri)
+                            }
+                        }
+                    )
+
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
+                                exportLauncher.launch("tricktrack-backup_$timeStamp.json")
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                Icons.Default.Upload,
+                                contentDescription = stringResource(R.string.settings_backup_button)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.settings_backup_button))
+                        }
+
+                        Button(
+                            onClick = {
+                                importLauncher.launch(arrayOf("application/json"))
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                Icons.Default.Download,
+                                contentDescription = stringResource(R.string.settings_restore_button)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.settings_restore_button))
+                        }
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    BackupSettingsSection(viewModel = settingsViewModel)
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showScheduleDialog = true },
-                        verticalAlignment = Alignment.CenterVertically
+                            .clickable { showExportDialog = true },
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(stringResource(R.string.settings_export_fields_title))
+                                Text(
+                                    stringResource(R.string.settings_export_fields_description),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.settings_export_fields_configure_cd))
+                        }
+                    }
+                }
+            }
+        }
+
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_tracking_settings_title),
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            // Tracking Settings
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.settings_schedule_title))
+                            Text(stringResource(R.string.settings_automatic_tracking_title))
                             Text(
-                                stringResource(R.string.settings_schedule_description),
+                                stringResource(R.string.settings_automatic_tracking_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (!isAutomaticSwitchEnabled) MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                ) else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (!isAutomaticSwitchEnabled) {
+                                Text(
+                                    stringResource(R.string.settings_controlled_by_schedule),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = isAutoTrackingEnabled,
+                            onCheckedChange = { enabled ->
+                                viewModel.onToggleAutoTracking(
+                                    checked = enabled,
+                                    hasBackgroundLocationPermission = context.hasBackgroundLocationPermission()
+                                )
+                            },
+                            enabled = isAutomaticSwitchEnabled
+                        )
+                    }
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_bluetooth_trigger_title))
+                            Text(
+                                stringResource(R.string.settings_bluetooth_trigger_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (!isBluetoothSwitchEnabled) MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                ) else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (!isBluetoothSwitchEnabled) {
+                                Text(
+                                    stringResource(R.string.settings_controlled_by_schedule),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = isBluetoothTriggerEnabled,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.BLUETOOTH_CONNECT
+                                        ) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        bluetoothPermissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
+                                    } else {
+                                        viewModel.setBluetoothTriggerEnabled(true)
+                                    }
+                                } else {
+                                    viewModel.setBluetoothTriggerEnabled(false)
+                                }
+                            },
+                            enabled = isBluetoothSwitchEnabled
+                        )
+                    }
+
+                    if (isBluetoothDeviceSelectionEnabled) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = { showDeviceDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val text = if (selectedBluetoothDevices.isEmpty()) {
+                                stringResource(R.string.settings_bluetooth_select_device)
+                            } else {
+                                stringResource(R.string.settings_bluetooth_change_device)
+                            }
+                            Text(text)
+                        }
+                    }
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_enable_schedule_title))
+                            Text(
+                                stringResource(R.string.settings_enable_schedule_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowForwardIos,
-                            contentDescription = stringResource(R.string.settings_schedule_edit_cd)
+                        Switch(
+                            checked = isScheduleEnabled,
+                            onCheckedChange = {
+                                viewModel.setScheduleEnabled(it)
+                            }
                         )
                     }
-                }
-            }
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-        Text(
-            stringResource(R.string.settings_trip_defaults_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text(
-                    text = stringResource(R.string.settings_default_type_title),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
-                val icons = listOf(Icons.Default.Work, Icons.Default.Person)
-
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    tripTypes.forEachIndexed { index, label ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = tripTypes.size
-                            ),
-                            onClick = { viewModel.setDefaultTripType(index == 0) },
-                            selected = (index == 0) == defaultIsBusiness,
-                            icon = {
-                                Icon(
-                                    imageVector = icons[index],
-                                    contentDescription = label,
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                    if (isScheduleEnabled) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showScheduleDialog = true },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(stringResource(R.string.settings_schedule_title))
+                                Text(
+                                    stringResource(R.string.settings_schedule_description),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        ) {
-                            Text(label)
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                contentDescription = stringResource(R.string.settings_schedule_edit_cd)
+                            )
                         }
                     }
                 }
             }
-        }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(0.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.settings_calculate_expenses_title), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = expenseTrackingEnabled,
-                        onCheckedChange = { viewModel.setExpenseTracking(it) }
+            // Trip Defaults
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_default_type_title),
+                        style = MaterialTheme.typography.bodyLarge
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
+                    val icons = listOf(Icons.Default.Work, Icons.Default.Person)
+
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        tripTypes.forEachIndexed { index, label ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = tripTypes.size
+                                ),
+                                onClick = { viewModel.setDefaultTripType(index == 0) },
+                                selected = (index == 0) == defaultIsBusiness,
+                                icon = {
+                                    Icon(
+                                        imageVector = icons[index],
+                                        contentDescription = label,
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                                    )
+                                }
+                            ) {
+                                Text(label)
+                            }
+                        }
+                    }
                 }
+            }
 
-                if (expenseTrackingEnabled) {
-                    var localRate by remember { mutableStateOf(String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)) }
-                    var localCurrency by remember(expenseCurrency) { mutableStateOf(expenseCurrency) }
-
-                    LaunchedEffect(expenseRatePerKm) {
-                        localRate = String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.settings_calculate_expenses_title), modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = expenseTrackingEnabled,
+                            onCheckedChange = { viewModel.setExpenseTracking(it) }
+                        )
                     }
 
+                    if (expenseTrackingEnabled) {
+                        var localRate by remember { mutableStateOf(String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)) }
+                        var localCurrency by remember(expenseCurrency) { mutableStateOf(expenseCurrency) }
+
+                        LaunchedEffect(expenseRatePerKm) {
+                            localRate = String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ClearableTextField(
+                                value = localRate,
+                                onValueChange = { localRate = it },
+                                label = { Text(stringResource(R.string.settings_expense_rate_label)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .onFocusChanged { focusState ->
+                                        if (!focusState.isFocused) {
+                                            val rate = localRate.toFloatOrNull() ?: 0f
+                                            localRate = String.format(Locale.getDefault(), "%.2f", rate)
+                                            viewModel.setExpenseRate(rate)
+                                        }
+                                    }
+                            )
+                            ClearableTextField(
+                                value = localCurrency,
+                                onValueChange = { localCurrency = it },
+                                label = { Text(stringResource(R.string.settings_expense_currency_label)) },
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .onFocusChanged {
+                                        if (!it.isFocused) {
+                                            viewModel.setExpenseCurrency(localCurrency)
+                                        }
+                                    }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_smart_location_snapping_title))
+                            Text(
+                                stringResource(R.string.settings_smart_location_snapping_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = isSmartLocationEnabled,
+                            onCheckedChange = { enabled ->
+                                viewModel.setSmartLocationEnabled(enabled)
+                            }
+                        )
+                    }
+                    if (isSmartLocationEnabled) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        var localRadius by remember(smartLocationRadius) { mutableStateOf(smartLocationRadius.toString()) }
+
                         ClearableTextField(
-                            value = localRate,
-                            onValueChange = { localRate = it },
-                            label = { Text(stringResource(R.string.settings_expense_rate_label)) },
+                            value = localRadius,
+                            onValueChange = { newValue ->
+                                localRadius = newValue
+                            },
+                            label = { Text(stringResource(R.string.settings_smart_location_radius_label)) },
+                            placeholder = { Text("150") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth()
                                 .onFocusChanged { focusState ->
                                     if (!focusState.isFocused) {
-                                        val rate = localRate.toFloatOrNull() ?: 0f
-                                        localRate = String.format(Locale.getDefault(), "%.2f", rate)
-                                        viewModel.setExpenseRate(rate)
-                                    }
-                                }
-                        )
-                        ClearableTextField(
-                            value = localCurrency,
-                            onValueChange = { localCurrency = it },
-                            label = { Text(stringResource(R.string.settings_expense_currency_label)) },
-                            modifier = Modifier
-                                .width(100.dp)
-                                .onFocusChanged {
-                                    if (!it.isFocused) {
-                                        viewModel.setExpenseCurrency(localCurrency)
+                                        val radius = localRadius.toIntOrNull() ?: 150
+                                        viewModel.setSmartLocationRadius(radius)
+                                        localRadius = radius.toString()
                                     }
                                 }
                         )
                     }
                 }
             }
-        }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(0.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_smart_location_snapping_title))
-                        Text(
-                            stringResource(R.string.settings_smart_location_snapping_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = isSmartLocationEnabled,
-                        onCheckedChange = { enabled ->
-                            viewModel.setSmartLocationEnabled(enabled)
-                        }
-                    )
-                }
-                if (isSmartLocationEnabled) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    var localRadius by remember(smartLocationRadius) { mutableStateOf(smartLocationRadius.toString()) }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    var localStillnessTimer by remember(stillnessTimer) { mutableStateOf(stillnessTimer.toString()) }
+                    var localMinSpeed by remember(minSpeed) { mutableStateOf(minSpeed.toString()) }
 
                     ClearableTextField(
-                        value = localRadius,
+                        value = localStillnessTimer,
                         onValueChange = { newValue ->
-                            localRadius = newValue
+                            localStillnessTimer = newValue
                         },
-                        label = { Text(stringResource(R.string.settings_smart_location_radius_label)) },
-                        placeholder = { Text("150") },
+                        label = { Text(stringResource(R.string.settings_stillness_timer_label)) },
+                        placeholder = { Text("60") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
                             .onFocusChanged { focusState ->
                                 if (!focusState.isFocused) {
-                                    val radius = localRadius.toIntOrNull() ?: 150
-                                    viewModel.setSmartLocationRadius(radius)
-                                    localRadius = radius.toString()
+                                    val seconds = localStillnessTimer.toIntOrNull() ?: 60
+                                    viewModel.setStillnessTimer(seconds)
+                                    localStillnessTimer = seconds.toString()
+                                }
+                            }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ClearableTextField(
+                        value = localMinSpeed,
+                        onValueChange = { newValue ->
+                            localMinSpeed = newValue
+                        },
+                        label = { Text(stringResource(R.string.settings_min_speed_label)) },
+                        placeholder = { Text("15") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
+                                    val speed = localMinSpeed.toIntOrNull() ?: 15
+                                    viewModel.setMinSpeed(speed)
+                                    localMinSpeed = speed.toString()
                                 }
                             }
                     )
@@ -686,179 +816,31 @@ fun SettingsScreen(
             }
         }
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showExportDialog = true },
-            shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_advanced_settings_title),
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // New Card for Server Settings
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showServerSettingsDialog = true },
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.settings_export_fields_title))
-                    Text(
-                        stringResource(R.string.settings_export_fields_description),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.settings_export_fields_configure_cd))
-            }
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-        Text(
-            stringResource(R.string.settings_advanced_settings_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                var localStillnessTimer by remember(stillnessTimer) { mutableStateOf(stillnessTimer.toString()) }
-                var localMinSpeed by remember(minSpeed) { mutableStateOf(minSpeed.toString()) }
-
-                ClearableTextField(
-                    value = localStillnessTimer,
-                    onValueChange = { newValue ->
-                        localStillnessTimer = newValue
-                    },
-                    label = { Text(stringResource(R.string.settings_stillness_timer_label)) },
-                    placeholder = { Text("60") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { focusState ->
-                            if (!focusState.isFocused) {
-                                val seconds = localStillnessTimer.toIntOrNull() ?: 60
-                                viewModel.setStillnessTimer(seconds)
-                                localStillnessTimer = seconds.toString()
-                            }
-                        }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ClearableTextField(
-                    value = localMinSpeed,
-                    onValueChange = { newValue ->
-                        localMinSpeed = newValue
-                    },
-                    label = { Text(stringResource(R.string.settings_min_speed_label)) },
-                    placeholder = { Text("15") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { focusState ->
-                            if (!focusState.isFocused) {
-                                val speed = localMinSpeed.toIntOrNull() ?: 15
-                                viewModel.setMinSpeed(speed)
-                                localMinSpeed = speed.toString()
-                            }
-                        }
-                )
-            }
-        }
-
-        // New Card for Server Settings
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showServerSettingsDialog = true },
-            shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.server_settings_title))
-                    Text(
-                        stringResource(R.string.server_settings_description), // Assuming you'll add this string resource
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.server_settings_title))
-            }
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-        Text(
-            stringResource(R.string.settings_backup_restore_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                val exportLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.CreateDocument("application/json"),
-                    onResult = { uri ->
-                        if (uri != null) {
-                            settingsViewModel.exportBackup(uri)
-                        }
-                    }
-                )
-
-                val importLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.OpenDocument(),
-                    onResult = { uri ->
-                        if (uri != null) {
-                            settingsViewModel.importBackup(uri)
-                        }
-                    }
-                )
-
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        onClick = {
-                            val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
-                            exportLauncher.launch("tricktrack-backup_$timeStamp.json")
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            Icons.Default.Upload,
-                            contentDescription = stringResource(R.string.settings_backup_button)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.api_settings_title))
+                        Text(
+                            stringResource(R.string.api_settings_description), // Assuming you'll add this string resource
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.settings_backup_button))
                     }
-
-                    Button(
-                        onClick = {
-                            importLauncher.launch(arrayOf("application/json"))
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            Icons.Default.Download,
-                            contentDescription = stringResource(R.string.settings_restore_button)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.settings_restore_button))
-                    }
+                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.api_settings_title))
                 }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                BackupSettingsSection(viewModel = settingsViewModel)
             }
         }
     }

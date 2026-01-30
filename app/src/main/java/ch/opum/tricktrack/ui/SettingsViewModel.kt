@@ -19,7 +19,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val trips = tripRepository.getTripsForBackup()
             val settings = getSettingsMap()
-            val json = backupManager.createBackupJson(trips, settings)
+            val places = tripRepository.getAllSavedPlacesBlocking()
+            val json = backupManager.createBackupJson(trips, settings, places)
 
             try {
                 getApplication<Application>().contentResolver.openOutputStream(uri)?.use {
@@ -39,6 +40,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     val backupData = backupManager.restoreBackupFromJson(json)
                     if (backupData != null) {
                         tripRepository.restoreTrips(backupData.trips)
+                        tripRepository.restorePlaces(backupData.places)
                         // You'll need to implement the logic to restore settings
                         // restoreSettings(backupData.settings)
                     }

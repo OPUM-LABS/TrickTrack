@@ -68,7 +68,7 @@ fun ServerSettingsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.server_settings_title)) },
+        title = { Text(stringResource(R.string.api_settings_title)) },
         text = {
             Column(
                 modifier = Modifier

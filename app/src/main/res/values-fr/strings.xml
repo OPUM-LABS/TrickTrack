@@ -60,6 +60,8 @@
     <string name="day_friday">Vendredi</string>
     <string name="day_saturday">Samedi</string>
     <string name="day_sunday">Dimanche</string>
+    <string name="api_settings_title">Paramètres de l\'API</string>
+    <string name="api_settings_description">Configurez les URL du serveur API.</string>
 
     <!-- General -->
     <string name="button_save">Enregistrer</string>
@@ -193,7 +195,6 @@
     <string name="background_location_required_title">Localisation en arrière-plan requise</string>
     <string name="background_location_required_text">Pour détecter automatiquement lorsque vous commencez à conduire, cette application a besoin de l\'accès à la localisation \'Toujours\'. Veuillez sélectionner \'Toujours autoriser\' sur l\'écran suivant.</string>
     <string name="open_settings">Ouvrir les paramètres</string>
-    <string name="cancel">Annuler</string>
     <string name="clear_text">Effacer le texte</string>
     <string name="name">Nom</string>
     <string name="enter_the_name">Entrez le nom</string>
@@ -222,12 +223,14 @@
     <string name="pdf_header_expenses">Dépenses</string>
     <string name="pdf_header_start_time">Heure de début</string>
     <string name="pdf_header_end_time">Heure de fin</string>
+
+    <!-- Backup Notification -->
     <string name="backup_notification_channel_name">Sauvegarde</string>
     <string name="backup_notification_channel_description">Notifications pour les sauvegardes automatiques.</string>
     <string name="backup_notification_title">Sauvegarde automatique</string>
     <string name="backup_notification_text">Sauvegarde créée avec succès.</string>
-    <string name="server_settings_title">Paramètres du serveur</string>
-    <string name="server_settings_description">Configurez les URL des serveurs OSRM et Photon.</string>
+
+    <!-- Server Settings Dialog -->
     <string name="osrm_server_url">URL du serveur OSRM</string>
     <string name="photon_server_url">URL du serveur Photon</string>
     <string name="testing_servers">Test des serveurs...</string>
@@ -237,4 +240,11 @@
     <string name="test_and_save">Tester et enregistrer</string>
     <string name="reset_to_defaults">Réinitialiser les paramètres par défaut</string>
     <string name="reset_to_defaults_message">URL des serveurs réinitialisées aux paramètres par défaut.</string>
+    <string name="cancel">Annuler</string>
+    <string name="reset_to_defaults_message_osrm">URL OSRM réinitialisée par défaut.</string>
+    <string name="reset_to_defaults_message_photon">URL Photon réinitialisée par défaut.</string>
+    <string name="testing_server">Test du serveur...</string>
+    <string name="server_valid">Serveur valide !</string>
+    <string name="servers_saved_successfully">URL du serveur enregistrées avec succès !</string>
+    <string name="test_server">Test</string>
 </resources>

@@ -42,4 +42,9 @@ class TripRepository(private val tripDao: TripDao, private val savedPlaceDao: Sa
     suspend fun restoreTrips(trips: List<Trip>) {
         tripDao.restoreTrips(trips)
     }
+
+    suspend fun restorePlaces(places: List<SavedPlace>) {
+        savedPlaceDao.deleteAll()
+        places.forEach { savedPlaceDao.insert(it) }
+    }
 }

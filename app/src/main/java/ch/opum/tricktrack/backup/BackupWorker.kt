@@ -73,7 +73,8 @@ class BackupWorker(
         try {
             val trips = tripRepository.getTripsForBackup()
             val settings = userPreferencesRepository.getAllPreferences()
-            val backupJson = backupManager.createBackupJson(trips, settings)
+            val places = tripRepository.getAllSavedPlacesBlocking()
+            val backupJson = backupManager.createBackupJson(trips, settings, places)
 
             val backupFolderUriString = userPreferences[PreferencesKeys.BACKUP_FOLDER_URI]
 

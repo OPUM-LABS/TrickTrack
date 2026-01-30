@@ -18,6 +18,9 @@ interface SavedPlaceDao {
     @Delete
     suspend fun delete(savedPlace: SavedPlace)
 
+    @Query("DELETE FROM saved_places")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM saved_places")
     fun getAll(): Flow<List<SavedPlace>>
 }

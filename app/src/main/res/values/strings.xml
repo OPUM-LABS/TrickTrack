@@ -59,6 +59,8 @@
     <string name="day_friday">Friday</string>
     <string name="day_saturday">Saturday</string>
     <string name="day_sunday">Sunday</string>
+    <string name="api_settings_title">API Settings</string>
+    <string name="api_settings_description">Configure API server URLs.</string>
 
     <!-- General -->
     <string name="button_save">Save</string>
@@ -228,11 +230,9 @@
     <string name="backup_notification_text">Backup created successfully.</string>
 
     <!-- Server Settings Dialog -->
-    <string name="server_settings_title">Server Settings</string>
-    <string name="server_settings_description">Configure OSRM and Photon server URLs.</string>
     <string name="osrm_server_url">OSRM Server URL</string>
     <string name="photon_server_url">Photon Server URL</string>
-    <string name="testing_servers">Testing servers...</string>
+    <string name="testing_servers">Testing servers…</string>
     <string name="servers_valid_and_saved">Servers valid and saved!</string>
     <string name="osrm_connection_failed">OSRM Connection Failed</string>
     <string name="photon_connection_failed">Photon Connection Failed</string>
