@@ -40,6 +40,7 @@
     <string name="settings_min_speed_label">Vitesse minimale (km/h)</string>
     <string name="settings_all_days">Tous les jours</string>
     <string name="settings_backup_restore_title">Sauvegarde et restauration</string>
+    <string name="settings_reporting_title">Réports</string>
     <string name="settings_backup_button">Sauvegarder</string>
     <string name="settings_restore_button">Restaurer</string>
     <string name="import_successful">Sauvegarde importée avec succès !</string>

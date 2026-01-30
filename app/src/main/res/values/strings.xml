@@ -39,6 +39,7 @@
     <string name="settings_min_speed_label">Minimum Speed (km/h)</string>
     <string name="settings_all_days">All Days</string>
     <string name="settings_backup_restore_title">Backup and Restore</string>
+    <string name="settings_reporting_title">Reporting</string>
     <string name="settings_backup_button">Backup</string>
     <string name="settings_restore_button">Restore</string>
     <string name="import_successful">Backup imported successfully!</string>

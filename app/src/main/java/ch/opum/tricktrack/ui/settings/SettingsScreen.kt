@@ -430,28 +430,91 @@ fun SettingsScreen(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                     BackupSettingsSection(viewModel = settingsViewModel)
+                }
+            }
+        }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showExportDialog = true },
-                        shape = RoundedCornerShape(12.dp)
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_reporting_title),
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showExportDialog = true },
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_export_fields_title))
+                        Text(
+                            stringResource(R.string.settings_export_fields_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.settings_export_fields_configure_cd))
+                }
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
+                        Text(stringResource(R.string.settings_calculate_expenses_title), modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = expenseTrackingEnabled,
+                            onCheckedChange = { viewModel.setExpenseTracking(it) }
+                        )
+                    }
+
+                    if (expenseTrackingEnabled) {
+                        var localRate by remember { mutableStateOf(String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)) }
+                        var localCurrency by remember(expenseCurrency) { mutableStateOf(expenseCurrency) }
+
+                        LaunchedEffect(expenseRatePerKm) {
+                            localRate = String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)
+                        }
+
                         Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(stringResource(R.string.settings_export_fields_title))
-                                Text(
-                                    stringResource(R.string.settings_export_fields_description),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.settings_export_fields_configure_cd))
+                            ClearableTextField(
+                                value = localRate,
+                                onValueChange = { localRate = it },
+                                label = { Text(stringResource(R.string.settings_expense_rate_label)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .onFocusChanged { focusState ->
+                                        if (!focusState.isFocused) {
+                                            val rate = localRate.toFloatOrNull() ?: 0f
+                                            localRate = String.format(Locale.getDefault(), "%.2f", rate)
+                                            viewModel.setExpenseRate(rate)
+                                        }
+                                    }
+                            )
+                            ClearableTextField(
+                                value = localCurrency,
+                                onValueChange = { localCurrency = it },
+                                label = { Text(stringResource(R.string.settings_expense_currency_label)) },
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .onFocusChanged {
+                                        if (!it.isFocused) {
+                                            viewModel.setExpenseCurrency(localCurrency)
+                                        }
+                                    }
+                            )
                         }
                     }
                 }
@@ -649,67 +712,6 @@ fun SettingsScreen(
                             ) {
                                 Text(label)
                             }
-                        }
-                    }
-                }
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.settings_calculate_expenses_title), modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = expenseTrackingEnabled,
-                            onCheckedChange = { viewModel.setExpenseTracking(it) }
-                        )
-                    }
-
-                    if (expenseTrackingEnabled) {
-                        var localRate by remember { mutableStateOf(String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)) }
-                        var localCurrency by remember(expenseCurrency) { mutableStateOf(expenseCurrency) }
-
-                        LaunchedEffect(expenseRatePerKm) {
-                            localRate = String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            ClearableTextField(
-                                value = localRate,
-                                onValueChange = { localRate = it },
-                                label = { Text(stringResource(R.string.settings_expense_rate_label)) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .onFocusChanged { focusState ->
-                                        if (!focusState.isFocused) {
-                                            val rate = localRate.toFloatOrNull() ?: 0f
-                                            localRate = String.format(Locale.getDefault(), "%.2f", rate)
-                                            viewModel.setExpenseRate(rate)
-                                        }
-                                    }
-                            )
-                            ClearableTextField(
-                                value = localCurrency,
-                                onValueChange = { localCurrency = it },
-                                label = { Text(stringResource(R.string.settings_expense_currency_label)) },
-                                modifier = Modifier
-                                    .width(100.dp)
-                                    .onFocusChanged {
-                                        if (!it.isFocused) {
-                                            viewModel.setExpenseCurrency(localCurrency)
-                                        }
-                                    }
-                            )
                         }
                     }
                 }
