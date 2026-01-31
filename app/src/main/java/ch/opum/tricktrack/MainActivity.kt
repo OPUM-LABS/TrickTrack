@@ -41,7 +41,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoMode
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -537,9 +536,6 @@ fun MainScreen(
                             }
                         }
                         Screen.Settings.route -> {
-                            IconButton(onClick = { showLogsDialog = true }) {
-                                Icon(Icons.Default.BugReport, contentDescription = stringResource(R.string.screen_title_logs))
-                            }
                             IconButton(onClick = { showAboutDialog = true }) {
                                 Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.action_about))
                             }
@@ -644,6 +640,7 @@ fun MainScreen(
                     showAboutDialog = showAboutDialog,
                     onDismissAboutDialog = { showAboutDialog = false },
                     showLogsDialog = showLogsDialog,
+                    onShowLogsDialog = { showLogsDialog = true },
                     onDismissLogsDialog = { showLogsDialog = false }
                 )
             }

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ExpandableSettingsGroup(
     title: String,
+    description: String? = null,
     icon: ImageVector? = null,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
@@ -60,11 +61,19 @@ fun ExpandableSettingsGroup(
                         modifier = Modifier.padding(end = 16.dp)
                     )
                 }
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.weight(1f)
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    if (description != null) {
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = null,

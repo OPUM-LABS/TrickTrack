@@ -32,6 +32,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -117,6 +118,7 @@ fun SettingsScreen(
     showAboutDialog: Boolean,
     onDismissAboutDialog: () -> Unit,
     showLogsDialog: Boolean,
+    onShowLogsDialog: () -> Unit,
     onDismissLogsDialog: () -> Unit
 ) {
     val context = LocalContext.current
@@ -331,198 +333,8 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         ExpandableSettingsGroup(
-            title = stringResource(R.string.settings_diagnostics_title),
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showPermissionDialog = true },
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.settings_permissions_check_title), modifier = Modifier.weight(1f))
-                    if (isAllPermissionsGranted) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = stringResource(R.string.settings_permissions_all_granted_cd),
-                            tint = Color.Green
-                        )
-                    } else {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Cancel,
-                                contentDescription = stringResource(R.string.settings_permissions_action_needed_cd),
-                                tint = Color.Red
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.settings_permissions_action_needed_text), color = Color.Red)
-                        }
-                    }
-                }
-            }
-        }
-
-        ExpandableSettingsGroup(
-            title = stringResource(R.string.settings_backup_restore_title),
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    val exportLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.CreateDocument("application/json"),
-                        onResult = { uri ->
-                            if (uri != null) {
-                                settingsViewModel.exportBackup(uri)
-                            }
-                        }
-                    )
-
-                    val importLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.OpenDocument(),
-                        onResult = { uri ->
-                            if (uri != null) {
-                                settingsViewModel.importBackup(uri)
-                            }
-                        }
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
-                                exportLauncher.launch("tricktrack-backup_$timeStamp.json")
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                Icons.Default.Upload,
-                                contentDescription = stringResource(R.string.settings_backup_button)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.settings_backup_button))
-                        }
-
-                        Button(
-                            onClick = {
-                                importLauncher.launch(arrayOf("application/json"))
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                Icons.Default.Download,
-                                contentDescription = stringResource(R.string.settings_restore_button)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.settings_restore_button))
-                        }
-                    }
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                    BackupSettingsSection(viewModel = settingsViewModel)
-                }
-            }
-        }
-
-        ExpandableSettingsGroup(
-            title = stringResource(R.string.settings_reporting_title),
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showExportDialog = true },
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_export_fields_title))
-                        Text(
-                            stringResource(R.string.settings_export_fields_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.settings_export_fields_configure_cd))
-                }
-            }
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.settings_calculate_expenses_title), modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = expenseTrackingEnabled,
-                            onCheckedChange = { viewModel.setExpenseTracking(it) }
-                        )
-                    }
-
-                    if (expenseTrackingEnabled) {
-                        var localRate by remember { mutableStateOf(String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)) }
-                        var localCurrency by remember(expenseCurrency) { mutableStateOf(expenseCurrency) }
-
-                        LaunchedEffect(expenseRatePerKm) {
-                            localRate = String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            ClearableTextField(
-                                value = localRate,
-                                onValueChange = { localRate = it },
-                                label = { Text(stringResource(R.string.settings_expense_rate_label)) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .onFocusChanged { focusState ->
-                                        if (!focusState.isFocused) {
-                                            val rate = localRate.toFloatOrNull() ?: 0f
-                                            localRate = String.format(Locale.getDefault(), "%.2f", rate)
-                                            viewModel.setExpenseRate(rate)
-                                        }
-                                    }
-                            )
-                            ClearableTextField(
-                                value = localCurrency,
-                                onValueChange = { localCurrency = it },
-                                label = { Text(stringResource(R.string.settings_expense_currency_label)) },
-                                modifier = Modifier
-                                    .width(100.dp)
-                                    .onFocusChanged {
-                                        if (!it.isFocused) {
-                                            viewModel.setExpenseCurrency(localCurrency)
-                                        }
-                                    }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_settings_title),
+            description = stringResource(R.string.settings_tracking_settings_description),
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // Tracking Settings
@@ -819,7 +631,165 @@ fun SettingsScreen(
         }
 
         ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_reporting_title),
+            description = stringResource(R.string.settings_reporting_description),
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showExportDialog = true },
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_export_fields_title))
+                        Text(
+                            stringResource(R.string.settings_export_fields_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.settings_export_fields_configure_cd))
+                }
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.settings_calculate_expenses_title), modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = expenseTrackingEnabled,
+                            onCheckedChange = { viewModel.setExpenseTracking(it) }
+                        )
+                    }
+
+                    if (expenseTrackingEnabled) {
+                        var localRate by remember { mutableStateOf(String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)) }
+                        var localCurrency by remember(expenseCurrency) { mutableStateOf(expenseCurrency) }
+
+                        LaunchedEffect(expenseRatePerKm) {
+                            localRate = String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ClearableTextField(
+                                value = localRate,
+                                onValueChange = { localRate = it },
+                                label = { Text(stringResource(R.string.settings_expense_rate_label)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .onFocusChanged { focusState ->
+                                        if (!focusState.isFocused) {
+                                            val rate = localRate.toFloatOrNull() ?: 0f
+                                            localRate = String.format(Locale.getDefault(), "%.2f", rate)
+                                            viewModel.setExpenseRate(rate)
+                                        }
+                                    }
+                            )
+                            ClearableTextField(
+                                value = localCurrency,
+                                onValueChange = { localCurrency = it },
+                                label = { Text(stringResource(R.string.settings_expense_currency_label)) },
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .onFocusChanged {
+                                        if (!it.isFocused) {
+                                            viewModel.setExpenseCurrency(localCurrency)
+                                        }
+                                    }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_backup_restore_title),
+            description = stringResource(R.string.settings_backup_restore_description),
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    val exportLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.CreateDocument("application/json"),
+                        onResult = { uri ->
+                            if (uri != null) {
+                                settingsViewModel.exportBackup(uri)
+                            }
+                        }
+                    )
+
+                    val importLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.OpenDocument(),
+                        onResult = { uri ->
+                            if (uri != null) {
+                                settingsViewModel.importBackup(uri)
+                            }
+                        }
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
+                                exportLauncher.launch("tricktrack-backup_$timeStamp.json")
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                Icons.Default.Upload,
+                                contentDescription = stringResource(R.string.settings_backup_button)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.settings_backup_button))
+                        }
+
+                        Button(
+                            onClick = {
+                                importLauncher.launch(arrayOf("application/json"))
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                Icons.Default.Download,
+                                contentDescription = stringResource(R.string.settings_restore_button)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.settings_restore_button))
+                        }
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    BackupSettingsSection(viewModel = settingsViewModel)
+                }
+            }
+        }
+
+        ExpandableSettingsGroup(
             title = stringResource(R.string.settings_advanced_settings_title),
+            description = stringResource(R.string.settings_advanced_settings_description),
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // New Card for Server Settings
@@ -842,6 +812,60 @@ fun SettingsScreen(
                         )
                     }
                     Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.api_settings_title))
+                }
+            }
+        }
+
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_diagnostics_title),
+            description = stringResource(R.string.settings_diagnostics_description),
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showPermissionDialog = true },
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.settings_permissions_check_title), modifier = Modifier.weight(1f))
+                    if (isAllPermissionsGranted) {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = stringResource(R.string.settings_permissions_all_granted_cd),
+                            tint = Color.Green
+                        )
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Cancel,
+                                contentDescription = stringResource(R.string.settings_permissions_action_needed_cd),
+                                tint = Color.Red
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.settings_permissions_action_needed_text), color = Color.Red)
+                        }
+                    }
+                }
+            }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onShowLogsDialog() },
+                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.settings_logs_title), modifier = Modifier.weight(1f))
+                    Icon(
+                        Icons.Default.BugReport,
+                        contentDescription = stringResource(R.string.settings_logs_title)
+                    )
                 }
             }
         }

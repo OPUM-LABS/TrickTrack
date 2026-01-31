@@ -4,11 +4,13 @@
 
     <!-- Settings Screen -->
     <string name="settings_diagnostics_title">Diagnostics</string>
+    <string name="settings_diagnostics_description">Check permissions and system health.</string>
     <string name="settings_permissions_check_title">Permissions Check</string>
     <string name="settings_permissions_all_granted_cd">All granted</string>
     <string name="settings_permissions_action_needed_cd">Action Needed</string>
     <string name="settings_permissions_action_needed_text">Action Needed</string>
     <string name="settings_tracking_settings_title">Tracking Settings</string>
+    <string name="settings_tracking_settings_description">Configure automatic tracking, triggers, and defaults.</string>
     <string name="settings_automatic_tracking_title">Automatic Tracking</string>
     <string name="settings_automatic_tracking_description">Automatically records trips when you start driving.</string>
     <string name="settings_bluetooth_trigger_title">Start on Bluetooth Connection</string>
@@ -35,13 +37,17 @@
     <string name="settings_enable_schedule_description">Let the schedule control tracking</string>
     <string name="settings_controlled_by_schedule">Controlled by Schedule</string>
     <string name="settings_advanced_settings_title">Advanced Settings</string>
+    <string name="settings_advanced_settings_description">Configure server URLs and other advanced options.</string>
     <string name="settings_stillness_timer_label">Stillness Timer (seconds)</string>
     <string name="settings_min_speed_label">Minimum Speed (km/h)</string>
     <string name="settings_all_days">All Days</string>
     <string name="settings_backup_restore_title">Backup and Restore</string>
+    <string name="settings_backup_restore_description">Manage your data backups.</string>
     <string name="settings_reporting_title">Reporting</string>
+    <string name="settings_reporting_description">Configure export formats and expense tracking.</string>
     <string name="settings_backup_button">Backup</string>
     <string name="settings_restore_button">Restore</string>
+    <string name="settings_logs_title">Logs</string>
     <string name="import_successful">Backup imported successfully!</string>
     <string name="import_failed">Failed to import backup. Please check the file.</string>
     <string name="settings_auto_backup_enable">Enable Automatic Backups</string>

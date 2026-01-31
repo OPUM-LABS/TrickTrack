@@ -234,7 +234,7 @@
     <!-- Server Settings Dialog -->
     <string name="osrm_server_url">URL du serveur OSRM</string>
     <string name="photon_server_url">URL du serveur Photon</string>
-    <string name="testing_servers">Test des serveurs...</string>
+    <string name="testing_servers">Test des serveurs…</string>
     <string name="servers_valid_and_saved">Serveurs valides et enregistrés !</string>
     <string name="osrm_connection_failed">Échec de la connexion OSRM</string>
     <string name="photon_connection_failed">Échec de la connexion Photon</string>
