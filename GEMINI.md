@@ -55,6 +55,7 @@
     * Strict privacy. "Background Location" permission is required for automatic tracking.
 
 ## 5. Current Status / Known Constraints
-* **API Limits:** Public OSRM/Photon APIs have rate limits; user agent must be set correctly.
+* **API Limits:** 
+* Public OSRM/Photon APIs have rate limits; user agent must be set correctly.
 * **Hilt State:** Hilt is fully active.
 * **Localization:** The app is localized in English, German, Italian and French.
