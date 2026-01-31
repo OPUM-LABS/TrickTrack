@@ -136,7 +136,7 @@ class TripsViewModel(
                 originalAddress = trip.startLoc,
                 lat = trip.startLat,
                 lng = trip.startLon,
-                favorites = repository.getAllSavedPlacesBlocking(),
+                favorites = repository.getSavedPlacesList(),
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
@@ -145,7 +145,7 @@ class TripsViewModel(
                 originalAddress = trip.endLoc,
                 lat = trip.endLat,
                 lng = trip.endLon,
-                favorites = repository.getAllSavedPlacesBlocking(),
+                favorites = repository.getSavedPlacesList(),
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
@@ -189,7 +189,7 @@ class TripsViewModel(
                 originalAddress = trip.startLoc,
                 lat = trip.startLat,
                 lng = trip.startLon,
-                favorites = repository.getAllSavedPlacesBlocking(),
+                favorites = repository.getSavedPlacesList(),
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
@@ -198,7 +198,7 @@ class TripsViewModel(
                 originalAddress = trip.endLoc,
                 lat = trip.endLat,
                 lng = trip.endLon,
-                favorites = repository.getAllSavedPlacesBlocking(),
+                favorites = repository.getSavedPlacesList(),
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )

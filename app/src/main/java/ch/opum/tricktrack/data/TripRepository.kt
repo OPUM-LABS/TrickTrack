@@ -4,7 +4,6 @@ import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.data.place.SavedPlaceDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 class TripRepository(private val tripDao: TripDao, private val savedPlaceDao: SavedPlaceDao) {
 
@@ -15,8 +14,10 @@ class TripRepository(private val tripDao: TripDao, private val savedPlaceDao: Sa
         return savedPlaceDao.getAll()
     }
 
-    fun getAllSavedPlacesBlocking(): List<SavedPlace> = runBlocking {
-        savedPlaceDao.getAll().first()
+    // FIXED: Changed to 'suspend' and removed 'runBlocking'.
+    // Use this when you need a single snapshot of the list (not a live stream).
+    suspend fun getSavedPlacesList(): List<SavedPlace> {
+        return savedPlaceDao.getAll().first()
     }
 
     suspend fun insert(trip: Trip) {

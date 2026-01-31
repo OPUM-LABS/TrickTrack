@@ -19,7 +19,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val trips = tripRepository.getTripsForBackup()
             val settings = getSettingsMap()
-            val places = tripRepository.getAllSavedPlacesBlocking()
+            val places = tripRepository.getSavedPlacesList()
             val json = backupManager.createBackupJson(trips, settings, places)
 
             try {

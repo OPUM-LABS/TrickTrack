@@ -74,7 +74,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             val trips = tripRepository.getTripsForBackup()
             val settings = userPreferencesRepository.getAllPreferences()
-            val places = tripRepository.getAllSavedPlacesBlocking()
+            val places = tripRepository.getSavedPlacesList()
             val json = backupManager.createBackupJson(trips, settings, places)
 
             try {
