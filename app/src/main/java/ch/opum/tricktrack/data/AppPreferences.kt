@@ -2,6 +2,7 @@ package ch.opum.tricktrack.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 class AppPreferences(context: Context) {
 
@@ -18,7 +19,7 @@ class AppPreferences(context: Context) {
     }
 
     fun setOsrmUrl(url: String) {
-        sharedPreferences.edit().putString("osrm_url", url).apply()
+        sharedPreferences.edit { putString("osrm_url", url) }
     }
 
     fun getPhotonUrl(): String {
@@ -26,6 +27,6 @@ class AppPreferences(context: Context) {
     }
 
     fun setPhotonUrl(url: String) {
-        sharedPreferences.edit().putString("photon_url", url).apply()
+        sharedPreferences.edit { putString("photon_url", url) }
     }
 }

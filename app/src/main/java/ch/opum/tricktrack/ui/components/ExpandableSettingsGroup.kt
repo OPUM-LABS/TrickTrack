@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ExpandableSettingsGroup(
     title: String,
+    modifier: Modifier = Modifier,
     description: String? = null,
     icon: ImageVector? = null,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }

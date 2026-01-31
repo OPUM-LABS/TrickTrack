@@ -23,7 +23,6 @@
     <string name="settings_schedule_title">Zeitplan für automatische Verfolgung</string>
     <string name="settings_schedule_description">Tippen, um den täglichen Zeitplan zu bearbeiten</string>
     <string name="settings_schedule_edit_cd">Zeitplan bearbeiten</string>
-    <string name="settings_trip_defaults_title">Standard-Fahrteinstellungen</string>
     <string name="settings_default_type_title">Standardtyp</string>
     <string name="trip_type_business">Geschäftlich</string>
     <string name="trip_type_personal">Privat</string>
@@ -239,17 +238,12 @@
     <!-- Server Settings Dialog -->
     <string name="osrm_server_url">OSRM-Server-URL</string>
     <string name="photon_server_url">Photon-Server-URL</string>
-    <string name="testing_servers">Server werden getestet...</string>
-    <string name="servers_valid_and_saved">Server sind gültig und gespeichert!</string>
     <string name="osrm_connection_failed">OSRM-Verbindung fehlgeschlagen</string>
     <string name="photon_connection_failed">Photon-Verbindung fehlgeschlagen</string>
-    <string name="test_and_save">Testen &amp; Speichern</string>
     <string name="reset_to_defaults">Auf Standardwerte zurücksetzen</string>
-    <string name="reset_to_defaults_message">Server-URLs auf Standardwerte zurückgesetzt.</string>
     <string name="cancel">Abbrechen</string>
     <string name="reset_to_defaults_message_osrm">OSRM-URL auf Standard zurückgesetzt.</string>
     <string name="reset_to_defaults_message_photon">Photon-URL auf Standard zurückgesetzt.</string>
-    <string name="testing_server">Server wird getestet...</string>
     <string name="server_valid">Server gültig!</string>
     <string name="servers_saved_successfully">Server-URLs erfolgreich gespeichert!</string>
     <string name="test_server">Test</string>
