@@ -5,11 +5,13 @@
 
     <!-- Settings Screen -->
     <string name="settings_diagnostics_title">Diagnostica</string>
+    <string name="settings_diagnostics_description">Controlla le autorizzazioni e lo stato di integrità del sistema.</string>
     <string name="settings_permissions_check_title">Controllo autorizzazioni</string>
     <string name="settings_permissions_all_granted_cd">Tutte concesse</string>
     <string name="settings_permissions_action_needed_cd">Azione richiesta</string>
     <string name="settings_permissions_action_needed_text">Azione richiesta</string>
     <string name="settings_tracking_settings_title">Impostazioni di tracciamento</string>
+    <string name="settings_tracking_settings_description">Configura il monitoraggio automatico, i trigger e le impostazioni predefinite.</string>
     <string name="settings_automatic_tracking_title">Tracciamento automatico</string>
     <string name="settings_automatic_tracking_description">Registra automaticamente i viaggi quando inizi a guidare.</string>
     <string name="settings_bluetooth_trigger_title">Avvia alla connessione Bluetooth</string>
@@ -36,13 +38,17 @@
     <string name="settings_enable_schedule_description">Lascia che il programma controlli il tracciamento</string>
     <string name="settings_controlled_by_schedule">Controllato dal programma</string>
     <string name="settings_advanced_settings_title">Impostazioni avanzate</string>
+    <string name="settings_advanced_settings_description">Configura gli URL API e altre opzioni avanzate.</string>
     <string name="settings_stillness_timer_label">Timer di immobilità (secondi)</string>
     <string name="settings_min_speed_label">Velocità minima (km/h)</string>
     <string name="settings_all_days">Tutti i giorni</string>
     <string name="settings_backup_restore_title">Backup e ripristino</string>
+    <string name="settings_backup_restore_description">Gestisci i backup dei tuoi dati.</string>
     <string name="settings_reporting_title">Rapporti</string>
+    <string name="settings_reporting_description">Configura i formati di esportazione e il monitoraggio delle spese.</string>
     <string name="settings_backup_button">Backup</string>
     <string name="settings_restore_button">Ripristina</string>
+    <string name="settings_logs_title">Registri</string>
     <string name="import_successful">Backup importato con successo!</string>
     <string name="import_failed">Impossibile importare il backup. Controlla il file.</string>
     <string name="settings_auto_backup_enable">Abilita backup automatici</string>

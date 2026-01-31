@@ -4,11 +4,13 @@
 
     <!-- Settings Screen -->
     <string name="settings_diagnostics_title">Diagnose</string>
+    <string name="settings_diagnostics_description">Überprüfen Sie Berechtigungen und Systemzustand.</string>
     <string name="settings_permissions_check_title">Berechtigungsprüfung</string>
     <string name="settings_permissions_all_granted_cd">Alle gewährt</string>
     <string name="settings_permissions_action_needed_cd">Aktion erforderlich</string>
     <string name="settings_permissions_action_needed_text">Aktion erforderlich</string>
     <string name="settings_tracking_settings_title">Tracking-Einstellungen</string>
+    <string name="settings_tracking_settings_description">Konfigurieren Sie automatische Nachverfolgung, Auslöser und Standardeinstellungen.</string>
     <string name="settings_automatic_tracking_title">Automatische Verfolgung</string>
     <string name="settings_automatic_tracking_description">Zeichnet Fahrten automatisch auf, wenn Sie losfahren.</string>
     <string name="settings_bluetooth_trigger_title">Start bei Bluetooth-Verbindung</string>
@@ -35,13 +37,17 @@
     <string name="settings_enable_schedule_description">Lassen Sie den Zeitplan das Tracking steuern</string>
     <string name="settings_controlled_by_schedule">Vom Zeitplan gesteuert</string>
     <string name="settings_advanced_settings_title">Erweiterte Einstellungen</string>
+    <string name="settings_advanced_settings_description">Konfigurieren Sie API-URLs und andere erweiterte Optionen.</string>
     <string name="settings_stillness_timer_label">Stillstand-Timer (Sekunden)</string>
     <string name="settings_min_speed_label">Mindestgeschwindigkeit (km/h)</string>
     <string name="settings_all_days">Alle Tage</string>
     <string name="settings_backup_restore_title">Sicherung und Wiederherstellung</string>
+    <string name="settings_backup_restore_description">Verwalten Sie Ihre Datensicherungen.</string>
     <string name="settings_reporting_title">Berichte</string>
+    <string name="settings_reporting_description">Konfigurieren Sie Exportformate und Ausgabenverfolgung.</string>
     <string name="settings_backup_button">Sichern</string>
     <string name="settings_restore_button">Wiederherstellen</string>
+    <string name="settings_logs_title">Protokolle</string>
     <string name="import_successful">Sicherung erfolgreich importiert!</string>
     <string name="import_failed">Fehler beim Importieren der Sicherung. Bitte überprüfen Sie die Datei.</string>
     <string name="settings_auto_backup_enable">Automatische Sicherungen aktivieren</string>

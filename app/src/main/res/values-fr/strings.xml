@@ -5,11 +5,13 @@
 
     <!-- Settings Screen -->
     <string name="settings_diagnostics_title">Diagnostics</string>
+    <string name="settings_diagnostics_description">Vérifiez les autorisations et l\'état du système.</string>
     <string name="settings_permissions_check_title">Vérification des autorisations</string>
     <string name="settings_permissions_all_granted_cd">Toutes accordées</string>
     <string name="settings_permissions_action_needed_cd">Action requise</string>
     <string name="settings_permissions_action_needed_text">Action requise</string>
     <string name="settings_tracking_settings_title">Paramètres de suivi</string>
+    <string name="settings_tracking_settings_description">Configurez le suivi automatique, les déclencheurs et les paramètres par défaut.</string>
     <string name="settings_automatic_tracking_title">Suivi automatique</string>
     <string name="settings_automatic_tracking_description">Enregistre automatiquement les trajets lorsque vous commencez à conduire.</string>
     <string name="settings_bluetooth_trigger_title">Démarrer à la connexion Bluetooth</string>
@@ -36,13 +38,17 @@
     <string name="settings_enable_schedule_description">Laisser le calendrier contrôler le suivi</string>
     <string name="settings_controlled_by_schedule">Contrôlé par le calendrier</string>
     <string name="settings_advanced_settings_title">Paramètres avancés</string>
+    <string name="settings_advanced_settings_description">Configurez les URL API et d\'autres options avancées.</string>
     <string name="settings_stillness_timer_label">Minuterie d\'immobilité (secondes)</string>
     <string name="settings_min_speed_label">Vitesse minimale (km/h)</string>
     <string name="settings_all_days">Tous les jours</string>
     <string name="settings_backup_restore_title">Sauvegarde et restauration</string>
+    <string name="settings_backup_restore_description">Gérez vos sauvegardes de données.</string>
     <string name="settings_reporting_title">Réports</string>
+    <string name="settings_reporting_description">Configurez les formats d\'exportation et le suivi des dépenses.</string>
     <string name="settings_backup_button">Sauvegarder</string>
     <string name="settings_restore_button">Restaurer</string>
+    <string name="settings_logs_title">Journaux</string>
     <string name="import_successful">Sauvegarde importée avec succès !</string>
     <string name="import_failed">Échec de l\'importation de la sauvegarde. Veuillez vérifier le fichier.</string>
     <string name="settings_auto_backup_enable">Activer les sauvegardes automatiques</string>

@@ -37,7 +37,7 @@
     <string name="settings_enable_schedule_description">Let the schedule control tracking</string>
     <string name="settings_controlled_by_schedule">Controlled by Schedule</string>
     <string name="settings_advanced_settings_title">Advanced Settings</string>
-    <string name="settings_advanced_settings_description">Configure server URLs and other advanced options.</string>
+    <string name="settings_advanced_settings_description">Configure API URLs and other advanced options.</string>
     <string name="settings_stillness_timer_label">Stillness Timer (seconds)</string>
     <string name="settings_min_speed_label">Minimum Speed (km/h)</string>
     <string name="settings_all_days">All Days</string>
