@@ -169,32 +169,41 @@ fun PlacesListScreen(
             }
             1 -> {
                 val groupedDrivers by viewModel.groupedDrivers.collectAsState()
+                val selectedId by viewModel.selectedDriverId.collectAsState()
                 GenericGroupedList(
                     groupedItems = groupedDrivers.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
                     onEdit = { item ->
                         itemToEdit = item
                         showEditDialog = true
-                    }
+                    },
+                    selectedId = selectedId,
+                    onSelect = { id -> viewModel.setDefaultDriver(id) }
                 )
             }
             2 -> {
                 val groupedCompanies by viewModel.groupedCompanies.collectAsState()
+                val selectedId by viewModel.selectedCompanyId.collectAsState()
                 GenericGroupedList(
                     groupedItems = groupedCompanies.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
                     onEdit = { item ->
                         itemToEdit = item
                         showEditDialog = true
-                    }
+                    },
+                    selectedId = selectedId,
+                    onSelect = { id -> viewModel.setDefaultCompany(id) }
                 )
             }
             3 -> {
                 val groupedVehicles by viewModel.groupedVehicles.collectAsState()
+                val selectedId by viewModel.selectedVehicleId.collectAsState()
                 GenericGroupedList(
                     groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel) } },
                     onEdit = { item ->
                         itemToEdit = item
                         showEditDialog = true
-                    }
+                    },
+                    selectedId = selectedId,
+                    onSelect = { id -> viewModel.setDefaultVehicle(id) }
                 )
             }
         }
@@ -289,7 +298,9 @@ fun EditSimpleItemDialog(
 @Composable
 fun GenericGroupedList(
     groupedItems: Map<Char, List<SimpleItem>>,
-    onEdit: (SimpleItem) -> Unit
+    onEdit: (SimpleItem) -> Unit,
+    selectedId: Int?,
+    onSelect: (Int) -> Unit
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -330,7 +341,12 @@ fun GenericGroupedList(
                         }
                     }
                     items(items) { item ->
-                        SimpleListItem(item = item, onEdit = { onEdit(item) })
+                        SimpleListItem(
+                            item = item,
+                            onEdit = { onEdit(item) },
+                            isSelected = item.id == selectedId,
+                            onSelect = { onSelect(item.id) }
+                        )
                     }
                 }
             }
@@ -351,16 +367,21 @@ fun GenericGroupedList(
 
 
 @Composable
-fun SimpleListItem(item: SimpleItem, onEdit: () -> Unit) {
+fun SimpleListItem(
+    item: SimpleItem,
+    onEdit: () -> Unit,
+    isSelected: Boolean,
+    onSelect: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onEdit)
+            .clickable(onClick = onSelect)
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).clickable(onClick = onEdit),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
@@ -376,6 +397,10 @@ fun SimpleListItem(item: SimpleItem, onEdit: () -> Unit) {
                 )
             }
         }
+        RadioButton(
+            selected = isSelected,
+            onClick = onSelect
+        )
     }
 }
 

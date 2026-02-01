@@ -20,4 +20,7 @@ interface CompanyDao {
 
     @Query("SELECT * FROM companies")
     fun getAll(): Flow<List<CompanyEntity>>
+
+    @Query("SELECT * FROM companies WHERE id = :id")
+    suspend fun getById(id: Int): CompanyEntity?
 }

@@ -45,6 +45,12 @@ class UserPreferencesRepository(private val context: Context) {
         val BACKUP_DAY_OF_WEEK = intPreferencesKey("backup_day_of_week")
         val BACKUP_DAY_OF_MONTH = intPreferencesKey("backup_day_of_month")
         val BACKUP_FOLDER_URI = stringPreferencesKey("backup_folder_uri")
+        val EXPORT_INCLUDE_DRIVER = booleanPreferencesKey("export_include_driver")
+        val EXPORT_INCLUDE_COMPANY = booleanPreferencesKey("export_include_company")
+        val EXPORT_INCLUDE_VEHICLE = booleanPreferencesKey("export_include_vehicle")
+        val DEFAULT_DRIVER_ID = intPreferencesKey("default_driver_id")
+        val DEFAULT_COMPANY_ID = intPreferencesKey("default_company_id")
+        val DEFAULT_VEHICLE_ID = intPreferencesKey("default_vehicle_id")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -302,6 +308,72 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setBackupFolderUri(uri: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.BACKUP_FOLDER_URI] = uri
+        }
+    }
+
+    val exportIncludeDriver: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.EXPORT_INCLUDE_DRIVER] ?: true
+        }
+
+    suspend fun setExportIncludeDriver(include: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.EXPORT_INCLUDE_DRIVER] = include
+        }
+    }
+
+    val exportIncludeCompany: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.EXPORT_INCLUDE_COMPANY] ?: true
+        }
+
+    suspend fun setExportIncludeCompany(include: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.EXPORT_INCLUDE_COMPANY] = include
+        }
+    }
+
+    val exportIncludeVehicle: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.EXPORT_INCLUDE_VEHICLE] ?: true
+        }
+
+    suspend fun setExportIncludeVehicle(include: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.EXPORT_INCLUDE_VEHICLE] = include
+        }
+    }
+
+    val defaultDriverId: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.DEFAULT_DRIVER_ID] ?: -1
+        }
+
+    suspend fun setDefaultDriverId(id: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DEFAULT_DRIVER_ID] = id
+        }
+    }
+
+    val defaultCompanyId: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.DEFAULT_COMPANY_ID] ?: -1
+        }
+
+    suspend fun setDefaultCompanyId(id: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DEFAULT_COMPANY_ID] = id
+        }
+    }
+
+    val defaultVehicleId: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.DEFAULT_VEHICLE_ID] ?: -1
+        }
+
+    suspend fun setDefaultVehicleId(id: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DEFAULT_VEHICLE_ID] = id
         }
     }
 

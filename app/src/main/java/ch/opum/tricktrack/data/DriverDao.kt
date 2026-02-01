@@ -20,4 +20,7 @@ interface DriverDao {
 
     @Query("SELECT * FROM drivers")
     fun getAll(): Flow<List<DriverEntity>>
+
+    @Query("SELECT * FROM drivers WHERE id = :id")
+    suspend fun getById(id: Int): DriverEntity?
 }

@@ -461,7 +461,12 @@ fun MainScreen(
                                     onDismiss = { showExportDialog = false },
                                     onExportCsvClicked = {
                                         scope.launch {
-                                            val uri = tripsViewModel.exportAllTripsToCsv(context)
+                                            val uri = tripsViewModel.exportAllTripsToCsv(
+                                                context = context,
+                                                driverName = tripsViewModel.selectedDriver?.name,
+                                                companyName = tripsViewModel.selectedCompany?.name,
+                                                vehicleName = tripsViewModel.selectedVehicle?.licensePlate
+                                            )
                                             uri?.let {
                                                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                                     type = "text/csv"
@@ -480,7 +485,8 @@ fun MainScreen(
                                     onExportPdfClicked = {
                                         tripsViewModel.exportTripsToPdf()
                                         showExportDialog = false
-                                    }
+                                    },
+                                    viewModel = tripsViewModel
                                 )
                             }
 

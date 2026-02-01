@@ -313,7 +313,7 @@ fun SettingsScreen(
 
     if (showExportDialog) {
         ExportSettingsDialog(
-            viewModel = viewModel,
+            settingsViewModel = settingsViewModel,
             onDismiss = { showExportDialog = false }
         )
     }
@@ -874,11 +874,17 @@ fun SettingsScreen(
 
 @Composable
 fun ExportSettingsDialog(
-    viewModel: TripsViewModel,
+    settingsViewModel: SettingsViewModel,
     onDismiss: () -> Unit
 ) {
-    val exportColumns by viewModel.exportColumns.collectAsState()
-    val expenseTrackingEnabled by viewModel.expenseTrackingEnabled.collectAsState()
+    val exportColumns by settingsViewModel.exportColumns.collectAsState()
+    val expenseTrackingEnabled by settingsViewModel.expenseTrackingEnabled.collectAsState()
+    val hasDrivers by settingsViewModel.hasDrivers.collectAsState()
+    val hasCompanies by settingsViewModel.hasCompanies.collectAsState()
+    val hasVehicles by settingsViewModel.hasVehicles.collectAsState()
+    val includeDriver by settingsViewModel.exportIncludeDriver.collectAsState()
+    val includeCompany by settingsViewModel.exportIncludeCompany.collectAsState()
+    val includeVehicle by settingsViewModel.exportIncludeVehicle.collectAsState()
 
     // A map to hold the display name and the key for each column
     val allColumns = remember {
@@ -888,8 +894,7 @@ fun ExportSettingsDialog(
             "START_LOCATION" to R.string.export_column_start_location,
             "END_LOCATION" to R.string.export_column_end_location,
             "DISTANCE" to R.string.export_column_distance,
-            "TYPE" to R.string.export_column_type,
-            "EXPENSES" to R.string.export_column_expenses
+            "TYPE" to R.string.export_column_type
         )
     }
 
@@ -902,11 +907,7 @@ fun ExportSettingsDialog(
         text = {
             Column {
                 allColumns.forEach { (key, stringResId) ->
-                    val isEnabled = when (key) {
-                        "DATE" -> false // Always disabled
-                        "EXPENSES" -> expenseTrackingEnabled
-                        else -> true
-                    }
+                    val isEnabled = key != "DATE"
                     val isChecked = tempSelectedColumns.contains(key)
 
                     Row(
@@ -934,11 +935,134 @@ fun ExportSettingsDialog(
                         )
                     }
                 }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                // Driver
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = hasDrivers) {
+                            settingsViewModel.setExportIncludeDriver(!includeDriver)
+                        }
+                        .padding(vertical = 4.dp)
+                ) {
+                    Checkbox(
+                        checked = includeDriver && hasDrivers,
+                        onCheckedChange = null,
+                        enabled = hasDrivers
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.export_column_driver),
+                            color = if (hasDrivers) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        )
+                        if (!hasDrivers) {
+                            Text(
+                                text = stringResource(R.string.export_no_entries),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+
+                // Company
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = hasCompanies) {
+                            settingsViewModel.setExportIncludeCompany(!includeCompany)
+                        }
+                        .padding(vertical = 4.dp)
+                ) {
+                    Checkbox(
+                        checked = includeCompany && hasCompanies,
+                        onCheckedChange = null,
+                        enabled = hasCompanies
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.export_column_company),
+                            color = if (hasCompanies) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        )
+                        if (!hasCompanies) {
+                            Text(
+                                text = stringResource(R.string.export_no_entries),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+
+                // Vehicle
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = hasVehicles) {
+                            settingsViewModel.setExportIncludeVehicle(!includeVehicle)
+                        }
+                        .padding(vertical = 4.dp)
+                ) {
+                    Checkbox(
+                        checked = includeVehicle && hasVehicles,
+                        onCheckedChange = null,
+                        enabled = hasVehicles
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.export_column_vehicle),
+                            color = if (hasVehicles) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        )
+                        if (!hasVehicles) {
+                            Text(
+                                text = stringResource(R.string.export_no_entries),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                // Expenses
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = expenseTrackingEnabled) {
+                            tempSelectedColumns = if (tempSelectedColumns.contains("EXPENSES")) {
+                                tempSelectedColumns - "EXPENSES"
+                            } else {
+                                tempSelectedColumns + "EXPENSES"
+                            }
+                        }
+                        .padding(vertical = 4.dp)
+                ) {
+                    Checkbox(
+                        checked = tempSelectedColumns.contains("EXPENSES"),
+                        onCheckedChange = null,
+                        enabled = expenseTrackingEnabled
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.export_column_expenses),
+                        color = if (expenseTrackingEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
+                }
             }
         },
         confirmButton = {
             Button(onClick = {
-                viewModel.setExportColumns(tempSelectedColumns)
+                settingsViewModel.setExportColumns(tempSelectedColumns)
                 onDismiss()
             }) {
                 Text(stringResource(R.string.button_save))

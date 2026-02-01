@@ -19,12 +19,17 @@ import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
 import ch.opum.tricktrack.R
+import ch.opum.tricktrack.data.AppPreferences
+import ch.opum.tricktrack.data.CompanyEntity
+import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.data.TripRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
+import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.data.repository.DistanceRepository
+import ch.opum.tricktrack.data.repository.FavouritesRepository
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.settings.PermissionItem
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +43,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,8 +76,10 @@ data class TripGroup(
 class TripsViewModel(
     application: Application,
     private val repository: TripRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val geocoderHelper: GeocoderHelper // Inject GeocoderHelper
+    val userPreferencesRepository: UserPreferencesRepository,
+    private val geocoderHelper: GeocoderHelper, // Inject GeocoderHelper
+    private val favouritesRepository: FavouritesRepository,
+    private val appPreferences: AppPreferences
 ) : AndroidViewModel(application) {
 
     private val distanceRepository = DistanceRepository(application)
@@ -341,7 +350,7 @@ class TripsViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = Currency.getInstance(Locale.getDefault()).symbol
         )
-        
+
     val exportColumns: StateFlow<Set<String>> = userPreferencesRepository.exportColumns
         .stateIn(
             scope = viewModelScope,
@@ -415,6 +424,17 @@ class TripsViewModel(
     private val _showTripSummaryDialog = MutableSharedFlow<Trip>()
     val showTripSummaryDialog: SharedFlow<Trip> = _showTripSummaryDialog.asSharedFlow()
 
+    val allDrivers: StateFlow<List<DriverEntity>> = favouritesRepository.getAllDrivers()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val allCompanies: StateFlow<List<CompanyEntity>> = favouritesRepository.getAllCompanies()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val allVehicles: StateFlow<List<VehicleEntity>> = favouritesRepository.getAllVehicles()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    var selectedDriver by mutableStateOf<DriverEntity?>(null)
+    var selectedCompany by mutableStateOf<CompanyEntity?>(null)
+    var selectedVehicle by mutableStateOf<VehicleEntity?>(null)
+
     init {
         // Collect distance updates from LocationService whenever the ViewModel is active
         viewModelScope.launch {
@@ -449,6 +469,18 @@ class TripsViewModel(
                 }
             }
         }
+
+        userPreferencesRepository.defaultDriverId.onEach { driverId ->
+            selectedDriver = if (driverId != -1) favouritesRepository.getDriverById(driverId) else null
+        }.launchIn(viewModelScope)
+
+        userPreferencesRepository.defaultCompanyId.onEach { companyId ->
+            selectedCompany = if (companyId != -1) favouritesRepository.getCompanyById(companyId) else null
+        }.launchIn(viewModelScope)
+
+        userPreferencesRepository.defaultVehicleId.onEach { vehicleId ->
+            selectedVehicle = if (vehicleId != -1) favouritesRepository.getVehicleById(vehicleId) else null
+        }.launchIn(viewModelScope)
     }
 
     fun calculateDistance(startAddress: String, endAddress: String) {
@@ -618,14 +650,24 @@ class TripsViewModel(
         _distance.value = 0.0 // Reset distance after dismissing dialog
     }
 
-    suspend fun exportAllTripsToCsv(context: Context): Uri? = withContext(Dispatchers.IO) {
+    suspend fun exportAllTripsToCsv(
+        context: Context,
+        driverName: String?,
+        companyName: String?,
+        vehicleName: String?
+    ): Uri? = withContext(Dispatchers.IO) {
         val trips = confirmedTrips.first()
         val columns = exportColumns.first()
         val isExpenseEnabled = expenseTrackingEnabled.first() && columns.contains("EXPENSES")
         val rate = expenseRatePerKm.first()
+        val includeDriver = userPreferencesRepository.exportIncludeDriver.first()
+        val includeCompany = userPreferencesRepository.exportIncludeCompany.first()
+        val includeVehicle = userPreferencesRepository.exportIncludeVehicle.first()
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+        fun escape(s: String?) = if (s == null) "" else "\"${s.replace("\"", "\"\"")}\""
 
         val headers = mutableListOf<String>()
         if (columns.contains("DATE")) headers.add("Date")
@@ -638,11 +680,13 @@ class TripsViewModel(
         if (columns.contains("DISTANCE")) headers.add("Distance")
         if (columns.contains("TYPE")) headers.add("Type")
         if (isExpenseEnabled) headers.add("Expenses")
+        if (includeDriver) headers.add("Driver")
+        if (includeCompany) headers.add("Company")
+        if (includeVehicle) headers.add("Vehicle")
 
         val csvHeader = headers.joinToString(",") + "\n"
 
         val csvBody = trips.joinToString(separator = "\n") { trip ->
-            fun escape(s: String) = "\"${s.replace("\"", "\"\"")}\""
             val row = mutableListOf<String>()
 
             if (columns.contains("DATE")) row.add(dateFormat.format(trip.date))
@@ -658,6 +702,9 @@ class TripsViewModel(
                 val expense = trip.distance * rate
                 row.add("%.2f".format(expense))
             }
+            if (includeDriver) row.add(escape(driverName))
+            if (includeCompany) row.add(escape(companyName))
+            if (includeVehicle) row.add(escape(vehicleName))
             row.joinToString(",")
         }
 
@@ -682,6 +729,9 @@ class TripsViewModel(
             val rate = expenseRatePerKm.first()
             val currency = expenseCurrency.first()
             val isExpenseEnabled = expenseTrackingEnabled.first() && exportSettings.contains("EXPENSES")
+            val includeDriver = userPreferencesRepository.exportIncludeDriver.first()
+            val includeCompany = userPreferencesRepository.exportIncludeCompany.first()
+            val includeVehicle = userPreferencesRepository.exportIncludeVehicle.first()
 
             val pdfFile = withContext(Dispatchers.IO) {
                 PdfGenerator().generateTripReport(
@@ -690,7 +740,10 @@ class TripsViewModel(
                     columns = exportSettings,
                     isExpenseEnabled = isExpenseEnabled,
                     expenseRate = rate,
-                    expenseCurrency = currency
+                    expenseCurrency = currency,
+                    driverName = if (includeDriver) selectedDriver?.name else null,
+                    companyName = if (includeCompany) selectedCompany?.name else null,
+                    vehicleName = if (includeVehicle) selectedVehicle?.licensePlate else null
                 )
             }
             pdfFile?.let {

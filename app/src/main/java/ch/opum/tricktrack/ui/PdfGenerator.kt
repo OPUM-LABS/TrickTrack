@@ -44,7 +44,10 @@ class PdfGenerator {
         columns: Set<String>,
         isExpenseEnabled: Boolean,
         expenseRate: Float,
-        expenseCurrency: String
+        expenseCurrency: String,
+        driverName: String?,
+        companyName: String?,
+        vehicleName: String?
     ): File? {
         if (trips.isEmpty()) return null
         this.context = context
@@ -73,7 +76,10 @@ class PdfGenerator {
             totalDistance = totalDistance,
             totalExpenses = totalExpenses,
             isExpenseEnabled = isExpenseEnabled,
-            expenseCurrency = expenseCurrency
+            expenseCurrency = expenseCurrency,
+            driverName = driverName,
+            companyName = companyName,
+            vehicleName = vehicleName
         )
 
         // Force the trip list to start on a new page
@@ -207,7 +213,10 @@ class PdfGenerator {
         totalDistance: Double,
         totalExpenses: Double,
         isExpenseEnabled: Boolean,
-        expenseCurrency: String
+        expenseCurrency: String,
+        driverName: String?,
+        companyName: String?,
+        vehicleName: String?
     ) {
         startNewPage()
 
@@ -240,13 +249,30 @@ class PdfGenerator {
             textAlign = Paint.Align.CENTER
         }
         val titleX = pageWidth / 2f
-        val titleY = pageHeight / 2f - 100 // Adjust as needed
+        val titleY = pageHeight / 2f - 200 // Adjust as needed
 
         canvas?.drawText(context.getString(R.string.pdf_trip_report_title), titleX, titleY, titlePaint)
 
-        // Summary Box
-        val boxHeight = if (isExpenseEnabled) 120f else 90f
-        val summaryBoxTop = titleY + 20
+        // --- Summary Box ---
+        val lineSpacing = 28f
+        val topPadding = 30f
+        val bottomPadding = 20f
+        val dividerPadding = 15f
+        val leftTextMargin = margin + 20f
+        val valueTextMargin = margin + 150f
+
+        var lineCount = 2 // Date Range, Total Distance
+        if (isExpenseEnabled) lineCount++
+        val hasDriverInfo = driverName != null || companyName != null || vehicleName != null
+        if (driverName != null) lineCount++
+        if (companyName != null) lineCount++
+        if (vehicleName != null) lineCount++
+
+        val dividerHeight = if (hasDriverInfo) (dividerPadding * 2) else 0f
+        val contentHeight = (lineCount - 1) * lineSpacing
+        val boxHeight = topPadding + contentHeight + dividerHeight + bottomPadding
+
+        val summaryBoxTop = titleY + 50
         val summaryBox = Rect(margin.toInt(), summaryBoxTop.toInt(), (pageWidth - margin).toInt(), (summaryBoxTop + boxHeight).toInt())
 
         val boxPaint = Paint().apply {
@@ -266,17 +292,42 @@ class PdfGenerator {
             isFakeBoldText = true
         }
 
-        var summaryY = summaryBoxTop + 40f
-        canvas?.drawText(context.getString(R.string.pdf_date_range), margin + 20f, summaryY, labelPaint)
-        canvas?.drawText(dateRange, margin + 150f, summaryY, valuePaint)
-        summaryY += 30f
-        canvas?.drawText(context.getString(R.string.pdf_total_distance), margin + 20f, summaryY, labelPaint)
-        canvas?.drawText("%.2f km".format(totalDistance), margin + 150f, summaryY, valuePaint)
+        var summaryY = summaryBoxTop + topPadding
+
+        if (hasDriverInfo) {
+            driverName?.let {
+                canvas?.drawText("Driver:", leftTextMargin, summaryY, labelPaint)
+                canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
+                summaryY += lineSpacing
+            }
+            companyName?.let {
+                canvas?.drawText("Company:", leftTextMargin, summaryY, labelPaint)
+                canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
+                summaryY += lineSpacing
+            }
+            vehicleName?.let {
+                canvas?.drawText("Vehicle:", leftTextMargin, summaryY, labelPaint)
+                canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
+                summaryY += lineSpacing
+            }
+
+            // Divider
+            summaryY += dividerPadding - (lineSpacing / 2) // Adjust for visual balance
+            canvas?.drawLine(margin + 10, summaryY, pageWidth - margin - 10, summaryY, boxPaint)
+            summaryY += dividerPadding + (lineSpacing / 2)
+        }
+
+        canvas?.drawText(context.getString(R.string.pdf_date_range), leftTextMargin, summaryY, labelPaint)
+        canvas?.drawText(dateRange, valueTextMargin, summaryY, valuePaint)
+        summaryY += lineSpacing
+
+        canvas?.drawText(context.getString(R.string.pdf_total_distance), leftTextMargin, summaryY, labelPaint)
+        canvas?.drawText("%.2f km".format(totalDistance), valueTextMargin, summaryY, valuePaint)
 
         if (isExpenseEnabled) {
-            summaryY += 30f
-            canvas?.drawText(context.getString(R.string.pdf_total_expenses), margin + 20f, summaryY, labelPaint)
-            canvas?.drawText("%.2f %s".format(totalExpenses, expenseCurrency), margin + 150f, summaryY, valuePaint)
+            summaryY += lineSpacing
+            canvas?.drawText(context.getString(R.string.pdf_total_expenses), leftTextMargin, summaryY, labelPaint)
+            canvas?.drawText("%.2f %s".format(totalExpenses, expenseCurrency), valueTextMargin, summaryY, valuePaint)
         }
     }
 

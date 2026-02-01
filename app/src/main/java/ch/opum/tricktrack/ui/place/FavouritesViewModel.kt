@@ -7,10 +7,12 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
+import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.CompanyDao
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DriverDao
 import ch.opum.tricktrack.data.DriverEntity
+import ch.opum.tricktrack.data.UserPreferencesRepository
 import ch.opum.tricktrack.data.VehicleDao
 import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.data.place.SavedPlace
@@ -25,7 +27,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -41,7 +45,8 @@ class PlacesViewModel(
     private val driverDao: DriverDao,
     private val companyDao: CompanyDao,
     private val vehicleDao: VehicleDao,
-    private val geocoderHelper: GeocoderHelper // Inject GeocoderHelper
+    private val geocoderHelper: GeocoderHelper, // Inject GeocoderHelper
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : AndroidViewModel(application) {
 
     var onFabClicked: ((Int) -> Unit)? = null
@@ -70,6 +75,53 @@ class PlacesViewModel(
     val vehiclesList: StateFlow<List<VehicleEntity>> = vehicleDao.getAll()
         .map { list -> list.sortedBy { it.licensePlate.lowercase() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val selectedDriverId: StateFlow<Int> = userPreferencesRepository.defaultDriverId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), -1)
+
+    val selectedCompanyId: StateFlow<Int> = userPreferencesRepository.defaultCompanyId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), -1)
+
+    val selectedVehicleId: StateFlow<Int> = userPreferencesRepository.defaultVehicleId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), -1)
+
+    init {
+        driversList.onEach { drivers ->
+            if (drivers.size == 1) {
+                setDefaultDriver(drivers.first().id)
+            }
+        }.launchIn(viewModelScope)
+
+        companiesList.onEach { companies ->
+            if (companies.size == 1) {
+                setDefaultCompany(companies.first().id)
+            }
+        }.launchIn(viewModelScope)
+
+        vehiclesList.onEach { vehicles ->
+            if (vehicles.size == 1) {
+                setDefaultVehicle(vehicles.first().id)
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun setDefaultDriver(id: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDefaultDriverId(id)
+        }
+    }
+
+    fun setDefaultCompany(id: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDefaultCompanyId(id)
+        }
+    }
+
+    fun setDefaultVehicle(id: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDefaultVehicleId(id)
+        }
+    }
 
     private fun <T> groupByName(items: List<T>, nameSelector: (T) -> String): Map<Char, List<T>> {
         return items
