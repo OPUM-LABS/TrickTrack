@@ -2,48 +2,39 @@ package ch.opum.tricktrack.ui.place
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ViewModelFactory
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
+// Data class for the generic list
+data class SimpleItem(val id: Int, val title: String, val subtitle: String? = null)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlacesListScreen(
-    onAddPlace: () -> Unit,
-    onEditPlace: (SavedPlace) -> Unit
+    onAddPlace: () -> Unit
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as TripApplication
@@ -54,16 +45,362 @@ fun PlacesListScreen(
             application.userPreferencesRepository
         )
     )
-    val groupedFavorites by viewModel.groupedFavorites.collectAsState()
-    val groupIndexes by viewModel.groupIndexes.collectAsState()
+
+    val selectedTabIndex by viewModel.selectedTabIndex.collectAsState()
+    val tabTitles = listOf(
+        stringResource(R.string.favourites_tab_places),
+        stringResource(R.string.favourites_tab_drivers),
+        stringResource(R.string.favourites_tab_companies),
+        stringResource(R.string.favourites_tab_vehicles)
+    )
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var itemToEdit by remember { mutableStateOf<SimpleItem?>(null) }
+    var placeToEdit by remember { mutableStateOf<SavedPlace?>(null) }
+    var dialogTitle by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {
+                dialogTitle = when (selectedTabIndex) {
+                    0 -> { onAddPlace(); "" }
+                    1 -> context.getString(R.string.favourites_add_driver_title)
+                    2 -> context.getString(R.string.favourites_add_company_title)
+                    3 -> context.getString(R.string.favourites_add_vehicle_title)
+                    else -> ""
+                }
+                if (selectedTabIndex != 0) {
+                    showAddDialog = true
+                }
+            }) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.favourites_add_item))
+            }
+        }
+
+        PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
+            tabTitles.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { viewModel.selectTab(index) },
+                    text = { Text(title) }
+                )
+            }
+        }
+
+        if (showAddDialog) {
+            AddSimpleItemDialog(
+                title = dialogTitle,
+                onDismiss = { showAddDialog = false },
+                onAdd = { name, subtitle ->
+                    when (selectedTabIndex) {
+                        1 -> viewModel.addDriver(name)
+                        2 -> viewModel.addCompany(name)
+                        3 -> viewModel.addVehicle(name, subtitle)
+                    }
+                    showAddDialog = false
+                },
+                isVehicle = selectedTabIndex == 3
+            )
+        }
+
+        if (showEditDialog && itemToEdit != null) {
+            EditSimpleItemDialog(
+                item = itemToEdit!!,
+                title = stringResource(R.string.favourites_edit_item),
+                onDismiss = {
+                    showEditDialog = false
+                    itemToEdit = null
+                },
+                onSave = { updatedItem ->
+                    when (selectedTabIndex) {
+                        1 -> viewModel.updateDriver(viewModel.driversList.value.first{it.id == updatedItem.id}.copy(name = updatedItem.title))
+                        2 -> viewModel.updateCompany(viewModel.companiesList.value.first{it.id == updatedItem.id}.copy(name = updatedItem.title))
+                        3 -> viewModel.updateVehicle(viewModel.vehiclesList.value.first{it.id == updatedItem.id}.copy(licensePlate = updatedItem.title, carModel = updatedItem.subtitle))
+                    }
+                    showEditDialog = false
+                    itemToEdit = null
+                },
+                onDelete = {
+                     when (selectedTabIndex) {
+                        1 -> viewModel.deleteDriver(viewModel.driversList.value.first{it.id == itemToEdit!!.id})
+                        2 -> viewModel.deleteCompany(viewModel.companiesList.value.first{it.id == itemToEdit!!.id})
+                        3 -> viewModel.deleteVehicle(viewModel.vehiclesList.value.first{it.id == itemToEdit!!.id})
+                    }
+                    showEditDialog = false
+                    itemToEdit = null
+                },
+                isVehicle = selectedTabIndex == 3
+            )
+        }
+
+        if (showEditDialog && placeToEdit != null) {
+            AddEditPlaceDialog(
+                place = placeToEdit,
+                onDismiss = {
+                    showEditDialog = false
+                    placeToEdit = null
+                },
+                onSave = { name, address, lat, lon ->
+                    viewModel.updatePlace(placeToEdit!!, name, address, lat, lon)
+                    showEditDialog = false
+                    placeToEdit = null
+                },
+                placesViewModel = viewModel
+            )
+        }
+
+
+        when (selectedTabIndex) {
+            0 -> {
+                val groupedPlaces by viewModel.groupedPlaces.collectAsState()
+                SavedPlaceList(
+                    groupedFavorites = groupedPlaces,
+                    onEditPlace = {
+                        placeToEdit = it
+                        showEditDialog = true
+                    }
+                )
+            }
+            1 -> {
+                val groupedDrivers by viewModel.groupedDrivers.collectAsState()
+                GenericGroupedList(
+                    groupedItems = groupedDrivers.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
+                    onEdit = { item ->
+                        itemToEdit = item
+                        showEditDialog = true
+                    }
+                )
+            }
+            2 -> {
+                val groupedCompanies by viewModel.groupedCompanies.collectAsState()
+                GenericGroupedList(
+                    groupedItems = groupedCompanies.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
+                    onEdit = { item ->
+                        itemToEdit = item
+                        showEditDialog = true
+                    }
+                )
+            }
+            3 -> {
+                val groupedVehicles by viewModel.groupedVehicles.collectAsState()
+                GenericGroupedList(
+                    groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel) } },
+                    onEdit = { item ->
+                        itemToEdit = item
+                        showEditDialog = true
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AddSimpleItemDialog(title: String, onDismiss: () -> Unit, onAdd: (String, String?) -> Unit, isVehicle: Boolean) {
+    var text by remember { mutableStateOf("") }
+    var subtitle by remember { mutableStateOf("") }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = MaterialTheme.shapes.medium) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = title, style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (isVehicle) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = subtitle,
+                        onValueChange = { subtitle = it },
+                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { onAdd(text, if (isVehicle) subtitle else null) }) { Text(stringResource(R.string.button_add)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EditSimpleItemDialog(
+    item: SimpleItem,
+    title: String,
+    onDismiss: () -> Unit,
+    onSave: (SimpleItem) -> Unit,
+    onDelete: () -> Unit,
+    isVehicle: Boolean
+) {
+    var text by remember(item) { mutableStateOf(item.title) }
+    var subtitle by remember(item) { mutableStateOf(item.subtitle ?: "") }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = MaterialTheme.shapes.medium) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = title, style = MaterialTheme.typography.titleLarge)
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.favourites_delete_item), tint = MaterialTheme.colorScheme.error)
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (isVehicle) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = subtitle,
+                        onValueChange = { subtitle = it },
+                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null)) }) { Text(stringResource(R.string.button_save)) }
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun GenericGroupedList(
+    groupedItems: Map<Char, List<SimpleItem>>,
+    onEdit: (SimpleItem) -> Unit
+) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val groupIndexes = groupedItems.mapValues { entry ->
+        var index = 0
+        for ((key, value) in groupedItems) {
+            if (key == entry.key) break
+            index += value.size + 1
+        }
+        index
+    }
+
+    if (groupedItems.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(stringResource(R.string.favourites_no_items), style = MaterialTheme.typography.bodyLarge)
+        }
+    } else {
+        Row(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f)
+            ) {
+                groupedItems.forEach { (header, items) ->
+                    stickyHeader {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Text(
+                                text = header.toString(),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+                    items(items) { item ->
+                        SimpleListItem(item = item, onEdit = { onEdit(item) })
+                    }
+                }
+            }
+
+            AlphabetSidebar(
+                groupedKeys = groupedItems.keys,
+                onLetterClick = { letter ->
+                    groupIndexes[letter]?.let { index ->
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(index)
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+
+@Composable
+fun SimpleListItem(item: SimpleItem, onEdit: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit)
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            item.subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SavedPlaceList(
+    groupedFavorites: Map<Char, List<SavedPlace>>,
+    onEditPlace: (SavedPlace) -> Unit
+) {
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    val groupIndexes = groupedFavorites.mapValues { entry ->
+        var index = 0
+        for ((key, value) in groupedFavorites) {
+            if (key == entry.key) break
+            index += value.size + 1
+        }
+        index
+    }
 
     if (groupedFavorites.isEmpty()) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -78,7 +415,7 @@ fun PlacesListScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "No saved Favourites yet",
+                    stringResource(R.string.favourites_no_items),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
@@ -107,8 +444,7 @@ fun PlacesListScreen(
                     itemsIndexed(items) { _, place ->
                         PlaceItem(
                             place = place,
-                            onEdit = { onEditPlace(place) },
-                            onDelete = { viewModel.deletePlace(place) }
+                            onEdit = { onEditPlace(place) }
                         )
                     }
                 }
@@ -155,10 +491,11 @@ fun AlphabetSidebar(
 
 
 @Composable
-fun PlaceItem(place: SavedPlace, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun PlaceItem(place: SavedPlace, onEdit: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onEdit)
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -187,12 +524,6 @@ fun PlaceItem(place: SavedPlace, onEdit: () -> Unit, onDelete: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-        IconButton(onClick = onEdit) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit Place")
-        }
-        IconButton(onClick = onDelete) {
-            Icon(Icons.Default.Delete, contentDescription = "Delete Place")
         }
     }
 }

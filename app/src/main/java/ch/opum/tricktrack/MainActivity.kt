@@ -66,7 +66,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -544,20 +543,6 @@ fun MainScreen(
                 }
             )
         },
-        floatingActionButton = {
-            if (currentRoute == Screen.PlacesList.route) {
-                FloatingActionButton(
-                    onClick = {
-                        selectedPlaceToEdit = null
-                        showAddEditPlaceDialog = true
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add_place))
-                }
-            }
-        },
         bottomBar = {
             NavigationBar {
                 val items =
@@ -625,10 +610,6 @@ fun MainScreen(
                 PlacesListScreen(
                     onAddPlace = {
                         selectedPlaceToEdit = null
-                        showAddEditPlaceDialog = true
-                    },
-                    onEditPlace = { place ->
-                        selectedPlaceToEdit = place
                         showAddEditPlaceDialog = true
                     }
                 )

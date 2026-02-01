@@ -247,4 +247,22 @@
     <string name="server_valid">Server valid!</string>
     <string name="servers_saved_successfully">Server URLs saved successfully!</string>
     <string name="test_server">Test</string>
+
+    <!-- Favourites Screen -->
+    <string name="favourites_tab_places">Places</string>
+    <string name="favourites_tab_drivers">Drivers</string>
+    <string name="favourites_tab_companies">Companies</string>
+    <string name="favourites_tab_vehicles">Vehicles</string>
+    <string name="favourites_add_item">Add Item</string>
+    <string name="favourites_edit_item">Edit Item</string>
+    <string name="favourites_delete_item">Delete Item</string>
+    <string name="favourites_add_driver_title">Add Driver</string>
+    <string name="favourites_add_company_title">Add Company</string>
+    <string name="favourites_add_vehicle_title">Add Vehicle</string>
+    <string name="favourites_edit_driver_title">Edit Driver</string>
+    <string name="favourites_edit_company_title">Edit Company</string>
+    <string name="favourites_edit_vehicle_title">Edit Vehicle</string>
+    <string name="favourites_no_items">No items yet.</string>
+    <string name="favourites_license_plate_label">License Plate</string>
+    <string name="favourites_car_model_label">Car Model (Optional)</string>
 </resources>

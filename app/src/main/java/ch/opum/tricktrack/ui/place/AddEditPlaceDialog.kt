@@ -49,10 +49,10 @@ fun AddEditPlaceDialog(
     onSave: (String, String, Double, Double) -> Unit,
     placesViewModel: PlacesViewModel
 ) {
-    var name by remember { mutableStateOf(place?.name ?: "") } // Changed to String
-    var addressText by remember { mutableStateOf(place?.address ?: "") } // Changed to String
-    var selectedLatitude by remember { mutableStateOf(place?.latitude) }
-    var selectedLongitude by remember { mutableStateOf(place?.longitude) }
+    var name by remember(place) { mutableStateOf(place?.name ?: "") }
+    var addressText by remember(place) { mutableStateOf(place?.address ?: "") }
+    var selectedLatitude by remember(place) { mutableStateOf(place?.latitude) }
+    var selectedLongitude by remember(place) { mutableStateOf(place?.longitude) }
 
     val addressSuggestions by placesViewModel.addressSuggestions.collectAsState()
     val nameSuggestions by placesViewModel.nameSuggestions.collectAsState()

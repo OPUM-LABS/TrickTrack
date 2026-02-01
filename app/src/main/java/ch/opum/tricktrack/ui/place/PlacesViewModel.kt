@@ -7,6 +7,12 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
+import ch.opum.tricktrack.data.CompanyDao
+import ch.opum.tricktrack.data.CompanyEntity
+import ch.opum.tricktrack.data.DriverDao
+import ch.opum.tricktrack.data.DriverEntity
+import ch.opum.tricktrack.data.VehicleDao
+import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.data.place.SavedPlaceDao
 import ch.opum.tricktrack.ui.LocationSuggestion
@@ -14,7 +20,6 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,40 +38,65 @@ import java.net.URL
 class PlacesViewModel(
     application: Application,
     private val savedPlaceDao: SavedPlaceDao,
+    private val driverDao: DriverDao,
+    private val companyDao: CompanyDao,
+    private val vehicleDao: VehicleDao,
     private val geocoderHelper: GeocoderHelper // Inject GeocoderHelper
 ) : AndroidViewModel(application) {
 
+    var onFabClicked: ((Int) -> Unit)? = null
+
+    private val _selectedTabIndex = MutableStateFlow(0)
+    val selectedTabIndex: StateFlow<Int> = _selectedTabIndex.asStateFlow()
+
+    fun selectTab(index: Int) {
+        _selectedTabIndex.value = index
+    }
+
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(application)
 
-    val places: Flow<List<SavedPlace>> = savedPlaceDao.getAll().map { list -> list.sortedBy { it.name.lowercase() } }
+    val placesList: StateFlow<List<SavedPlace>> = savedPlaceDao.getAll()
+        .map { list -> list.sortedBy { it.name.lowercase() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val groupedFavorites: StateFlow<Map<Char, List<SavedPlace>>> = places.map { favorites ->
-        favorites
+    val driversList: StateFlow<List<DriverEntity>> = driverDao.getAll()
+        .map { list -> list.sortedBy { it.name.lowercase() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val companiesList: StateFlow<List<CompanyEntity>> = companyDao.getAll()
+        .map { list -> list.sortedBy { it.name.lowercase() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val vehiclesList: StateFlow<List<VehicleEntity>> = vehicleDao.getAll()
+        .map { list -> list.sortedBy { it.licensePlate.lowercase() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun <T> groupByName(items: List<T>, nameSelector: (T) -> String): Map<Char, List<T>> {
+        return items
             .groupBy {
-                it.name.firstOrNull()?.uppercaseChar()?.let { char ->
+                nameSelector(it).firstOrNull()?.uppercaseChar()?.let { char ->
                     if (char.isLetter()) char else '#'
                 } ?: '#'
             }
             .toSortedMap()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyMap()
-    )
+    }
 
-    val groupIndexes: StateFlow<Map<Char, Int>> = groupedFavorites.map { grouped ->
-        val indexes = mutableMapOf<Char, Int>()
-        var currentIndex = 0
-        grouped.forEach { (key, value) ->
-            indexes[key] = currentIndex
-            currentIndex += value.size + 1 // +1 for the header
-        }
-        indexes
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyMap()
-    )
+    val groupedPlaces: StateFlow<Map<Char, List<SavedPlace>>> = placesList
+        .map { groupByName(it) { item -> item.name } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val groupedDrivers: StateFlow<Map<Char, List<DriverEntity>>> = driversList
+        .map { groupByName(it) { item -> item.name } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val groupedCompanies: StateFlow<Map<Char, List<CompanyEntity>>> = companiesList
+        .map { groupByName(it) { item -> item.name } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val groupedVehicles: StateFlow<Map<Char, List<VehicleEntity>>> = vehiclesList
+        .map { groupByName(it) { item -> item.licensePlate } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
 
     private val _addressSuggestions = MutableStateFlow<List<LocationSuggestion>>(emptyList())
     val addressSuggestions = _addressSuggestions.asStateFlow()
@@ -254,6 +284,61 @@ class PlacesViewModel(
     fun deletePlace(place: SavedPlace) {
         viewModelScope.launch {
             savedPlaceDao.delete(place)
+        }
+    }
+
+    // New functions for Driver, Company, Vehicle
+    fun addDriver(name: String) {
+        viewModelScope.launch {
+            driverDao.insert(DriverEntity(name = name))
+        }
+    }
+
+    fun updateDriver(driver: DriverEntity) {
+        viewModelScope.launch {
+            driverDao.update(driver)
+        }
+    }
+
+    fun deleteDriver(driver: DriverEntity) {
+        viewModelScope.launch {
+            driverDao.delete(driver)
+        }
+    }
+
+    fun addCompany(name: String) {
+        viewModelScope.launch {
+            companyDao.insert(CompanyEntity(name = name))
+        }
+    }
+
+    fun updateCompany(company: CompanyEntity) {
+        viewModelScope.launch {
+            companyDao.update(company)
+        }
+    }
+
+    fun deleteCompany(company: CompanyEntity) {
+        viewModelScope.launch {
+            companyDao.delete(company)
+        }
+    }
+
+    fun addVehicle(licensePlate: String, carModel: String?) {
+        viewModelScope.launch {
+            vehicleDao.insert(VehicleEntity(licensePlate = licensePlate, carModel = carModel))
+        }
+    }
+
+    fun updateVehicle(vehicle: VehicleEntity) {
+        viewModelScope.launch {
+            vehicleDao.update(vehicle)
+        }
+    }
+
+    fun deleteVehicle(vehicle: VehicleEntity) {
+        viewModelScope.launch {
+            vehicleDao.delete(vehicle)
         }
     }
 }

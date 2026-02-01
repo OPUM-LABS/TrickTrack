@@ -25,7 +25,14 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(PlacesViewModel::class.java) -> {
                 val database = (application as TripApplication).database
                 val geocoderHelper = GeocoderHelper(application.applicationContext)
-                PlacesViewModel(application, database.savedPlaceDao(), geocoderHelper) as T
+                PlacesViewModel(
+                    application,
+                    database.savedPlaceDao(),
+                    database.driverDao(),
+                    database.companyDao(),
+                    database.vehicleDao(),
+                    geocoderHelper
+                ) as T
             }
             modelClass.isAssignableFrom(TroubleshootingViewModel::class.java) -> {
                 TroubleshootingViewModel(application) as T
