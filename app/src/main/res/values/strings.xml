@@ -77,6 +77,7 @@
 
     <!-- New strings for SettingsScreen.kt -->
     <string name="settings_bluetooth_permission_denied_toast">Bluetooth permission denied. Cannot enable Bluetooth trigger.</string>
+    <string name="settings_location_permission_required_toast">Location permission is required for automatic tracking.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Select Bluetooth Devices</string>
     <string name="about_version">Version: %1$s</string>
     <string name="about_license">Released under MIT License</string>

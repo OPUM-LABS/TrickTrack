@@ -78,6 +78,7 @@
 
     <!-- New strings for SettingsScreen.kt -->
     <string name="settings_bluetooth_permission_denied_toast">Autorisation Bluetooth refusée. Impossible d\'activer le déclencheur Bluetooth.</string>
+    <string name="settings_location_permission_required_toast">L\'autorisation de localisation est requise pour le suivi automatique.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Sélectionner les appareils Bluetooth</string>
     <string name="about_version">Version : %1$s</string>
     <string name="about_license">Publié sous licence MIT</string>

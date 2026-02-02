@@ -78,6 +78,7 @@
 
     <!-- New strings for SettingsScreen.kt -->
     <string name="settings_bluetooth_permission_denied_toast">Autorizzazione Bluetooth negata. Impossibile abilitare il trigger Bluetooth.</string>
+    <string name="settings_location_permission_required_toast">L\'autorizzazione alla posizione è necessaria per il tracciamento automatico.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Seleziona dispositivi Bluetooth</string>
     <string name="about_version">Versione: %1$s</string>
     <string name="about_license">Rilasciato con licenza MIT</string>

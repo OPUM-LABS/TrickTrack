@@ -150,6 +150,46 @@ fun SettingsScreen(
     var showScheduleDialog by remember { mutableStateOf(false) }
     var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
 
+    val backgroundPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
+        } else {
+            Toast.makeText(
+                context,
+                "Background location is needed for auto tracking",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    val foregroundPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                } else {
+                    viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
+                }
+            } else {
+                viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
+            }
+        } else {
+            Toast.makeText(
+                context,
+                R.string.settings_location_permission_required_toast,
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -359,10 +399,30 @@ fun SettingsScreen(
                         Switch(
                             checked = isAutoTrackingEnabled,
                             onCheckedChange = { enabled ->
-                                viewModel.onToggleAutoTracking(
-                                    checked = enabled,
-                                    hasBackgroundLocationPermission = context.hasBackgroundLocationPermission()
-                                )
+                                if (enabled) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                        ) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        foregroundPermissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                        )
+                                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                                        ) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                                    } else {
+                                        viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
+                                    }
+                                } else {
+                                    viewModel.onToggleAutoTracking(checked = false, hasBackgroundLocationPermission = context.hasBackgroundLocationPermission())
+                                }
                             },
                             enabled = isAutomaticSwitchEnabled
                         )
@@ -453,8 +513,31 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = isScheduleEnabled,
-                            onCheckedChange = {
-                                viewModel.setScheduleEnabled(it)
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                        ) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        foregroundPermissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                        )
+                                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                                        ) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                                    } else {
+                                        viewModel.setScheduleEnabled(true)
+                                    }
+                                } else {
+                                    viewModel.setScheduleEnabled(false)
+                                }
                             }
                         )
                     }

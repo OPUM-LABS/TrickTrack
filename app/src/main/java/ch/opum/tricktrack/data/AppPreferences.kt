@@ -12,12 +12,6 @@ class AppPreferences(context: Context) {
     companion object {
         const val DEFAULT_OSRM_URL = "https://router.project-osrm.org/route/v1/driving" // Changed to HTTPS
         const val DEFAULT_PHOTON_URL = "https://photon.komoot.io/api"
-        const val KEY_DEFAULT_DRIVER_ID = "defaultDriverId"
-        const val KEY_DEFAULT_COMPANY_ID = "defaultCompanyId"
-        const val KEY_DEFAULT_VEHICLE_ID = "defaultVehicleId"
-        const val KEY_EXPORT_INCLUDE_DRIVER = "exportIncludeDriver"
-        const val KEY_EXPORT_INCLUDE_COMPANY = "exportIncludeCompany"
-        const val KEY_EXPORT_INCLUDE_VEHICLE = "exportIncludeVehicle"
     }
 
     fun getOsrmUrl(): String {

@@ -77,6 +77,7 @@
 
     <!-- New strings for SettingsScreen.kt -->
     <string name="settings_bluetooth_permission_denied_toast">Bluetooth-Berechtigung verweigert. Bluetooth-Trigger kann nicht aktiviert werden.</string>
+    <string name="settings_location_permission_required_toast">Standortberechtigung ist für die automatische Verfolgung erforderlich.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Bluetooth-Geräte auswählen</string>
     <string name="about_version">Version: %1$s</string>
     <string name="about_license">Veröffentlicht unter MIT-Lizenz</string>
