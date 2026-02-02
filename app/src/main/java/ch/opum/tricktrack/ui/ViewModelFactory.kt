@@ -9,7 +9,7 @@ import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.TripRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
 import ch.opum.tricktrack.data.repository.FavouritesRepository
-import ch.opum.tricktrack.ui.place.PlacesViewModel
+import ch.opum.tricktrack.ui.place.FavouritesViewModel
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 
 class ViewModelFactory(
@@ -27,10 +27,10 @@ class ViewModelFactory(
                 val appPreferences = AppPreferences(application.applicationContext)
                 TripsViewModel(application, repository, userPreferencesRepository, geocoderHelper, favouritesRepository, appPreferences) as T
             }
-            modelClass.isAssignableFrom(PlacesViewModel::class.java) -> {
+            modelClass.isAssignableFrom(FavouritesViewModel::class.java) -> {
                 val database = (application as TripApplication).database
                 val geocoderHelper = GeocoderHelper(application.applicationContext)
-                PlacesViewModel(
+                FavouritesViewModel(
                     application,
                     database.savedPlaceDao(),
                     database.driverDao(),

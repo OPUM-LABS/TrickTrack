@@ -30,7 +30,6 @@
     <string name="settings_expense_rate_label">Rate pro km</string>
     <string name="settings_expense_currency_label">Währung</string>
     <string name="settings_export_fields_title">Exportfelder konfigurieren</string>
-    <string name="settings_export_fields_description">Tippen zum Bearbeiten</string>
     <string name="settings_export_fields_configure_cd">Export konfigurieren</string>
     <string name="settings_enable_schedule_title">Zeitplan aktivieren</string>
     <string name="settings_enable_schedule_description">Lassen Sie den Zeitplan das Tracking steuern</string>
@@ -95,6 +94,7 @@
     <string name="export_column_expenses">Kosten</string>
 
     <!-- Schedule Settings Dialog -->
+    <string name="export_disabled_in_settings">(In den Exporteinstellungen deaktiviert)</string>
     <string name="schedule_select_start_time">Startzeit für %1$s auswählen</string>
     <string name="schedule_select_end_time">Endzeit für %1$s auswählen</string>
     <string name="schedule_loading">Zeitplan wird geladen…</string>
@@ -121,7 +121,6 @@
     <string name="action_filter">Filter</string>
     <string name="action_export">Exportieren</string>
     <string name="action_about">Über</string>
-    <string name="action_add_place">Ort hinzufügen</string>
     <string name="action_delete">Löschen</string>
 
     <!-- Review Screen -->
@@ -247,4 +246,21 @@
     <string name="server_valid">Server gültig!</string>
     <string name="servers_saved_successfully">Server-URLs erfolgreich gespeichert!</string>
     <string name="test_server">Test</string>
+    <string name="export_column_driver">Fahrer hinzufügen</string>
+    <string name="export_column_company">Unternehmen hinzufügen</string>
+    <string name="export_column_vehicle">Fahrzeug hinzufügen</string>
+    <string name="export_no_entries">(Keine Einträge erstellt)</string>
+    <string name="favourites_tab_places">Orte</string>
+    <string name="favourites_tab_drivers">Fahrer</string>
+    <string name="favourites_tab_companies">Unternehmen</string>
+    <string name="favourites_tab_vehicles">Fahrzeuge</string>
+    <string name="favourites_add_item">Element hinzufügen</string>
+    <string name="favourites_edit_item">Element bearbeiten</string>
+    <string name="favourites_delete_item">Element löschen</string>
+    <string name="favourites_add_driver_title">Fahrer hinzufügen</string>
+    <string name="favourites_add_company_title">Unternehmen hinzufügen</string>
+    <string name="favourites_add_vehicle_title">Fahrzeug hinzufügen</string>
+    <string name="favourites_no_items">Noch keine Elemente.</string>
+    <string name="favourites_license_plate_label">Kennzeichen</string>
+    <string name="favourites_car_model_label">Automodell (optional)</string>
 </resources>

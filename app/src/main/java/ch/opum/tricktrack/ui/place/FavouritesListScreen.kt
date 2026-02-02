@@ -37,7 +37,7 @@ fun PlacesListScreen(
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as TripApplication
-    val viewModel: PlacesViewModel = viewModel(
+    val viewModel: FavouritesViewModel = viewModel(
         factory = ViewModelFactory(
             application,
             application.repository,
@@ -52,6 +52,10 @@ fun PlacesListScreen(
         stringResource(R.string.favourites_tab_companies),
         stringResource(R.string.favourites_tab_vehicles)
     )
+
+    val addDriverTitle = stringResource(R.string.favourites_add_driver_title)
+    val addCompanyTitle = stringResource(R.string.favourites_add_company_title)
+    val addVehicleTitle = stringResource(R.string.favourites_add_vehicle_title)
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -70,9 +74,9 @@ fun PlacesListScreen(
             IconButton(onClick = {
                 dialogTitle = when (selectedTabIndex) {
                     0 -> { onAddPlace(); "" }
-                    1 -> context.getString(R.string.favourites_add_driver_title)
-                    2 -> context.getString(R.string.favourites_add_company_title)
-                    3 -> context.getString(R.string.favourites_add_vehicle_title)
+                    1 -> addDriverTitle
+                    2 -> addCompanyTitle
+                    3 -> addVehicleTitle
                     else -> ""
                 }
                 if (selectedTabIndex != 0) {
@@ -151,7 +155,12 @@ fun PlacesListScreen(
                     showEditDialog = false
                     placeToEdit = null
                 },
-                placesViewModel = viewModel
+                onDelete = {
+                    viewModel.deletePlace(placeToEdit!!)
+                    showEditDialog = false
+                    placeToEdit = null
+                },
+                favouritesViewModel = viewModel
             )
         }
 

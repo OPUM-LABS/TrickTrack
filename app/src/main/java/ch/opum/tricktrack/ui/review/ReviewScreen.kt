@@ -51,12 +51,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.Trip
@@ -302,25 +298,6 @@ fun ReviewTripCard(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun formatLocationText(locationString: String): AnnotatedString {
-    return buildAnnotatedString {
-        if (locationString.startsWith("(") && locationString.endsWith(")")) {
-            val favName = locationString.substringAfter("(").substringBefore(",")
-            val address = locationString.substringAfter(", ").substringBeforeLast(")")
-            append("(")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(favName)
-            }
-            append(", ")
-            append(address)
-            append(")")
-        } else {
-            append(locationString)
         }
     }
 }

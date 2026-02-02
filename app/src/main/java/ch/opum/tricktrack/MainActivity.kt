@@ -132,7 +132,7 @@ import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.navigation.Screen
 import ch.opum.tricktrack.ui.place.AddEditPlaceDialog
 import ch.opum.tricktrack.ui.place.PlacesListScreen
-import ch.opum.tricktrack.ui.place.PlacesViewModel
+import ch.opum.tricktrack.ui.place.FavouritesViewModel
 import ch.opum.tricktrack.ui.review.ReviewScreen
 import ch.opum.tricktrack.ui.settings.SettingsScreen
 import ch.opum.tricktrack.ui.theme.TrickTrackTheme
@@ -221,7 +221,7 @@ fun MainScreen(
 ) {
     val navController = rememberNavController()
     val tripsViewModel: TripsViewModel = viewModel(factory = viewModelFactory)
-    val placesViewModel: PlacesViewModel = viewModel(factory = viewModelFactory)
+    val favouritesViewModel: FavouritesViewModel = viewModel(factory = viewModelFactory)
     val troubleshootingViewModel: TroubleshootingViewModel = viewModel(factory = viewModelFactory)
     val unconfirmedTrips by tripsViewModel.unconfirmedTrips.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -383,7 +383,7 @@ fun MainScreen(
                 tripsViewModel.deleteTrip(trip)
                 selectedTripToEdit = null
             },
-            placesViewModel = placesViewModel,
+            favouritesViewModel = favouritesViewModel,
             tripsViewModel = tripsViewModel
         )
     }
@@ -394,9 +394,9 @@ fun MainScreen(
             onDismiss = { showAddEditPlaceDialog = false },
             onSave = { name, address, latitude, longitude ->
                 if (selectedPlaceToEdit == null) {
-                    placesViewModel.addPlace(name, address, latitude, longitude)
+                    favouritesViewModel.addPlace(name, address, latitude, longitude)
                 } else {
-                    placesViewModel.updatePlace(
+                    favouritesViewModel.updatePlace(
                         selectedPlaceToEdit!!,
                         name,
                         address,
@@ -406,7 +406,11 @@ fun MainScreen(
                 }
                 showAddEditPlaceDialog = false
             },
-            placesViewModel = placesViewModel
+            onDelete = {
+                selectedPlaceToEdit?.let { favouritesViewModel.deletePlace(it) }
+                showAddEditPlaceDialog = false
+            },
+            favouritesViewModel = favouritesViewModel
         )
     }
 
@@ -535,7 +539,7 @@ fun MainScreen(
                                         showAddManualTripDialog = false
                                     },
                                     onDelete = { /* Not used in add mode */ },
-                                    placesViewModel = placesViewModel,
+                                    favouritesViewModel = favouritesViewModel,
                                     tripsViewModel = tripsViewModel
                                 )
                             }
@@ -851,7 +855,7 @@ fun EditTripDialog(
     onDismiss: () -> Unit,
     onSave: (Trip) -> Unit,
     onDelete: () -> Unit,
-    placesViewModel: PlacesViewModel,
+    favouritesViewModel: FavouritesViewModel,
     tripsViewModel: TripsViewModel
 ) {
     val isEditMode = trip != null
@@ -887,7 +891,7 @@ fun EditTripDialog(
         }
     }
 
-    val addressSuggestions by placesViewModel.addressSuggestions.collectAsState()
+    val addressSuggestions by favouritesViewModel.addressSuggestions.collectAsState()
     var startTextFieldSize by remember { mutableStateOf(Size.Zero) }
     var endTextFieldSize by remember { mutableStateOf(Size.Zero) }
     var activeDropdown by remember { mutableStateOf<String?>(null) }
@@ -1089,7 +1093,7 @@ fun EditTripDialog(
                         value = startText,
                         onValueChange = {
                             startText = it
-                            placesViewModel.searchAddress(it) // Pass String directly
+                            favouritesViewModel.searchAddress(it) // Pass String directly
                             activeDropdown = "start"
                         },
                         label = { Text(stringResource(R.string.start_address_label)) },
@@ -1101,7 +1105,7 @@ fun EditTripDialog(
                     )
                     DropdownMenu(
                         expanded = addressSuggestions.isNotEmpty() && activeDropdown == "start",
-                        onDismissRequest = { placesViewModel.clearAddressSuggestions() },
+                        onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
                         properties = PopupProperties(focusable = false),
                         offset = DpOffset(x = 0.dp, y = 4.dp),
                         modifier = Modifier
@@ -1139,7 +1143,7 @@ fun EditTripDialog(
                                     startText = suggestion.fullAddress // Assign String directly
                                     startLat = suggestion.latitude
                                     startLon = suggestion.longitude
-                                    placesViewModel.clearAddressSuggestions()
+                                    favouritesViewModel.clearAddressSuggestions()
                                     activeDropdown = null
                                 }
                             )
@@ -1151,7 +1155,7 @@ fun EditTripDialog(
                         value = endText,
                         onValueChange = {
                             endText = it
-                            placesViewModel.searchAddress(it) // Pass String directly
+                            favouritesViewModel.searchAddress(it) // Pass String directly
                             activeDropdown = "end"
                         },
                         label = { Text(stringResource(R.string.end_address_label)) },
@@ -1163,7 +1167,7 @@ fun EditTripDialog(
                     )
                     DropdownMenu(
                         expanded = addressSuggestions.isNotEmpty() && activeDropdown == "end",
-                        onDismissRequest = { placesViewModel.clearAddressSuggestions() },
+                        onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
                         properties = PopupProperties(focusable = false),
                         offset = DpOffset(x = 0.dp, y = 4.dp),
                         modifier = Modifier
@@ -1201,7 +1205,7 @@ fun EditTripDialog(
                                     endText = suggestion.fullAddress // Assign String directly
                                     endLat = suggestion.latitude
                                     endLon = suggestion.longitude
-                                    placesViewModel.clearAddressSuggestions()
+                                    favouritesViewModel.clearAddressSuggestions()
                                     activeDropdown = null
                                 }
                             )

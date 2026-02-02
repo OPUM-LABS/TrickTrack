@@ -52,11 +52,6 @@ object AppLogger {
         return oldLogs + currentLogs
     }
 
-    fun clearLogs() {
-        File(logDir, CURRENT_LOG_FILE).delete()
-        File(logDir, OLD_LOG_FILE).delete()
-    }
-
     fun exportLogs(context: Context): Uri? {
         val exportFile = File(context.cacheDir, "TrickTrack_log_export.txt")
         exportFile.writeText(getAllLogs())

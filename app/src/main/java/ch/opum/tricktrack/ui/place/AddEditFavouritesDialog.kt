@@ -1,5 +1,6 @@
 package ch.opum.tricktrack.ui.place
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -16,6 +18,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,22 +50,23 @@ fun AddEditPlaceDialog(
     place: SavedPlace?,
     onDismiss: () -> Unit,
     onSave: (String, String, Double, Double) -> Unit,
-    placesViewModel: PlacesViewModel
+    onDelete: () -> Unit,
+    favouritesViewModel: FavouritesViewModel
 ) {
     var name by remember(place) { mutableStateOf(place?.name ?: "") }
     var addressText by remember(place) { mutableStateOf(place?.address ?: "") }
     var selectedLatitude by remember(place) { mutableStateOf(place?.latitude) }
     var selectedLongitude by remember(place) { mutableStateOf(place?.longitude) }
 
-    val addressSuggestions by placesViewModel.addressSuggestions.collectAsState()
-    val nameSuggestions by placesViewModel.nameSuggestions.collectAsState()
+    val addressSuggestions by favouritesViewModel.addressSuggestions.collectAsState()
+    val nameSuggestions by favouritesViewModel.nameSuggestions.collectAsState()
 
     var nameTextFieldSize by remember { mutableStateOf(Size.Zero) }
     var addressTextFieldSize by remember { mutableStateOf(Size.Zero) }
 
     fun clearAllSuggestions() {
-        placesViewModel.clearAddressSuggestions()
-        placesViewModel.clearNameSuggestions()
+        favouritesViewModel.clearAddressSuggestions()
+        favouritesViewModel.clearNameSuggestions()
     }
 
     fun handleSuggestionClick(suggestion: LocationSuggestion) {
@@ -79,7 +83,24 @@ fun AddEditPlaceDialog(
             clearAllSuggestions()
             onDismiss()
         },
-        title = { Text(if (place == null) stringResource(R.string.add_place_title) else stringResource(R.string.edit_place_title)) },
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(if (place == null) stringResource(R.string.add_place_title) else stringResource(R.string.edit_place_title))
+                if (place != null) {
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.favourites_delete_item),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        },
         text = {
             Column {
                 // --- Name Field with Autocomplete ---
@@ -88,7 +109,7 @@ fun AddEditPlaceDialog(
                         value = name,
                         onValueChange = {
                             name = it
-                            placesViewModel.searchName(it) // Pass String directly
+                            favouritesViewModel.searchName(it) // Pass String directly
                         },
                         label = { Text(stringResource(R.string.place_name_label)) },
                         modifier = Modifier
@@ -97,7 +118,7 @@ fun AddEditPlaceDialog(
                     )
                     SuggestionDropdown(
                         expanded = nameSuggestions.isNotEmpty(),
-                        onDismissRequest = { placesViewModel.clearNameSuggestions() },
+                        onDismissRequest = { favouritesViewModel.clearNameSuggestions() },
                         suggestions = nameSuggestions,
                         onSuggestionClick = ::handleSuggestionClick,
                         textFieldSize = nameTextFieldSize
@@ -110,7 +131,7 @@ fun AddEditPlaceDialog(
                         value = addressText,
                         onValueChange = {
                             addressText = it
-                            placesViewModel.searchAddress(it) // Pass String directly
+                            favouritesViewModel.searchAddress(it) // Pass String directly
                         },
                         label = { Text(stringResource(R.string.place_address_label)) },
                         modifier = Modifier
@@ -119,7 +140,7 @@ fun AddEditPlaceDialog(
                     )
                     SuggestionDropdown(
                         expanded = addressSuggestions.isNotEmpty(),
-                        onDismissRequest = { placesViewModel.clearAddressSuggestions() },
+                        onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
                         suggestions = addressSuggestions,
                         onSuggestionClick = ::handleSuggestionClick,
                         textFieldSize = addressTextFieldSize

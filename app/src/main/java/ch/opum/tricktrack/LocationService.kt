@@ -609,17 +609,14 @@ class LocationService : Service() {
         val distance = _distance.asStateFlow()
 
         private val _startLocation = MutableStateFlow<Location?>(null)
-        val startLocation = _startLocation.asStateFlow()
 
         private val _lastLocation = MutableStateFlow<Location?>(null)
-        val lastLocation = _lastLocation.asStateFlow()
 
         private val _isTracking =
             MutableStateFlow(false)
         val isTracking = _isTracking.asStateFlow()
 
         private val _currentTripTrigger = MutableStateFlow(TripTrigger.MANUAL)
-        val currentTripTrigger = _currentTripTrigger.asStateFlow()
 
         private val _tripSavedForSummary = MutableSharedFlow<Trip>()
         val tripSavedForSummary = _tripSavedForSummary.asSharedFlow()

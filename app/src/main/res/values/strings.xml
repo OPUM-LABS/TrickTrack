@@ -30,7 +30,6 @@
     <string name="settings_expense_rate_label">Rate per km</string>
     <string name="settings_expense_currency_label">Currency</string>
     <string name="settings_export_fields_title">Configure Export Fields</string>
-    <string name="settings_export_fields_description">Tap to edit</string>
     <string name="settings_export_fields_configure_cd">Configure Export</string>
     <string name="settings_enable_schedule_title">Enable Schedule</string>
     <string name="settings_enable_schedule_description">Let the schedule control tracking</string>
@@ -126,7 +125,6 @@
     <string name="action_filter">Filter</string>
     <string name="action_export">Export</string>
     <string name="action_about">About</string>
-    <string name="action_add_place">Add Place</string>
     <string name="action_delete">Delete</string>
 
     <!-- Review Screen -->
@@ -264,9 +262,6 @@
     <string name="favourites_add_driver_title">Add Driver</string>
     <string name="favourites_add_company_title">Add Company</string>
     <string name="favourites_add_vehicle_title">Add Vehicle</string>
-    <string name="favourites_edit_driver_title">Edit Driver</string>
-    <string name="favourites_edit_company_title">Edit Company</string>
-    <string name="favourites_edit_vehicle_title">Edit Vehicle</string>
     <string name="favourites_no_items">No items yet.</string>
     <string name="favourites_license_plate_label">License Plate</string>
     <string name="favourites_car_model_label">Car Model (Optional)</string>

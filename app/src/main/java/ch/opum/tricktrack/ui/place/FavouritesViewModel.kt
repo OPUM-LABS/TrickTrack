@@ -1,13 +1,10 @@
 package ch.opum.tricktrack.ui.place
 
 import android.app.Application
-import android.location.Address
-import android.location.Geocoder
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
-import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.CompanyDao
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DriverDao
@@ -39,7 +36,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-class PlacesViewModel(
+class FavouritesViewModel(
     application: Application,
     private val savedPlaceDao: SavedPlaceDao,
     private val driverDao: DriverDao,
@@ -48,8 +45,6 @@ class PlacesViewModel(
     private val geocoderHelper: GeocoderHelper, // Inject GeocoderHelper
     private val userPreferencesRepository: UserPreferencesRepository
 ) : AndroidViewModel(application) {
-
-    var onFabClicked: ((Int) -> Unit)? = null
 
     private val _selectedTabIndex = MutableStateFlow(0)
     val selectedTabIndex: StateFlow<Int> = _selectedTabIndex.asStateFlow()
@@ -157,19 +152,6 @@ class PlacesViewModel(
     val nameSuggestions = _nameSuggestions.asStateFlow()
 
     private var searchJob: Job? = null
-    private val geocoder by lazy { Geocoder(getApplication<Application>().applicationContext) }
-
-    private fun formatAddress(address: Address): String {
-        val street = address.thoroughfare
-        val number = address.subThoroughfare
-        val postalCode = address.postalCode
-        val city = address.locality
-
-        val firstPart = listOfNotNull(street, number).joinToString(" ")
-        val secondPart = listOfNotNull(postalCode, city).joinToString(" ")
-
-        return listOfNotNull(firstPart, secondPart).joinToString(", ")
-    }
 
     private fun performSearch(query: String, suggestionsState: MutableStateFlow<List<LocationSuggestion>>) {
         searchJob?.cancel()
@@ -334,7 +316,7 @@ class PlacesViewModel(
     }
 
     fun deletePlace(place: SavedPlace) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             savedPlaceDao.delete(place)
         }
     }

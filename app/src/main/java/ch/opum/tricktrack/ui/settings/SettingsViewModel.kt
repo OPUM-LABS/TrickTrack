@@ -9,23 +9,15 @@ import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.backup.BackupManager
 import ch.opum.tricktrack.backup.BackupScheduler
-import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.TripRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
-import ch.opum.tricktrack.data.repository.FavouritesRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     application: Application,
     private val tripRepository: TripRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val favouritesRepository: FavouritesRepository,
-    private val appPreferences: AppPreferences
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : AndroidViewModel(application) {
 
     private val backupManager: BackupManager = BackupManager()
@@ -35,57 +27,6 @@ class SettingsViewModel(
     val backupDayOfWeek: Flow<Int> = userPreferencesRepository.backupDayOfWeek
     val backupDayOfMonth: Flow<Int> = userPreferencesRepository.backupDayOfMonth
     val backupFolderUri: Flow<String?> = userPreferencesRepository.backupFolderUri
-
-    val hasDrivers: StateFlow<Boolean> = favouritesRepository.getAllDrivers()
-        .map { it.isNotEmpty() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val hasCompanies: StateFlow<Boolean> = favouritesRepository.getAllCompanies()
-        .map { it.isNotEmpty() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val hasVehicles: StateFlow<Boolean> = favouritesRepository.getAllVehicles()
-        .map { it.isNotEmpty() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val exportIncludeDriver: StateFlow<Boolean> = userPreferencesRepository.exportIncludeDriver
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val exportIncludeCompany: StateFlow<Boolean> = userPreferencesRepository.exportIncludeCompany
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val exportIncludeVehicle: StateFlow<Boolean> = userPreferencesRepository.exportIncludeVehicle
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val exportColumns: StateFlow<Set<String>> = userPreferencesRepository.exportColumns
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), setOf("DATE", "TIME", "START_LOCATION", "END_LOCATION", "DISTANCE", "TYPE", "EXPENSES"))
-
-    val expenseTrackingEnabled: StateFlow<Boolean> = userPreferencesRepository.expenseTrackingEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    fun setExportColumns(columns: Set<String>) {
-        viewModelScope.launch {
-            userPreferencesRepository.setExportColumns(columns)
-        }
-    }
-
-    fun setExportIncludeDriver(include: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setExportIncludeDriver(include)
-        }
-    }
-
-    fun setExportIncludeCompany(include: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setExportIncludeCompany(include)
-        }
-    }
-
-    fun setExportIncludeVehicle(include: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setExportIncludeVehicle(include)
-        }
-    }
 
     fun setAutoBackupEnabled(enabled: Boolean) {
         viewModelScope.launch {
@@ -140,7 +81,7 @@ class SettingsViewModel(
                 getApplication<Application>().contentResolver.openOutputStream(uri)?.use {
                     it.write(json.toByteArray())
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Handle exceptions
             }
         }
@@ -162,7 +103,7 @@ class SettingsViewModel(
                         Toast.makeText(getApplication(), R.string.import_failed, Toast.LENGTH_SHORT).show()
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Handle exceptions
                 Toast.makeText(getApplication(), R.string.import_failed, Toast.LENGTH_SHORT).show()
             }

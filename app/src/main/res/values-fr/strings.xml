@@ -31,7 +31,6 @@
     <string name="settings_expense_rate_label">Taux par km</string>
     <string name="settings_expense_currency_label">Devise</string>
     <string name="settings_export_fields_title">Configurer les champs d\'exportation</string>
-    <string name="settings_export_fields_description">Appuyez pour modifier</string>
     <string name="settings_export_fields_configure_cd">Configurer l\'exportation</string>
     <string name="settings_enable_schedule_title">Activer le calendrier</string>
     <string name="settings_enable_schedule_description">Laisser le calendrier contrôler le suivi</string>
@@ -96,6 +95,7 @@
     <string name="export_column_expenses">Dépenses</string>
 
     <!-- Schedule Settings Dialog -->
+    <string name="export_disabled_in_settings">(Désactivé dans les paramètres d\'exportation)</string>
     <string name="schedule_select_start_time">Sélectionner l\'heure de début pour %1$s</string>
     <string name="schedule_select_end_time">Sélectionner l\'heure de fin pour %1$s</string>
     <string name="schedule_loading">Chargement du calendrier…</string>
@@ -122,7 +122,6 @@
     <string name="action_filter">Filtrer</string>
     <string name="action_export">Exporter</string>
     <string name="action_about">À propos</string>
-    <string name="action_add_place">Ajouter un lieu</string>
     <string name="action_delete">Supprimer</string>
 
     <!-- Review Screen -->
@@ -248,4 +247,21 @@
     <string name="server_valid">Serveur valide !</string>
     <string name="servers_saved_successfully">URL du serveur enregistrées avec succès !</string>
     <string name="test_server">Test</string>
+    <string name="export_column_driver">Inclure le conducteur</string>
+    <string name="export_column_company">Inclure l\'entreprise</string>
+    <string name="export_column_vehicle">Inclure le véhicule</string>
+    <string name="export_no_entries">(Aucune entrée créée)</string>
+    <string name="favourites_tab_places">Lieux</string>
+    <string name="favourites_tab_drivers">Conducteurs</string>
+    <string name="favourites_tab_companies">Entreprises</string>
+    <string name="favourites_tab_vehicles">Véhicules</string>
+    <string name="favourites_add_item">Ajouter un élément</string>
+    <string name="favourites_edit_item">Modifier un élément</string>
+    <string name="favourites_delete_item">Supprimer un élément</string>
+    <string name="favourites_add_driver_title">Ajouter un conducteur</string>
+    <string name="favourites_add_company_title">Ajouter une entreprise</string>
+    <string name="favourites_add_vehicle_title">Ajouter un véhicule</string>
+    <string name="favourites_no_items">Aucun élément pour le moment.</string>
+    <string name="favourites_license_plate_label">Plaque d\'immatriculation</string>
+    <string name="favourites_car_model_label">Modèle de voiture (facultatif)</string>
 </resources>
