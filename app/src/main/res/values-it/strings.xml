@@ -11,7 +11,7 @@
     <string name="settings_permissions_action_needed_cd">Azione richiesta</string>
     <string name="settings_permissions_action_needed_text">Azione richiesta</string>
     <string name="settings_tracking_settings_title">Impostazioni di tracciamento</string>
-    <string name="settings_tracking_settings_description">Configura il monitoraggio automatico, i trigger e le impostazioni predefinite.</string>
+    <string name="settings_tracking_settings_description">Configura il tracciamento automatico e i trigger</string>
     <string name="settings_automatic_tracking_title">Tracciamento automatico</string>
     <string name="settings_automatic_tracking_description">Registra automaticamente i viaggi quando inizi a guidare.</string>
     <string name="settings_bluetooth_trigger_title">Avvia alla connessione Bluetooth</string>
@@ -42,8 +42,8 @@
     <string name="settings_all_days">Tutti i giorni</string>
     <string name="settings_backup_restore_title">Backup e ripristino</string>
     <string name="settings_backup_restore_description">Gestisci i backup dei tuoi dati.</string>
-    <string name="settings_reporting_title">Rapporti</string>
-    <string name="settings_reporting_description">Configura i formati di esportazione e il monitoraggio delle spese.</string>
+    <string name="settings_tracking_defaults_title">Impostazioni predefinite</string>
+    <string name="settings_tracking_defaults_description">Configurare i valori predefiniti per i viaggi.</string>
     <string name="settings_backup_button">Backup</string>
     <string name="settings_restore_button">Ripristina</string>
     <string name="settings_logs_title">Registri</string>
@@ -83,7 +83,7 @@
     <string name="about_version">Versione: %1$s</string>
     <string name="about_license">Rilasciato con licenza MIT</string>
     <string name="about_osm_attribution">Dati mappa © contributori OpenStreetMap</string>
-    <string name="about_copyright">© 2026 OPUM-Labs</string>
+    <string name="about_copyright">© 2026 Michel Perrin @ OPUM-Labs</string>
     <string name="about_made_with_love">Creato con ❤️ e 🤖</string>
 
     <!-- Export Settings Dialog -->

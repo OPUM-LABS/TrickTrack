@@ -19,11 +19,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.place.SavedPlace
+import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ViewModelFactory
 import kotlinx.coroutines.launch
 
@@ -223,12 +223,12 @@ fun PlacesListScreen(
 fun AddSimpleItemDialog(title: String, onDismiss: () -> Unit, onAdd: (String, String?) -> Unit, isVehicle: Boolean) {
     var text by remember { mutableStateOf("") }
     var subtitle by remember { mutableStateOf("") }
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = MaterialTheme.shapes.medium) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = title, style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column {
+                ClearableTextField(
                     value = text,
                     onValueChange = { text = it },
                     label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
@@ -236,22 +236,26 @@ fun AddSimpleItemDialog(title: String, onDismiss: () -> Unit, onAdd: (String, St
                 )
                 if (isVehicle) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
+                    ClearableTextField(
                         value = subtitle,
                         onValueChange = { subtitle = it },
                         label = { Text(stringResource(R.string.favourites_car_model_label)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onAdd(text, if (isVehicle) subtitle else null) }) { Text(stringResource(R.string.button_add)) }
-                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onAdd(text, if (isVehicle) subtitle else null) }) {
+                Text(stringResource(R.string.button_add))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.button_cancel))
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -266,17 +270,27 @@ fun EditSimpleItemDialog(
     var text by remember(item) { mutableStateOf(item.title) }
     var subtitle by remember(item) { mutableStateOf(item.subtitle ?: "") }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = MaterialTheme.shapes.medium) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = title, style = MaterialTheme.typography.titleLarge)
-                    IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.favourites_delete_item), tint = MaterialTheme.colorScheme.error)
-                    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = title)
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.favourites_delete_item),
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+            }
+        },
+        text = {
+            Column {
+                ClearableTextField(
                     value = text,
                     onValueChange = { text = it },
                     label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
@@ -284,22 +298,26 @@ fun EditSimpleItemDialog(
                 )
                 if (isVehicle) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
+                    ClearableTextField(
                         value = subtitle,
                         onValueChange = { subtitle = it },
                         label = { Text(stringResource(R.string.favourites_car_model_label)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null)) }) { Text(stringResource(R.string.button_save)) }
-                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null)) }) {
+                Text(stringResource(R.string.button_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.button_cancel))
             }
         }
-    }
+    )
 }
 
 

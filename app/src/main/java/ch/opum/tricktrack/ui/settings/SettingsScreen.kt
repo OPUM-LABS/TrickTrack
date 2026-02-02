@@ -71,7 +71,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -566,10 +565,66 @@ fun SettingsScreen(
                 }
             }
 
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    var localStillnessTimer by remember(stillnessTimer) { mutableStateOf(stillnessTimer.toString()) }
+                    var localMinSpeed by remember(minSpeed) { mutableStateOf(minSpeed.toString()) }
+
+                    ClearableTextField(
+                        value = localStillnessTimer,
+                        onValueChange = { newValue ->
+                            localStillnessTimer = newValue
+                        },
+                        label = { Text(stringResource(R.string.settings_stillness_timer_label)) },
+                        placeholder = { Text("60") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
+                                    val seconds = localStillnessTimer.toIntOrNull() ?: 60
+                                    viewModel.setStillnessTimer(seconds)
+                                    localStillnessTimer = seconds.toString()
+                                }
+                            }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ClearableTextField(
+                        value = localMinSpeed,
+                        onValueChange = { newValue ->
+                            localMinSpeed = newValue
+                        },
+                        label = { Text(stringResource(R.string.settings_min_speed_label)) },
+                        placeholder = { Text("15") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
+                                    val speed = localMinSpeed.toIntOrNull() ?: 15
+                                    viewModel.setMinSpeed(speed)
+                                    localMinSpeed = speed.toString()
+                                }
+                            }
+                    )
+                }
+            }
+        }
+
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_tracking_defaults_title),
+            description = stringResource(R.string.settings_tracking_defaults_description),
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
             // Trip Defaults
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
@@ -657,62 +712,6 @@ fun SettingsScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    var localStillnessTimer by remember(stillnessTimer) { mutableStateOf(stillnessTimer.toString()) }
-                    var localMinSpeed by remember(minSpeed) { mutableStateOf(minSpeed.toString()) }
-
-                    ClearableTextField(
-                        value = localStillnessTimer,
-                        onValueChange = { newValue ->
-                            localStillnessTimer = newValue
-                        },
-                        label = { Text(stringResource(R.string.settings_stillness_timer_label)) },
-                        placeholder = { Text("60") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onFocusChanged { focusState ->
-                                if (!focusState.isFocused) {
-                                    val seconds = localStillnessTimer.toIntOrNull() ?: 60
-                                    viewModel.setStillnessTimer(seconds)
-                                    localStillnessTimer = seconds.toString()
-                                }
-                            }
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ClearableTextField(
-                        value = localMinSpeed,
-                        onValueChange = { newValue ->
-                            localMinSpeed = newValue
-                        },
-                        label = { Text(stringResource(R.string.settings_min_speed_label)) },
-                        placeholder = { Text("15") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onFocusChanged { focusState ->
-                                if (!focusState.isFocused) {
-                                    val speed = localMinSpeed.toIntOrNull() ?: 15
-                                    viewModel.setMinSpeed(speed)
-                                    localMinSpeed = speed.toString()
-                                }
-                            }
-                    )
-                }
-            }
-        }
-
-        ExpandableSettingsGroup(
-            title = stringResource(R.string.settings_reporting_title),
-            description = stringResource(R.string.settings_reporting_description),
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Row(

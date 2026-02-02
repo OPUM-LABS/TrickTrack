@@ -10,7 +10,7 @@
     <string name="settings_permissions_action_needed_cd">Action Needed</string>
     <string name="settings_permissions_action_needed_text">Action Needed</string>
     <string name="settings_tracking_settings_title">Tracking Settings</string>
-    <string name="settings_tracking_settings_description">Configure automatic tracking, triggers, and defaults.</string>
+    <string name="settings_tracking_settings_description">Configure automatic tracking and triggers.</string>
     <string name="settings_automatic_tracking_title">Automatic Tracking</string>
     <string name="settings_automatic_tracking_description">Automatically records trips when you start driving.</string>
     <string name="settings_bluetooth_trigger_title">Start on Bluetooth Connection</string>
@@ -41,8 +41,8 @@
     <string name="settings_all_days">All Days</string>
     <string name="settings_backup_restore_title">Backup and Restore</string>
     <string name="settings_backup_restore_description">Manage your data backups.</string>
-    <string name="settings_reporting_title">Reporting</string>
-    <string name="settings_reporting_description">Configure export formats and expense tracking.</string>
+    <string name="settings_tracking_defaults_title">Tracking defaults</string>
+    <string name="settings_tracking_defaults_description">Configure default values for trips.</string>
     <string name="settings_backup_button">Backup</string>
     <string name="settings_restore_button">Restore</string>
     <string name="settings_logs_title">Logs</string>
@@ -82,7 +82,7 @@
     <string name="about_version">Version: %1$s</string>
     <string name="about_license">Released under MIT License</string>
     <string name="about_osm_attribution">Map data © OpenStreetMap contributors</string>
-    <string name="about_copyright">© 2026 OPUM-Labs</string>
+    <string name="about_copyright">© 2026 Michel Perrin @ OPUM-Labs</string>
     <string name="about_made_with_love">created with ❤️ and 🤖</string>
 
     <!-- Export Settings Dialog -->

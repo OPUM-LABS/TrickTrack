@@ -10,7 +10,7 @@
     <string name="settings_permissions_action_needed_cd">Aktion erforderlich</string>
     <string name="settings_permissions_action_needed_text">Aktion erforderlich</string>
     <string name="settings_tracking_settings_title">Tracking-Einstellungen</string>
-    <string name="settings_tracking_settings_description">Konfigurieren Sie automatische Nachverfolgung, Auslöser und Standardeinstellungen.</string>
+    <string name="settings_tracking_settings_description">Automatische Nachverfolgung und Auslöser konfigurieren</string>
     <string name="settings_automatic_tracking_title">Automatische Verfolgung</string>
     <string name="settings_automatic_tracking_description">Zeichnet Fahrten automatisch auf, wenn Sie losfahren.</string>
     <string name="settings_bluetooth_trigger_title">Start bei Bluetooth-Verbindung</string>
@@ -41,8 +41,8 @@
     <string name="settings_all_days">Alle Tage</string>
     <string name="settings_backup_restore_title">Sicherung und Wiederherstellung</string>
     <string name="settings_backup_restore_description">Verwalten Sie Ihre Datensicherungen.</string>
-    <string name="settings_reporting_title">Berichte</string>
-    <string name="settings_reporting_description">Konfigurieren Sie Exportformate und Ausgabenverfolgung.</string>
+    <string name="settings_tracking_defaults_title">Tracking-Standardeinstellungen</string>
+    <string name="settings_tracking_defaults_description">Standardwerte für Fahrten konfigurieren.</string>
     <string name="settings_backup_button">Sichern</string>
     <string name="settings_restore_button">Wiederherstellen</string>
     <string name="settings_logs_title">Protokolle</string>
@@ -82,7 +82,7 @@
     <string name="about_version">Version: %1$s</string>
     <string name="about_license">Veröffentlicht unter MIT-Lizenz</string>
     <string name="about_osm_attribution">Kartendaten © OpenStreetMap Mitwirkende</string>
-    <string name="about_copyright">© 2026 OPUM-Labs</string>
+    <string name="about_copyright">© 2026 Michel Perrin @ OPUM-Labs</string>
     <string name="about_made_with_love">Erstellt mit ❤️ und 🤖</string>
 
     <!-- Export Settings Dialog -->
