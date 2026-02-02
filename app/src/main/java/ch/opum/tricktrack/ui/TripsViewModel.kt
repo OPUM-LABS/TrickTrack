@@ -435,6 +435,20 @@ class TripsViewModel(
     var selectedCompany by mutableStateOf<CompanyEntity?>(null)
     var selectedVehicle by mutableStateOf<VehicleEntity?>(null)
 
+    val hasDrivers: StateFlow<Boolean> = allDrivers.map { it.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val hasCompanies: StateFlow<Boolean> = allCompanies.map { it.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val hasVehicles: StateFlow<Boolean> = allVehicles.map { it.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val exportIncludeDriver: StateFlow<Boolean> = userPreferencesRepository.exportIncludeDriver
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val exportIncludeCompany: StateFlow<Boolean> = userPreferencesRepository.exportIncludeCompany
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val exportIncludeVehicle: StateFlow<Boolean> = userPreferencesRepository.exportIncludeVehicle
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     init {
         // Collect distance updates from LocationService whenever the ViewModel is active
         viewModelScope.launch {
@@ -660,9 +674,9 @@ class TripsViewModel(
         val columns = exportColumns.first()
         val isExpenseEnabled = expenseTrackingEnabled.first() && columns.contains("EXPENSES")
         val rate = expenseRatePerKm.first()
-        val includeDriver = userPreferencesRepository.exportIncludeDriver.first()
-        val includeCompany = userPreferencesRepository.exportIncludeCompany.first()
-        val includeVehicle = userPreferencesRepository.exportIncludeVehicle.first()
+        val includeDriver = exportIncludeDriver.first()
+        val includeCompany = exportIncludeCompany.first()
+        val includeVehicle = exportIncludeVehicle.first()
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -725,13 +739,13 @@ class TripsViewModel(
         viewModelScope.launch {
             val context = getApplication<Application>().applicationContext
             val trips = confirmedTrips.first()
-            val exportSettings = userPreferencesRepository.exportColumns.first()
+            val exportSettings = exportColumns.first()
             val rate = expenseRatePerKm.first()
             val currency = expenseCurrency.first()
             val isExpenseEnabled = expenseTrackingEnabled.first() && exportSettings.contains("EXPENSES")
-            val includeDriver = userPreferencesRepository.exportIncludeDriver.first()
-            val includeCompany = userPreferencesRepository.exportIncludeCompany.first()
-            val includeVehicle = userPreferencesRepository.exportIncludeVehicle.first()
+            val includeDriver = exportIncludeDriver.first()
+            val includeCompany = exportIncludeCompany.first()
+            val includeVehicle = exportIncludeVehicle.first()
 
             val pdfFile = withContext(Dispatchers.IO) {
                 PdfGenerator().generateTripReport(
@@ -853,6 +867,24 @@ class TripsViewModel(
     fun setMinSpeed(speed: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setMinSpeed(speed)
+        }
+    }
+
+    fun toggleIncludeDriver() {
+        viewModelScope.launch {
+            userPreferencesRepository.setExportIncludeDriver(!exportIncludeDriver.first())
+        }
+    }
+
+    fun toggleIncludeCompany() {
+        viewModelScope.launch {
+            userPreferencesRepository.setExportIncludeCompany(!exportIncludeCompany.first())
+        }
+    }
+
+    fun toggleIncludeVehicle() {
+        viewModelScope.launch {
+            userPreferencesRepository.setExportIncludeVehicle(!exportIncludeVehicle.first())
         }
     }
 }

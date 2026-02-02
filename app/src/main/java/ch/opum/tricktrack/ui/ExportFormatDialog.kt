@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -16,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,9 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
-import ch.opum.tricktrack.data.CompanyEntity
-import ch.opum.tricktrack.data.DriverEntity
-import ch.opum.tricktrack.data.VehicleEntity
+import ch.opum.tricktrack.ui.settings.ExportConfigDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,13 +52,36 @@ fun ExportFormatDialog(
     var companyExpanded by remember { mutableStateOf(false) }
     var vehicleExpanded by remember { mutableStateOf(false) }
 
-    val includeDriver by viewModel.userPreferencesRepository.exportIncludeDriver.collectAsState(initial = true)
-    val includeCompany by viewModel.userPreferencesRepository.exportIncludeCompany.collectAsState(initial = true)
-    val includeVehicle by viewModel.userPreferencesRepository.exportIncludeVehicle.collectAsState(initial = true)
+    val includeDriver by viewModel.exportIncludeDriver.collectAsState()
+    val includeCompany by viewModel.exportIncludeCompany.collectAsState()
+    val includeVehicle by viewModel.exportIncludeVehicle.collectAsState()
+
+    var showConfigDialog by remember { mutableStateOf(false) }
+
+    if (showConfigDialog) {
+        ExportConfigDialog(
+            viewModel = viewModel,
+            onDismiss = { showConfigDialog = false }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.export_trips_title)) },
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(R.string.export_trips_title))
+                IconButton(onClick = { showConfigDialog = true }) {
+                    Icon(
+                        Icons.Default.Tune,
+                        contentDescription = stringResource(R.string.settings_export_fields_configure_cd)
+                    )
+                }
+            }
+        },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),

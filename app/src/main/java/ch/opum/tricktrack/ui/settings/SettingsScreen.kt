@@ -148,7 +148,6 @@ fun SettingsScreen(
     var showDeviceDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showScheduleDialog by remember { mutableStateOf(false) }
-    var showExportDialog by remember { mutableStateOf(false) }
     var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -308,13 +307,6 @@ fun SettingsScreen(
         ScheduleSettingsDialog(
             viewModel = viewModel,
             onDismiss = { showScheduleDialog = false }
-        )
-    }
-
-    if (showExportDialog) {
-        ExportSettingsDialog(
-            settingsViewModel = settingsViewModel,
-            onDismiss = { showExportDialog = false }
         )
     }
 
@@ -636,29 +628,8 @@ fun SettingsScreen(
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showExportDialog = true },
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_export_fields_title))
-                        Text(
-                            stringResource(R.string.settings_export_fields_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.settings_export_fields_configure_cd))
-                }
-            }
-            Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Row(
@@ -870,210 +841,6 @@ fun SettingsScreen(
             }
         }
     }
-}
-
-@Composable
-fun ExportSettingsDialog(
-    settingsViewModel: SettingsViewModel,
-    onDismiss: () -> Unit
-) {
-    val exportColumns by settingsViewModel.exportColumns.collectAsState()
-    val expenseTrackingEnabled by settingsViewModel.expenseTrackingEnabled.collectAsState()
-    val hasDrivers by settingsViewModel.hasDrivers.collectAsState()
-    val hasCompanies by settingsViewModel.hasCompanies.collectAsState()
-    val hasVehicles by settingsViewModel.hasVehicles.collectAsState()
-    val includeDriver by settingsViewModel.exportIncludeDriver.collectAsState()
-    val includeCompany by settingsViewModel.exportIncludeCompany.collectAsState()
-    val includeVehicle by settingsViewModel.exportIncludeVehicle.collectAsState()
-
-    // A map to hold the display name and the key for each column
-    val allColumns = remember {
-        mapOf(
-            "DATE" to R.string.export_column_date,
-            "TIME" to R.string.export_column_time,
-            "START_LOCATION" to R.string.export_column_start_location,
-            "END_LOCATION" to R.string.export_column_end_location,
-            "DISTANCE" to R.string.export_column_distance,
-            "TYPE" to R.string.export_column_type
-        )
-    }
-
-    // Temporary state for the checkboxes within the dialog
-    var tempSelectedColumns by remember { mutableStateOf(exportColumns) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_export_fields_title)) },
-        text = {
-            Column {
-                allColumns.forEach { (key, stringResId) ->
-                    val isEnabled = key != "DATE"
-                    val isChecked = tempSelectedColumns.contains(key)
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = isEnabled) {
-                                tempSelectedColumns = if (isChecked) {
-                                    tempSelectedColumns - key
-                                } else {
-                                    tempSelectedColumns + key
-                                }
-                            }
-                            .padding(vertical = 4.dp)
-                    ) {
-                        Checkbox(
-                            checked = isChecked,
-                            onCheckedChange = null, // Handled by the row's clickable modifier
-                            enabled = isEnabled
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(stringResId),
-                            color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        )
-                    }
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                // Driver
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = hasDrivers) {
-                            settingsViewModel.setExportIncludeDriver(!includeDriver)
-                        }
-                        .padding(vertical = 4.dp)
-                ) {
-                    Checkbox(
-                        checked = includeDriver && hasDrivers,
-                        onCheckedChange = null,
-                        enabled = hasDrivers
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = stringResource(R.string.export_column_driver),
-                            color = if (hasDrivers) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        )
-                        if (!hasDrivers) {
-                            Text(
-                                text = stringResource(R.string.export_no_entries),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
-
-                // Company
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = hasCompanies) {
-                            settingsViewModel.setExportIncludeCompany(!includeCompany)
-                        }
-                        .padding(vertical = 4.dp)
-                ) {
-                    Checkbox(
-                        checked = includeCompany && hasCompanies,
-                        onCheckedChange = null,
-                        enabled = hasCompanies
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = stringResource(R.string.export_column_company),
-                            color = if (hasCompanies) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        )
-                        if (!hasCompanies) {
-                            Text(
-                                text = stringResource(R.string.export_no_entries),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
-
-                // Vehicle
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = hasVehicles) {
-                            settingsViewModel.setExportIncludeVehicle(!includeVehicle)
-                        }
-                        .padding(vertical = 4.dp)
-                ) {
-                    Checkbox(
-                        checked = includeVehicle && hasVehicles,
-                        onCheckedChange = null,
-                        enabled = hasVehicles
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = stringResource(R.string.export_column_vehicle),
-                            color = if (hasVehicles) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        )
-                        if (!hasVehicles) {
-                            Text(
-                                text = stringResource(R.string.export_no_entries),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                // Expenses
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = expenseTrackingEnabled) {
-                            tempSelectedColumns = if (tempSelectedColumns.contains("EXPENSES")) {
-                                tempSelectedColumns - "EXPENSES"
-                            } else {
-                                tempSelectedColumns + "EXPENSES"
-                            }
-                        }
-                        .padding(vertical = 4.dp)
-                ) {
-                    Checkbox(
-                        checked = tempSelectedColumns.contains("EXPENSES"),
-                        onCheckedChange = null,
-                        enabled = expenseTrackingEnabled
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.export_column_expenses),
-                        color = if (expenseTrackingEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = {
-                settingsViewModel.setExportColumns(tempSelectedColumns)
-                onDismiss()
-            }) {
-                Text(stringResource(R.string.button_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
