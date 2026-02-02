@@ -220,6 +220,9 @@
     <string name="pdf_date_range">Intervallo di date:</string>
     <string name="pdf_total_distance">Distanza totale:</string>
     <string name="pdf_total_expenses">Spese totali:</string>
+    <string name="pdf_label_driver">Conducente:</string>
+    <string name="pdf_label_company">Azienda:</string>
+    <string name="pdf_label_vehicle">Veicolo:</string>
     <string name="pdf_page_x_of_y">pagina %1$d di %2$d</string>
     <string name="pdf_header_date">Data</string>
     <string name="pdf_header_from">Da</string>

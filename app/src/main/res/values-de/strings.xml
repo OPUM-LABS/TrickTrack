@@ -219,6 +219,9 @@
     <string name="pdf_date_range">Datumsbereich:</string>
     <string name="pdf_total_distance">Gesamtdistanz:</string>
     <string name="pdf_total_expenses">Gesamtkosten:</string>
+    <string name="pdf_label_driver">Fahrer:</string>
+    <string name="pdf_label_company">Firma:</string>
+    <string name="pdf_label_vehicle">Fahrzeug:</string>
     <string name="pdf_page_x_of_y">Seite %1$d von %2$d</string>
     <string name="pdf_header_date">Datum</string>
     <string name="pdf_header_from">Von</string>

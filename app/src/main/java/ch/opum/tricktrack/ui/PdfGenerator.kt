@@ -296,17 +296,17 @@ class PdfGenerator {
 
         if (hasDriverInfo) {
             driverName?.let {
-                canvas?.drawText("Driver:", leftTextMargin, summaryY, labelPaint)
+                canvas?.drawText(context.getString(R.string.pdf_label_driver), leftTextMargin, summaryY, labelPaint)
                 canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
                 summaryY += lineSpacing
             }
             companyName?.let {
-                canvas?.drawText("Company:", leftTextMargin, summaryY, labelPaint)
+                canvas?.drawText(context.getString(R.string.pdf_label_company), leftTextMargin, summaryY, labelPaint)
                 canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
                 summaryY += lineSpacing
             }
             vehicleName?.let {
-                canvas?.drawText("Vehicle:", leftTextMargin, summaryY, labelPaint)
+                canvas?.drawText(context.getString(R.string.pdf_label_vehicle), leftTextMargin, summaryY, labelPaint)
                 canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
                 summaryY += lineSpacing
             }
