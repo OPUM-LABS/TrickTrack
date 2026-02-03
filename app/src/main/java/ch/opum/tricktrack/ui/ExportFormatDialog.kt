@@ -1,5 +1,6 @@
 package ch.opum.tricktrack.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -56,6 +58,10 @@ fun ExportFormatDialog(
     val includeCompany by viewModel.exportIncludeCompany.collectAsState()
     val includeVehicle by viewModel.exportIncludeVehicle.collectAsState()
 
+    val hasDrivers by viewModel.hasDrivers.collectAsState()
+    val hasCompanies by viewModel.hasCompanies.collectAsState()
+    val hasVehicles by viewModel.hasVehicles.collectAsState()
+
     var showConfigDialog by remember { mutableStateOf(false) }
 
     if (showConfigDialog) {
@@ -88,19 +94,29 @@ fun ExportFormatDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column {
+                // Driver Dropdown with Checkbox
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = includeDriver && hasDrivers,
+                        onCheckedChange = { viewModel.toggleIncludeDriver() },
+                        enabled = hasDrivers
+                    )
                     ExposedDropdownMenuBox(
                         expanded = driverExpanded,
-                        onExpandedChange = { if (includeDriver) driverExpanded = !driverExpanded }
+                        onExpandedChange = { if (includeDriver) driverExpanded = !driverExpanded },
+                        modifier = Modifier.weight(1f)
                     ) {
                         TextField(
                             value = viewModel.selectedDriver?.name ?: "",
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Driver") },
+                            label = { Text(stringResource(R.string.export_column_driver)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = driverExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            enabled = includeDriver
+                            enabled = includeDriver && hasDrivers
                         )
                         ExposedDropdownMenu(
                             expanded = driverExpanded,
@@ -117,28 +133,31 @@ fun ExportFormatDialog(
                             }
                         }
                     }
-                    if (!includeDriver) {
-                        Text(
-                            text = stringResource(R.string.export_disabled_in_settings),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
                 }
 
-                Column {
+                // Company Dropdown with Checkbox
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = includeCompany && hasCompanies,
+                        onCheckedChange = { viewModel.toggleIncludeCompany() },
+                        enabled = hasCompanies
+                    )
                     ExposedDropdownMenuBox(
                         expanded = companyExpanded,
-                        onExpandedChange = { if (includeCompany) companyExpanded = !companyExpanded }
+                        onExpandedChange = { if (includeCompany) companyExpanded = !companyExpanded },
+                        modifier = Modifier.weight(1f)
                     ) {
                         TextField(
                             value = viewModel.selectedCompany?.name ?: "",
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Company") },
+                            label = { Text(stringResource(R.string.export_column_company)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = companyExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            enabled = includeCompany
+                            enabled = includeCompany && hasCompanies
                         )
                         ExposedDropdownMenu(
                             expanded = companyExpanded,
@@ -155,28 +174,31 @@ fun ExportFormatDialog(
                             }
                         }
                     }
-                    if (!includeCompany) {
-                        Text(
-                            text = stringResource(R.string.export_disabled_in_settings),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
                 }
 
-                Column {
+                // Vehicle Dropdown with Checkbox
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = includeVehicle && hasVehicles,
+                        onCheckedChange = { viewModel.toggleIncludeVehicle() },
+                        enabled = hasVehicles
+                    )
                     ExposedDropdownMenuBox(
                         expanded = vehicleExpanded,
-                        onExpandedChange = { if (includeVehicle) vehicleExpanded = !vehicleExpanded }
+                        onExpandedChange = { if (includeVehicle) vehicleExpanded = !vehicleExpanded },
+                        modifier = Modifier.weight(1f)
                     ) {
                         TextField(
                             value = viewModel.selectedVehicle?.licensePlate ?: "",
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Vehicle") },
+                            label = { Text(stringResource(R.string.export_column_vehicle)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            enabled = includeVehicle
+                            enabled = includeVehicle && hasVehicles
                         )
                         ExposedDropdownMenu(
                             expanded = vehicleExpanded,
@@ -192,13 +214,6 @@ fun ExportFormatDialog(
                                 )
                             }
                         }
-                    }
-                    if (!includeVehicle) {
-                        Text(
-                            text = stringResource(R.string.export_disabled_in_settings),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
                     }
                 }
 
