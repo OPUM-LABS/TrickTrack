@@ -3,8 +3,10 @@ package ch.opum.tricktrack.data
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import ch.opum.tricktrack.data.DriverEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,4 +25,10 @@ interface DriverDao {
 
     @Query("SELECT * FROM drivers WHERE id = :id")
     suspend fun getById(id: Int): DriverEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<DriverEntity>)
+
+    @Query("DELETE FROM drivers")
+    suspend fun deleteAll()
 }

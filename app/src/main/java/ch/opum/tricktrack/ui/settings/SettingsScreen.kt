@@ -785,7 +785,7 @@ fun SettingsScreen(
                         contract = ActivityResultContracts.CreateDocument("application/json"),
                         onResult = { uri ->
                             if (uri != null) {
-                                settingsViewModel.exportBackup(uri)
+                                settingsViewModel.createBackup(uri) // Changed from exportBackup to createBackup
                             }
                         }
                     )
@@ -794,7 +794,7 @@ fun SettingsScreen(
                         contract = ActivityResultContracts.OpenDocument(),
                         onResult = { uri ->
                             if (uri != null) {
-                                settingsViewModel.importBackup(uri)
+                                settingsViewModel.restoreBackup(uri) // Changed from importBackup to restoreBackup
                             }
                         }
                     )

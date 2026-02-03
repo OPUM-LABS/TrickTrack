@@ -16,7 +16,15 @@ class TripApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
 
     val database by lazy { AppDatabase.getDatabase(this) }
-    val repository by lazy { TripRepository(database.tripDao(), database.savedPlaceDao()) }
+    val repository by lazy {
+        TripRepository(
+            database.tripDao(),
+            database.savedPlaceDao(),
+            database.driverDao(),
+            database.companyDao(),
+            database.vehicleDao()
+        )
+    }
     val userPreferencesRepository by lazy { UserPreferencesRepository(applicationContext) } // Instantiate UserPreferencesRepository
     val geocoderHelper by lazy { GeocoderHelper(applicationContext) } // Instantiate GeocoderHelper
     val bluetoothRepository by lazy { BluetoothRepository(applicationContext) }

@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import ch.opum.tricktrack.data.Trip
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -36,4 +37,10 @@ interface TripDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun restoreTrips(trips: List<Trip>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<Trip>)
+
+    @Query("DELETE FROM trips")
+    suspend fun deleteAll()
 }

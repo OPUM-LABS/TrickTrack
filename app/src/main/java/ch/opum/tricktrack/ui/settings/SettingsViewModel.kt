@@ -7,10 +7,14 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.R
-import ch.opum.tricktrack.backup.BackupManager
 import ch.opum.tricktrack.backup.BackupScheduler
+import ch.opum.tricktrack.data.BackupContainer
+import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.data.TripRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -19,8 +23,6 @@ class SettingsViewModel(
     private val tripRepository: TripRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : AndroidViewModel(application) {
-
-    private val backupManager: BackupManager = BackupManager()
 
     val autoBackupEnabled: Flow<Boolean> = userPreferencesRepository.autoBackupEnabled
     val backupFrequency: Flow<String> = userPreferencesRepository.backupFrequency
@@ -69,42 +71,65 @@ class SettingsViewModel(
         }
     }
 
-
-    fun exportBackup(uri: Uri) {
+    fun createBackup(uri: Uri) {
         viewModelScope.launch {
-            val trips = tripRepository.getTripsForBackup()
-            val settings = userPreferencesRepository.getAllPreferences()
-            val places = tripRepository.getSavedPlacesList()
-            val json = backupManager.createBackupJson(trips, settings, places)
-
             try {
+                val container = tripRepository.getAllDataForBackup()
+                val gson = Gson()
+                val json = gson.toJson(container)
+
                 getApplication<Application>().contentResolver.openOutputStream(uri)?.use {
                     it.write(json.toByteArray())
                 }
-            } catch (_: Exception) {
-                // Handle exceptions
+                Toast.makeText(getApplication(), R.string.backup_successful, Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(getApplication(), R.string.backup_failed, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    fun importBackup(uri: Uri) {
+    fun restoreBackup(uri: Uri) {
         viewModelScope.launch {
             try {
-                getApplication<Application>().contentResolver.openInputStream(uri)?.use {
-                    val json = it.reader().readText()
-                    val backupData = backupManager.restoreBackupFromJson(json)
-                    if (backupData != null) {
-                        tripRepository.restoreTrips(backupData.trips)
-                        tripRepository.restorePlaces(backupData.places)
-                        // You'll need to implement the logic to restore settings
-                        // restoreSettings(backupData.settings)
-                        Toast.makeText(getApplication(), R.string.import_successful, Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(getApplication(), R.string.import_failed, Toast.LENGTH_SHORT).show()
+                val json = getApplication<Application>().contentResolver.openInputStream(uri)?.use {
+                    it.reader().readText()
+                } ?: throw Exception("Could not read backup file")
+
+                val gson = Gson()
+                var restoredContainer: BackupContainer? = null
+
+                // Strategy 1: Try to parse as new BackupContainer format
+                try {
+                    val container = gson.fromJson(json, BackupContainer::class.java)
+                    // Basic validation to ensure it's not an empty or malformed new format
+                    if (container != null && (container.trips != null || container.places != null || container.drivers != null || container.companies != null || container.vehicles != null)) {
+                        restoredContainer = container
+                    }
+                } catch (e: JsonSyntaxException) {
+                    // Fallback to old format if new format parsing fails
+                }
+
+                // Strategy 2: If new format failed, try old List<Trip> format
+                if (restoredContainer == null) {
+                    try {
+                        val oldListType = object : TypeToken<List<Trip>>() {}.type
+                        val oldTrips: List<Trip> = gson.fromJson(json, oldListType)
+                        if (oldTrips != null) {
+                            restoredContainer = BackupContainer(trips = oldTrips)
+                        }
+                    } catch (e: JsonSyntaxException) {
+                        // Both strategies failed
                     }
                 }
-            } catch (_: Exception) {
-                // Handle exceptions
+
+                if (restoredContainer != null) {
+                    tripRepository.restoreFullBackup(restoredContainer)
+                    Toast.makeText(getApplication(), R.string.import_successful, Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(getApplication(), R.string.import_failed, Toast.LENGTH_SHORT).show()
+                }
+
+            } catch (e: Exception) {
                 Toast.makeText(getApplication(), R.string.import_failed, Toast.LENGTH_SHORT).show()
             }
         }

@@ -241,6 +241,8 @@
     <string name="backup_notification_channel_description">Notifications for automatic backups.</string>
     <string name="backup_notification_title">Automatic Backup</string>
     <string name="backup_notification_text">Backup created successfully.</string>
+    <string name="backup_successful">Backup created successfully!</string>
+    <string name="backup_failed">Failed to create backup. Please try again.</string>
 
     <!-- Server Settings Dialog -->
     <string name="osrm_server_url">OSRM Server URL</string>
