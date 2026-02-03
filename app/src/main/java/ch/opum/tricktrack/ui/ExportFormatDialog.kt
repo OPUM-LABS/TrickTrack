@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.ListAlt // Changed from Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -82,7 +82,7 @@ fun ExportFormatDialog(
                 Text(stringResource(R.string.export_trips_title))
                 IconButton(onClick = { showConfigDialog = true }) {
                     Icon(
-                        Icons.Default.Tune,
+                        Icons.Default.ListAlt, // Changed icon here
                         contentDescription = stringResource(R.string.settings_export_fields_configure_cd)
                     )
                 }
