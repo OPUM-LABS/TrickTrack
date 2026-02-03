@@ -96,7 +96,6 @@
     <string name="export_column_expenses">Spese</string>
 
     <!-- Schedule Settings Dialog -->
-    <string name="export_disabled_in_settings">(Disabilitato nelle impostazioni di esportazione)</string>
     <string name="schedule_select_start_time">Seleziona l\'ora di inizio per %1$s</string>
     <string name="schedule_select_end_time">Seleziona l\'ora di fine per %1$s</string>
     <string name="schedule_loading">Caricamento programma…</string>
@@ -115,7 +114,6 @@
     <string name="screen_title_review">Revisiona</string>
     <string name="screen_title_trips">Viaggi</string>
     <string name="screen_title_favourites">Preferiti</string>
-    <string name="screen_title_logs">Log</string>
     <string name="screen_title_settings">Impostazioni</string>
 
     <!-- Top App Bar Actions -->
@@ -240,6 +238,7 @@
     <string name="backup_notification_text">Backup creato con successo.</string>
 
     <!-- Server Settings Dialog -->
+    <string name="backup_failed">Impossibile creare il backup. Riprova.</string>
     <string name="osrm_server_url">URL server OSRM</string>
     <string name="photon_server_url">URL server Photon</string>
     <string name="osrm_connection_failed">Connessione OSRM non riuscita</string>
@@ -254,7 +253,6 @@
     <string name="export_column_driver">Includi conducente</string>
     <string name="export_column_company">Includi azienda</string>
     <string name="export_column_vehicle">Includi veicolo</string>
-    <string name="export_no_entries">(Nessuna voce creata)</string>
     <string name="favourites_tab_places">Luoghi</string>
     <string name="favourites_tab_drivers">Conducenti</string>
     <string name="favourites_tab_companies">Aziende</string>
@@ -268,4 +266,5 @@
     <string name="favourites_no_items">Nessun elemento ancora.</string>
     <string name="favourites_license_plate_label">Targa</string>
     <string name="favourites_car_model_label">Modello auto (facoltativo)</string>
+    <string name="backup_successful">Backup creato con successo!</string>
 </resources>

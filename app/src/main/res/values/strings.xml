@@ -96,8 +96,6 @@
     <string name="export_column_driver">Include Driver</string>
     <string name="export_column_company">Include Company</string>
     <string name="export_column_vehicle">Include Vehicle</string>
-    <string name="export_no_entries">(No entries created)</string>
-    <string name="export_disabled_in_settings">(Disabled in export settings)</string>
 
     <!-- Schedule Settings Dialog -->
     <string name="schedule_select_start_time">Select Start Time for %1$s</string>
@@ -118,7 +116,6 @@
     <string name="screen_title_review">Review</string>
     <string name="screen_title_trips">Trips</string>
     <string name="screen_title_favourites">Favourites</string>
-    <string name="screen_title_logs">Logs</string>
     <string name="screen_title_settings">Settings</string>
 
     <!-- Top App Bar Actions -->

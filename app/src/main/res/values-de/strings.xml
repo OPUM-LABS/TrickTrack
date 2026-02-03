@@ -95,7 +95,6 @@
     <string name="export_column_expenses">Kosten</string>
 
     <!-- Schedule Settings Dialog -->
-    <string name="export_disabled_in_settings">(In den Exporteinstellungen deaktiviert)</string>
     <string name="schedule_select_start_time">Startzeit für %1$s auswählen</string>
     <string name="schedule_select_end_time">Endzeit für %1$s auswählen</string>
     <string name="schedule_loading">Zeitplan wird geladen…</string>
@@ -114,7 +113,6 @@
     <string name="screen_title_review">Überprüfen</string>
     <string name="screen_title_trips">Fahrten</string>
     <string name="screen_title_favourites">Favoriten</string>
-    <string name="screen_title_logs">Protokolle</string>
     <string name="screen_title_settings">Einstellungen</string>
 
     <!-- Top App Bar Actions -->
@@ -239,6 +237,7 @@
     <string name="backup_notification_text">Sicherung erfolgreich erstellt.</string>
 
     <!-- Server Settings Dialog -->
+    <string name="backup_failed">Backup konnte nicht erstellt werden. Bitte versuchen Sie es erneut.</string>
     <string name="osrm_server_url">OSRM-Server-URL</string>
     <string name="photon_server_url">Photon-Server-URL</string>
     <string name="osrm_connection_failed">OSRM-Verbindung fehlgeschlagen</string>
@@ -253,7 +252,6 @@
     <string name="export_column_driver">Fahrer hinzufügen</string>
     <string name="export_column_company">Unternehmen hinzufügen</string>
     <string name="export_column_vehicle">Fahrzeug hinzufügen</string>
-    <string name="export_no_entries">(Keine Einträge erstellt)</string>
     <string name="favourites_tab_places">Orte</string>
     <string name="favourites_tab_drivers">Fahrer</string>
     <string name="favourites_tab_companies">Unternehmen</string>
@@ -267,4 +265,5 @@
     <string name="favourites_no_items">Noch keine Elemente.</string>
     <string name="favourites_license_plate_label">Kennzeichen</string>
     <string name="favourites_car_model_label">Automodell (optional)</string>
+    <string name="backup_successful">Backup erfolgreich erstellt!</string>
 </resources>

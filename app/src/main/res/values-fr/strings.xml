@@ -96,7 +96,6 @@
     <string name="export_column_expenses">Dépenses</string>
 
     <!-- Schedule Settings Dialog -->
-    <string name="export_disabled_in_settings">(Désactivé dans les paramètres d\'exportation)</string>
     <string name="schedule_select_start_time">Sélectionner l\'heure de début pour %1$s</string>
     <string name="schedule_select_end_time">Sélectionner l\'heure de fin pour %1$s</string>
     <string name="schedule_loading">Chargement du calendrier…</string>
@@ -115,7 +114,6 @@
     <string name="screen_title_review">Réviser</string>
     <string name="screen_title_trips">Trajets</string>
     <string name="screen_title_favourites">Favoris</string>
-    <string name="screen_title_logs">Journaux</string>
     <string name="screen_title_settings">Paramètres</string>
 
     <!-- Top App Bar Actions -->
@@ -240,6 +238,7 @@
     <string name="backup_notification_text">Sauvegarde créée avec succès.</string>
 
     <!-- Server Settings Dialog -->
+    <string name="backup_failed">Échec de la création de la sauvegarde. Veuillez réessayer.</string>
     <string name="osrm_server_url">URL du serveur OSRM</string>
     <string name="photon_server_url">URL du serveur Photon</string>
     <string name="osrm_connection_failed">Échec de la connexion OSRM</string>
@@ -254,7 +253,6 @@
     <string name="export_column_driver">Inclure le conducteur</string>
     <string name="export_column_company">Inclure l\'entreprise</string>
     <string name="export_column_vehicle">Inclure le véhicule</string>
-    <string name="export_no_entries">(Aucune entrée créée)</string>
     <string name="favourites_tab_places">Lieux</string>
     <string name="favourites_tab_drivers">Conducteurs</string>
     <string name="favourites_tab_companies">Entreprises</string>
@@ -268,4 +266,5 @@
     <string name="favourites_no_items">Aucun élément pour le moment.</string>
     <string name="favourites_license_plate_label">Plaque d\'immatriculation</string>
     <string name="favourites_car_model_label">Modèle de voiture (facultatif)</string>
+    <string name="backup_successful">Sauvegarde créée avec succès !</string>
 </resources>
