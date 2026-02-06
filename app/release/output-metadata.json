@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 1,
-      "versionName": "1.5.0",
-      "outputFile": "TrickTrack-v1.5.0.apk"
+      "versionCode": 4,
+      "versionName": "1.5.5",
+      "outputFile": "TrickTrack-v1.5.5.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/TrickTrack-v1.5.0.dm"
+        "baselineProfiles/1/TrickTrack-v1.5.5.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/TrickTrack-v1.5.0.dm"
+        "baselineProfiles/0/TrickTrack-v1.5.5.dm"
       ]
     }
   ],
