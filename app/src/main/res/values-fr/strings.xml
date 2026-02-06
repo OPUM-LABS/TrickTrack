@@ -77,8 +77,6 @@
     <string name="unknown_device">Appareil inconnu</string>
 
     <!-- New strings for SettingsScreen.kt -->
-    <string name="settings_bluetooth_permission_denied_toast">Autorisation Bluetooth refusée. Impossible d\'activer le déclencheur Bluetooth.</string>
-    <string name="settings_location_permission_required_toast">L\'autorisation de localisation est requise pour le suivi automatique.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Sélectionner les appareils Bluetooth</string>
     <string name="about_version">Version : %1$s</string>
     <string name="about_license">Publié sous licence MIT</string>
@@ -149,6 +147,7 @@
     <string name="permission_notifications">Notifications</string>
 
     <!-- Filter Dialog -->
+    <string name="permission_dialog_message_bluetooth">Cette fonctionnalité nécessite l\'autorisation Bluetooth pour se connecter à des appareils. Veuillez accorder cette autorisation.</string>
     <string name="filter_trips_title">Filtrer les trajets</string>
     <string name="filter_keyword_label">Mot-clé</string>
     <string name="filter_trip_type_label">Type de trajet :</string>
@@ -267,4 +266,9 @@
     <string name="favourites_license_plate_label">Plaque d\'immatriculation</string>
     <string name="favourites_car_model_label">Modèle de voiture (facultatif)</string>
     <string name="backup_successful">Sauvegarde créée avec succès !</string>
+    <string name="permission_dialog_title_location">Autorisation de localisation</string>
+    <string name="permission_dialog_message_location">Cette fonctionnalité nécessite l\'autorisation de localisation pour suivre vos déplacements. Veuillez accorder cette autorisation.</string>
+    <string name="permission_dialog_title_background_location">Localisation en arrière-plan</string>
+    <string name="permission_dialog_message_background_location">Pour activer le suivi automatique, veuillez accorder l\'autorisation de localisation « Autoriser tout le temps » dans les paramètres.</string>
+    <string name="permission_dialog_title_bluetooth">Autorisation Bluetooth</string>
 </resources>

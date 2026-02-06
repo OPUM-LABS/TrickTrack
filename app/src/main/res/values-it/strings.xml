@@ -77,8 +77,6 @@
     <string name="unknown_device">Dispositivo sconosciuto</string>
 
     <!-- New strings for SettingsScreen.kt -->
-    <string name="settings_bluetooth_permission_denied_toast">Autorizzazione Bluetooth negata. Impossibile abilitare il trigger Bluetooth.</string>
-    <string name="settings_location_permission_required_toast">L\'autorizzazione alla posizione è necessaria per il tracciamento automatico.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Seleziona dispositivi Bluetooth</string>
     <string name="about_version">Versione: %1$s</string>
     <string name="about_license">Rilasciato con licenza MIT</string>
@@ -149,6 +147,7 @@
     <string name="permission_notifications">Notifiche</string>
 
     <!-- Filter Dialog -->
+    <string name="permission_dialog_message_bluetooth">Questa funzione richiede l\'autorizzazione Bluetooth per connettersi ai dispositivi. Concedi l\'autorizzazione.</string>
     <string name="filter_trips_title">Filtra viaggi</string>
     <string name="filter_keyword_label">Parola chiave</string>
     <string name="filter_trip_type_label">Tipo di viaggio:</string>
@@ -267,4 +266,9 @@
     <string name="favourites_license_plate_label">Targa</string>
     <string name="favourites_car_model_label">Modello auto (facoltativo)</string>
     <string name="backup_successful">Backup creato con successo!</string>
+    <string name="permission_dialog_title_location">Autorizzazione alla localizzazione</string>
+    <string name="permission_dialog_message_location">Questa funzione richiede l\'autorizzazione alla localizzazione per tracciare i tuoi spostamenti. Concedi l\'autorizzazione.</string>
+    <string name="permission_dialog_title_background_location">Localizzazione in background</string>
+    <string name="permission_dialog_message_background_location">Per abilitare il tracciamento automatico, concedi l\'autorizzazione alla localizzazione “Consenti sempre” nelle impostazioni.</string>
+    <string name="permission_dialog_title_bluetooth">Autorizzazione Bluetooth</string>
 </resources>

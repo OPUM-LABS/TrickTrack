@@ -2,13 +2,19 @@ package ch.opum.tricktrack.ui.settings
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -68,6 +74,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,7 +105,7 @@ import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.DaySchedule
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
-import ch.opum.tricktrack.hasBackgroundLocationPermission
+import ch.opum.tricktrack.permission.TrackingMode
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
@@ -107,6 +114,157 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.util.Date
 import java.util.Locale
+
+@Composable
+fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogTitleId by remember { mutableIntStateOf(0) }
+    var dialogMessageId by remember { mutableIntStateOf(0) }
+    var onPositive by remember { mutableStateOf<() -> Unit>({}) }
+
+    var currentTrackingMode by remember { mutableStateOf(TrackingMode.AUTO) }
+    var onSuccessCallback by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var isRequestingLocation by remember { mutableStateOf(false) }
+
+    var checkAndRequest: ((TrackingMode, () -> Unit) -> Unit)? by remember { mutableStateOf(null) }
+
+    val requestMultiplePermissionsLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val successful = if (isRequestingLocation) {
+                permissions.entries.any { it.value }
+            } else {
+                permissions.entries.all { it.value }
+            }
+
+            if (successful) {
+                checkAndRequest?.invoke(currentTrackingMode, onSuccessCallback!!)
+            }
+        }
+
+    checkAndRequest = check@{ trackingMode, successCallback ->
+        currentTrackingMode = trackingMode
+        onSuccessCallback = successCallback
+
+        if (needsBluetoothPermission(trackingMode) && !hasBluetoothPermissions(context)) {
+            dialogTitleId = R.string.permission_dialog_title_bluetooth
+            dialogMessageId = R.string.permission_dialog_message_bluetooth
+            onPositive = {
+                isRequestingLocation = false
+                requestBluetoothPermissions(requestMultiplePermissionsLauncher)
+            }
+            showDialog = true
+            return@check
+        }
+
+        if (!hasForegroundLocationPermission(context)) {
+            dialogTitleId = R.string.permission_dialog_title_location
+            dialogMessageId = R.string.permission_dialog_message_location
+            onPositive = {
+                isRequestingLocation = true
+                requestForegroundLocation(requestMultiplePermissionsLauncher)
+            }
+            showDialog = true
+            return@check
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission(context)) {
+            dialogTitleId = R.string.permission_dialog_title_background_location
+            dialogMessageId = R.string.permission_dialog_message_background_location
+            onPositive = { openAppSettings(context) }
+            showDialog = true
+            return@check
+        }
+
+        successCallback()
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(id = dialogTitleId)) },
+            text = { Text(stringResource(id = dialogMessageId)) },
+            confirmButton = {
+                Button(onClick = {
+                    onPositive()
+                    showDialog = false
+                }) {
+                    Text(stringResource(id = R.string.button_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(id = R.string.button_cancel))
+                }
+            }
+        )
+    }
+
+    return { trackingMode, onSuccess -> checkAndRequest?.invoke(trackingMode, onSuccess) }
+}
+
+private fun hasForegroundLocationPermission(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
+private fun hasBackgroundLocationPermission(context: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
+    }
+}
+
+private fun hasBluetoothPermissions(context: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.BLUETOOTH_CONNECT
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
+    }
+}
+
+private fun needsBluetoothPermission(trackingMode: TrackingMode): Boolean {
+    return trackingMode == TrackingMode.BLUETOOTH || trackingMode == TrackingMode.BOTH
+}
+
+private fun requestForegroundLocation(launcher: ActivityResultLauncher<Array<String>>) {
+    launcher.launch(
+        arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
+}
+
+private fun requestBluetoothPermissions(launcher: ActivityResultLauncher<Array<String>>) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        launcher.launch(
+            arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT
+            )
+        )
+    }
+}
+
+private fun openAppSettings(context: Context) {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+    val uri: Uri = Uri.fromParts("package", context.packageName, null)
+    intent.data = uri
+    context.startActivity(intent)
+}
+
 
 @SuppressLint("ShowToast")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,6 +296,7 @@ fun SettingsScreen(
     val isSmartLocationEnabled by viewModel.isSmartLocationEnabled.collectAsState()
     val smartLocationRadius by viewModel.smartLocationRadius.collectAsState()
     val isScheduleEnabled by viewModel.isScheduleEnabled.collectAsState()
+    val scheduleSettings by viewModel.scheduleSettings.collectAsState()
     val isAutomaticSwitchEnabled by viewModel.isAutomaticSwitchEnabled.collectAsState()
     val isBluetoothSwitchEnabled by viewModel.isBluetoothSwitchEnabled.collectAsState()
     val isBluetoothDeviceSelectionEnabled by viewModel.isBluetoothDeviceSelectionEnabled.collectAsState()
@@ -149,45 +308,7 @@ fun SettingsScreen(
     var showScheduleDialog by remember { mutableStateOf(false) }
     var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
 
-    val backgroundPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
-        } else {
-            Toast.makeText(
-                context,
-                "Background location is needed for auto tracking",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    val foregroundPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                } else {
-                    viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
-                }
-            } else {
-                viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
-            }
-        } else {
-            Toast.makeText(
-                context,
-                R.string.settings_location_permission_required_toast,
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
+    val permissionHelper = rememberPermissionHelper()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -199,24 +320,6 @@ fun SettingsScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
-// 1. Load the string safely in the Composable scope
-// This ensures that if the language changes, this variable updates automatically.
-    val deniedMessage = stringResource(R.string.settings_bluetooth_permission_denied_toast)
-    val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            viewModel.setBluetoothTriggerEnabled(true)
-        } else {
-            // 2. Use the captured variable inside the callback
-            Toast.makeText(
-                context,
-                deniedMessage, // Use the pre-loaded string variable
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
@@ -399,28 +502,11 @@ fun SettingsScreen(
                             checked = isAutoTrackingEnabled,
                             onCheckedChange = { enabled ->
                                 if (enabled) {
-                                    if (ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.ACCESS_FINE_LOCATION
-                                        ) != PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        foregroundPermissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
-                                            )
-                                        )
-                                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                                        ) != PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                                    } else {
-                                        viewModel.onToggleAutoTracking(checked = true, hasBackgroundLocationPermission = true)
+                                    permissionHelper(TrackingMode.AUTO) {
+                                        viewModel.onToggleAutoTracking(true, hasBackgroundLocationPermission(context))
                                     }
                                 } else {
-                                    viewModel.onToggleAutoTracking(checked = false, hasBackgroundLocationPermission = context.hasBackgroundLocationPermission())
+                                    viewModel.onToggleAutoTracking(false, hasBackgroundLocationPermission(context))
                                 }
                             },
                             enabled = isAutomaticSwitchEnabled
@@ -459,13 +545,7 @@ fun SettingsScreen(
                             checked = isBluetoothTriggerEnabled,
                             onCheckedChange = { enabled ->
                                 if (enabled) {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.BLUETOOTH_CONNECT
-                                        ) != PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        bluetoothPermissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
-                                    } else {
+                                    permissionHelper(TrackingMode.BLUETOOTH) {
                                         viewModel.setBluetoothTriggerEnabled(true)
                                     }
                                 } else {
@@ -514,24 +594,12 @@ fun SettingsScreen(
                             checked = isScheduleEnabled,
                             onCheckedChange = { enabled ->
                                 if (enabled) {
-                                    if (ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.ACCESS_FINE_LOCATION
-                                        ) != PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        foregroundPermissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
-                                            )
-                                        )
-                                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                                        ) != PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                                    } else {
+                                    val trackingMode = when (scheduleSettings.target) {
+                                        ScheduleTarget.AUTOMATIC -> TrackingMode.AUTO
+                                        ScheduleTarget.BLUETOOTH -> TrackingMode.BLUETOOTH
+                                        ScheduleTarget.BOTH -> TrackingMode.BOTH
+                                    }
+                                    permissionHelper(trackingMode) {
                                         viewModel.setScheduleEnabled(true)
                                     }
                                 } else {

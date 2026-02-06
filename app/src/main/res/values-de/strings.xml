@@ -76,8 +76,6 @@
     <string name="unknown_device">Unbekanntes Gerät</string>
 
     <!-- New strings for SettingsScreen.kt -->
-    <string name="settings_bluetooth_permission_denied_toast">Bluetooth-Berechtigung verweigert. Bluetooth-Trigger kann nicht aktiviert werden.</string>
-    <string name="settings_location_permission_required_toast">Standortberechtigung ist für die automatische Verfolgung erforderlich.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Bluetooth-Geräte auswählen</string>
     <string name="about_version">Version: %1$s</string>
     <string name="about_license">Veröffentlicht unter MIT-Lizenz</string>
@@ -148,6 +146,7 @@
     <string name="permission_notifications">Benachrichtigungen</string>
 
     <!-- Filter Dialog -->
+    <string name="permission_dialog_message_bluetooth">Diese Funktion erfordert eine Bluetooth-Berechtigung, um eine Verbindung zu Geräten herzustellen. Bitte erteilen Sie die Berechtigung.</string>
     <string name="filter_trips_title">Fahrten filtern</string>
     <string name="filter_keyword_label">Stichwort</string>
     <string name="filter_trip_type_label">Fahrttyp:</string>
@@ -266,4 +265,9 @@
     <string name="favourites_license_plate_label">Kennzeichen</string>
     <string name="favourites_car_model_label">Automodell (optional)</string>
     <string name="backup_successful">Backup erfolgreich erstellt!</string>
+    <string name="permission_dialog_title_location">Standortberechtigung</string>
+    <string name="permission_dialog_message_location">Diese Funktion erfordert eine Standortberechtigung, um Ihre Reisen zu verfolgen. Bitte erteilen Sie die Berechtigung.</string>
+    <string name="permission_dialog_title_background_location">Hintergrundstandort</string>
+    <string name="permission_dialog_message_background_location">Um die automatische Verfolgung zu aktivieren, erteilen Sie bitte in den Einstellungen die Standortberechtigung „Immer zulassen“.</string>
+    <string name="permission_dialog_title_bluetooth">Bluetooth-Berechtigung</string>
 </resources>

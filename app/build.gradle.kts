@@ -14,13 +14,13 @@ kotlin {
 android {
     namespace = "ch.opum.tricktrack"
     compileSdk = 36
-
+    ndkVersion = "29.0.14206865"
     defaultConfig {
         applicationId = "ch.opum.tricktrack"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.5.0"
+        versionCode = 4
+        versionName = "1.5.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -30,7 +30,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -71,6 +72,7 @@ dependencies {
     // Removed: implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.fragment.ktx)
 
     // Room
     implementation(libs.androidx.room.runtime)

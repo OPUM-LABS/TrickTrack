@@ -76,8 +76,6 @@
     <string name="unknown_device">Unknown Device</string>
 
     <!-- New strings for SettingsScreen.kt -->
-    <string name="settings_bluetooth_permission_denied_toast">Bluetooth permission denied. Cannot enable Bluetooth trigger.</string>
-    <string name="settings_location_permission_required_toast">Location permission is required for automatic tracking.</string>
     <string name="settings_bluetooth_select_devices_dialog_title">Select Bluetooth Devices</string>
     <string name="about_version">Version: %1$s</string>
     <string name="about_license">Released under MIT License</string>
@@ -149,6 +147,12 @@
     <string name="permission_background_location">Background Location</string>
     <string name="permission_bluetooth">Bluetooth</string>
     <string name="permission_notifications">Notifications</string>
+    <string name="permission_dialog_title_location">Location Permission</string>
+    <string name="permission_dialog_message_location">This feature requires location permission to track your trips. Please grant the permission.</string>
+    <string name="permission_dialog_title_background_location">Background Location</string>
+    <string name="permission_dialog_message_background_location">To enable automatic tracking, please grant \'Allow all the time\' location permission in the settings.</string>
+    <string name="permission_dialog_title_bluetooth">Bluetooth Permission</string>
+    <string name="permission_dialog_message_bluetooth">This feature requires bluetooth permission to connect to devices. Please grant the permission.</string>
 
     <!-- Filter Dialog -->
     <string name="filter_trips_title">Filter Trips</string>
