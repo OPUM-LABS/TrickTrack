@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep the data classes used for JSON serialization
+-keep class ch.opum.tricktrack.backup.BackupData { *; }
+-keep class ch.opum.tricktrack.backup.BackupMetadata { *; }
+-keep class ch.opum.tricktrack.data.Trip { *; }
+-keep class ch.opum.tricktrack.data.place.SavedPlace { *; }
