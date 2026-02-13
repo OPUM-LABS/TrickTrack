@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -48,11 +49,13 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -119,9 +122,10 @@ import java.util.Locale
 fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
-    var dialogTitleId by remember { mutableIntStateOf(0) }
-    var dialogMessageId by remember { mutableIntStateOf(0) }
+    var dialogTitle by remember { mutableStateOf("") }
+    var dialogMessage by remember { mutableStateOf("") }
     var onPositive by remember { mutableStateOf<() -> Unit>({}) }
+    var confirmButtonText by remember { mutableStateOf("OK") }
 
     var currentTrackingMode by remember { mutableStateOf(TrackingMode.AUTO) }
     var onSuccessCallback by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -142,13 +146,23 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
             }
         }
 
+    val permDialogTitleBluetooth = stringResource(R.string.permission_dialog_title_bluetooth)
+    val permDialogMessageBluetooth = stringResource(R.string.permission_dialog_message_bluetooth)
+    val buttonOk = stringResource(R.string.button_ok)
+    val permDialogTitleLocation = stringResource(R.string.permission_dialog_title_location)
+    val permDialogMessageLocation = stringResource(R.string.permission_dialog_message_location)
+    val permDialogTitleBackgroundLocation = stringResource(R.string.permission_dialog_title_background_location)
+    val permDialogMessageBackgroundLocation = stringResource(R.string.permission_dialog_message_background_location)
+    val openSettings = stringResource(R.string.open_settings)
+
     checkAndRequest = check@{ trackingMode, successCallback ->
         currentTrackingMode = trackingMode
         onSuccessCallback = successCallback
 
         if (needsBluetoothPermission(trackingMode) && !hasBluetoothPermissions(context)) {
-            dialogTitleId = R.string.permission_dialog_title_bluetooth
-            dialogMessageId = R.string.permission_dialog_message_bluetooth
+            dialogTitle = permDialogTitleBluetooth
+            dialogMessage = permDialogMessageBluetooth
+            confirmButtonText = buttonOk
             onPositive = {
                 isRequestingLocation = false
                 requestBluetoothPermissions(requestMultiplePermissionsLauncher)
@@ -158,8 +172,9 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
         }
 
         if (!hasForegroundLocationPermission(context)) {
-            dialogTitleId = R.string.permission_dialog_title_location
-            dialogMessageId = R.string.permission_dialog_message_location
+            dialogTitle = permDialogTitleLocation
+            dialogMessage = permDialogMessageLocation
+            confirmButtonText = buttonOk
             onPositive = {
                 isRequestingLocation = true
                 requestForegroundLocation(requestMultiplePermissionsLauncher)
@@ -168,9 +183,19 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
             return@check
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission(context)) {
-            dialogTitleId = R.string.permission_dialog_title_background_location
-            dialogMessageId = R.string.permission_dialog_message_background_location
+        if (!hasBackgroundLocationPermission(context)) {
+            dialogTitle = permDialogTitleBackgroundLocation
+            dialogMessage = permDialogMessageBackgroundLocation
+            confirmButtonText = openSettings
+            onPositive = { openAppSettings(context) }
+            showDialog = true
+            return@check
+        }
+
+        if (!isBatteryOptimizationIgnored(context)) {
+            dialogTitle = "Background Reliability"
+            dialogMessage = "To ensure trips record while the screen is off, please update the battery setting:\n\n1. Tap 'Open Settings' below.\n2. Tap 'Battery'.\n3. Select 'Unrestricted'."
+            confirmButtonText = "Open Settings"
             onPositive = { openAppSettings(context) }
             showDialog = true
             return@check
@@ -182,14 +207,14 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text(stringResource(id = dialogTitleId)) },
-            text = { Text(stringResource(id = dialogMessageId)) },
+            title = { Text(dialogTitle) },
+            text = { Text(dialogMessage) },
             confirmButton = {
                 Button(onClick = {
                     onPositive()
                     showDialog = false
                 }) {
-                    Text(stringResource(id = R.string.button_ok))
+                    Text(confirmButtonText)
                 }
             },
             dismissButton = {
@@ -265,6 +290,11 @@ private fun openAppSettings(context: Context) {
     context.startActivity(intent)
 }
 
+private fun isBatteryOptimizationIgnored(context: Context): Boolean {
+    val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+    return powerManager.isIgnoringBatteryOptimizations(context.packageName)
+}
+
 
 @SuppressLint("ShowToast")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -309,12 +339,14 @@ fun SettingsScreen(
     var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
 
     val permissionHelper = rememberPermissionHelper()
+    var isBatteryOptimizationIgnored by remember { mutableStateOf(isBatteryOptimizationIgnored(context)) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.checkPermissions(context)
+                isBatteryOptimizationIgnored = isBatteryOptimizationIgnored(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -511,6 +543,12 @@ fun SettingsScreen(
                             },
                             enabled = isAutomaticSwitchEnabled
                         )
+                    }
+                    if (isAutoTrackingEnabled && !isBatteryOptimizationIgnored) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        BatteryWarningCard {
+                            openAppSettings(context)
+                        }
                     }
                 }
             }
@@ -993,6 +1031,33 @@ fun SettingsScreen(
     }
 }
 
+@Composable
+fun BatteryWarningCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = stringResource(R.string.warning),
+                tint = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.battery_optimization_warning),
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleSettingsDialog(
@@ -1035,12 +1100,12 @@ fun ScheduleSettingsDialog(
                     }
                     showAllDaysStartTimePicker = false
                 }) {
-                    Text(stringResource(R.string.button_ok))
+                    Text(stringResource(id = R.string.button_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAllDaysStartTimePicker = false }) {
-                    Text(stringResource(R.string.button_cancel))
+                    Text(stringResource(id = R.string.button_cancel))
                 }
             }
         )
@@ -1060,12 +1125,12 @@ fun ScheduleSettingsDialog(
                     }
                     showAllDaysEndTimePicker = false
                 }) {
-                    Text(stringResource(R.string.button_ok))
+                    Text(stringResource(id = R.string.button_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAllDaysEndTimePicker = false }) {
-                    Text(stringResource(R.string.button_cancel))
+                    Text(stringResource(id = R.string.button_cancel))
                 }
             }
         )
@@ -1085,12 +1150,12 @@ fun ScheduleSettingsDialog(
                         tempSchedule[day] = schedule.copy(startHour = timePickerState.hour, startMinute = timePickerState.minute)
                         selectedDayForStartTime = null
                     }) {
-                        Text(stringResource(R.string.button_ok))
+                        Text(stringResource(id = R.string.button_ok))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { selectedDayForStartTime = null }) {
-                        Text(stringResource(R.string.button_cancel))
+                        Text(stringResource(id = R.string.button_cancel))
                     }
                 }
             )
@@ -1111,12 +1176,12 @@ fun ScheduleSettingsDialog(
                         tempSchedule[day] = schedule.copy(endHour = timePickerState.hour, endMinute = timePickerState.minute)
                         selectedDayForEndTime = null
                     }) {
-                        Text(stringResource(R.string.button_ok))
+                        Text(stringResource(id = R.string.button_ok))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { selectedDayForEndTime = null }) {
-                        Text(stringResource(R.string.button_cancel))
+                        Text(stringResource(id = R.string.button_cancel))
                     }
                 }
             )
@@ -1345,7 +1410,7 @@ fun ScheduleSettingsDialog(
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = onDismiss) {
-                        Text(stringResource(R.string.button_cancel))
+                        Text(stringResource(id = R.string.button_cancel))
                     }
                     Button(onClick = {
                         val newSettings = ScheduleSettings(

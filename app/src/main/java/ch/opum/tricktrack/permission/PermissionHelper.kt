@@ -1,10 +1,12 @@
 package ch.opum.tricktrack.permission
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -65,7 +67,7 @@ class PermissionHelper(
             return
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission()) {
+        if (!hasBackgroundLocationPermission()) {
             showDialog(
                 "Background Location",
                 "To enable automatic tracking, please grant 'Allow all the time' location permission in the settings."
@@ -75,7 +77,22 @@ class PermissionHelper(
             return
         }
 
+        if (!isBatteryOptimizationIgnored()) {
+            showDialog(
+                "Background Reliability",
+                "To ensure trips record while the screen is off, please update the battery setting:\n\n1. Tap 'Open Settings' below.\n2. Tap 'Battery'.\n3. Select 'Unrestricted'."
+            ) {
+                openBatterySettings()
+            }
+            return
+        }
+
         onSuccess()
+    }
+
+    fun isBatteryOptimizationIgnored(): Boolean {
+        val powerManager = activity.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return powerManager.isIgnoringBatteryOptimizations(activity.packageName)
     }
 
     private fun hasForegroundLocationPermission(): Boolean {
@@ -136,6 +153,13 @@ class PermissionHelper(
     private fun openAppSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         val uri: Uri = Uri.fromParts("package", activity.packageName, null)
+        intent.data = uri
+        activity.startActivity(intent)
+    }
+
+    private fun openBatterySettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", activity.packageName, null)
         intent.data = uri
         activity.startActivity(intent)
     }

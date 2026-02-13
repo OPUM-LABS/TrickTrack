@@ -1,4 +1,4 @@
-@file:Suppress("unused", "unused", "unused")
+@file:Suppress("unused", "RedundantSuppression")
 
 package ch.opum.tricktrack.data
 

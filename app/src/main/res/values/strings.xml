@@ -66,6 +66,8 @@
     <string name="day_sunday">Sunday</string>
     <string name="api_settings_title">API Settings</string>
     <string name="api_settings_description">Configure API server URLs.</string>
+    <string name="battery_optimization_warning">Tracking may be interrupted. Tap to fix.</string>
+    <string name="warning">Warning</string>
 
     <!-- General -->
     <string name="button_save">Save</string>

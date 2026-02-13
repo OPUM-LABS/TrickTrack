@@ -66,6 +66,8 @@
     <string name="day_sunday">Sonntag</string>
     <string name="api_settings_title">API-Einstellungen</string>
     <string name="api_settings_description">Konfigurieren Sie API-Server-URLs.</string>
+    <string name="battery_optimization_warning">Die Aufzeichnung kann unterbrochen werden. Zum Beheben tippen.</string>
+    <string name="warning">Warnung</string>
 
     <!-- General -->
     <string name="button_save">Speichern</string>

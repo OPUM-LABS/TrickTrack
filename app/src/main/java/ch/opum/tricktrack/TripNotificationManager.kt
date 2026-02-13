@@ -77,7 +77,7 @@ object TripNotificationManager {
         val contentText = context.getString(R.string.notification_content_text, trip.startLoc, trip.endLoc, trip.distance)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher_foreground) // Using launcher foreground as a safe fallback
+            .setSmallIcon(R.drawable.tricktrack_outline) // Using launcher foreground as a safe fallback
             .setContentTitle(context.getString(R.string.notification_title))
             .setContentText(contentText)
             .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))

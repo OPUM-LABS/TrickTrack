@@ -67,6 +67,8 @@
     <string name="day_sunday">Domenica</string>
     <string name="api_settings_title">Impostazioni API</string>
     <string name="api_settings_description">Configura gli URL del server API.</string>
+    <string name="battery_optimization_warning">Il tracciamento potrebbe essere interrotto. Tocca per risolvere.</string>
+    <string name="warning">Avvertimento</string>
 
     <!-- General -->
     <string name="button_save">Salva</string>

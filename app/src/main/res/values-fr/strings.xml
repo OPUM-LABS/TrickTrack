@@ -67,6 +67,8 @@
     <string name="day_sunday">Dimanche</string>
     <string name="api_settings_title">Paramètres de l\'API</string>
     <string name="api_settings_description">Configurez les URL du serveur API.</string>
+    <string name="battery_optimization_warning">Le suivi peut être interrompu. Appuyez pour corriger.</string>
+    <string name="warning">Avertissement</string>
 
     <!-- General -->
     <string name="button_save">Enregistrer</string>

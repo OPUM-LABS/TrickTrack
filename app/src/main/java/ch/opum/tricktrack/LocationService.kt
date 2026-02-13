@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.Serializable
 import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
@@ -83,11 +84,7 @@ class LocationService : Service() {
             return START_STICKY
         }
 
-        val trigger = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent?.getSerializableExtra("trigger", TripTrigger::class.java)
-        } else {
-            intent?.getSerializableExtra("trigger") as? TripTrigger
-        }
+        val trigger = intent?.getSerializableExtra("trigger", TripTrigger::class.java)
 
         if (trigger != null) {
             _currentTripTrigger.value = trigger
@@ -234,7 +231,7 @@ class LocationService : Service() {
         val notification = NotificationCompat.Builder(this, "location_service_channel")
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.waiting_for_movement))
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.tricktrack_outline)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
@@ -439,7 +436,7 @@ class LocationService : Service() {
         return NotificationCompat.Builder(this, "location_service_channel")
             .setContentTitle(getString(R.string.app_name))
             .setContentText(notificationText)
-            .setSmallIcon(R.drawable.ic_record_dot)
+            .setSmallIcon(R.drawable.tricktrack_logo)
             .setOngoing(true)
             .addAction(R.drawable.ic_stop, getString(R.string.stop), stopPendingIntent)
             .setOnlyAlertOnce(true)
@@ -620,5 +617,14 @@ class LocationService : Service() {
 
         private val _tripSavedForSummary = MutableSharedFlow<Trip>()
         val tripSavedForSummary = _tripSavedForSummary.asSharedFlow()
+    }
+}
+
+inline fun <reified T : Serializable> Intent.getSerializableExtra(key: String, clazz: Class<T>): T? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getSerializableExtra(key, clazz)
+    } else {
+        @Suppress("DEPRECATION")
+        getSerializableExtra(key) as? T
     }
 }
