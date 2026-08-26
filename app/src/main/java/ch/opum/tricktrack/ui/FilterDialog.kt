@@ -39,7 +39,7 @@ import ch.opum.tricktrack.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -221,7 +221,7 @@ fun DateSelectionField(
     selectedDate: Long?,
     onClick: () -> Unit
 ) {
-    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val formatter = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale)
     val dateText = selectedDate?.let { formatter.format(Date(it)) } ?: ""
 
     Box {

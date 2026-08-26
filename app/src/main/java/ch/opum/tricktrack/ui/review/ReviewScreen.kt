@@ -61,6 +61,7 @@ import ch.opum.tricktrack.ui.TripsViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -223,7 +224,7 @@ fun ReviewTripCard(
 
                 // Column 2: Data
                 Column(modifier = Modifier.padding(start = 16.dp)) {
-                    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    val timeFormatter = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale)
 
                     // Start Row
                     Row(verticalAlignment = Alignment.CenterVertically) {

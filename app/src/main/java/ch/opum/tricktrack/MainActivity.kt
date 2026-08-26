@@ -145,6 +145,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 // Extension function to check background location permission
 fun Context.hasBackgroundLocationPermission(): Boolean {
@@ -752,7 +753,7 @@ fun TripScreen(
                         )
                     }
                     if (currentFilterState.startDate != null) {
-                        val date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
+                        val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
                             Date(currentFilterState.startDate!!)
                         )
                         InputChip(
@@ -774,7 +775,7 @@ fun TripScreen(
                         )
                     }
                     if (currentFilterState.endDate != null) {
-                        val date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
+                        val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
                             Date(currentFilterState.endDate!!)
                         )
                         InputChip(
@@ -809,7 +810,7 @@ fun TripScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Left side: Date
-                    val dateFormat = SimpleDateFormat("EEE, d MMM", Locale.getDefault())
+                    val dateFormat = SimpleDateFormat("EEE, d MMM", LocalLocale.current.platformLocale)
                     Text(
                         text = dateFormat.format(Date(group.date)),
                         style = MaterialTheme.typography.titleMedium,
@@ -1517,7 +1518,7 @@ fun TripItem(
 
                     // Column 2: Data
                     Column(modifier = Modifier.padding(start = 16.dp)) {
-                        val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+                        val timeFormatter = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale)
 
                         // Start Row
                         Row(verticalAlignment = Alignment.CenterVertically) {

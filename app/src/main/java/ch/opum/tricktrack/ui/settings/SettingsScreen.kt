@@ -2,7 +2,6 @@ package ch.opum.tricktrack.ui.settings
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -13,7 +12,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -77,7 +75,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -117,6 +114,7 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
@@ -1288,7 +1286,7 @@ fun ScheduleSettingsDialog(
                                 ) {
                                     Text(
                                         String.format(
-                                            Locale.getDefault(),
+                                            LocalLocale.current.platformLocale,
                                             "%02d:%02d",
                                             allDaysStartTime.first,
                                             allDaysStartTime.second
@@ -1301,7 +1299,7 @@ fun ScheduleSettingsDialog(
                                 ) {
                                     Text(
                                         String.format(
-                                            Locale.getDefault(),
+                                            LocalLocale.current.platformLocale,
                                             "%02d:%02d",
                                             allDaysEndTime.first,
                                             allDaysEndTime.second
@@ -1343,7 +1341,7 @@ fun ScheduleSettingsDialog(
                                         ) {
                                             Text(
                                                 String.format(
-                                                    Locale.getDefault(),
+                                                    LocalLocale.current.platformLocale,
                                                     "%02d:%02d",
                                                     schedule.startHour,
                                                     schedule.startMinute
@@ -1357,7 +1355,7 @@ fun ScheduleSettingsDialog(
                                         ) {
                                             Text(
                                                 String.format(
-                                                    Locale.getDefault(),
+                                                    LocalLocale.current.platformLocale,
                                                     "%02d:%02d",
                                                     schedule.endHour,
                                                     schedule.endMinute
