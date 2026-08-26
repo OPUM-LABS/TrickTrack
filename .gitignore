@@ -57,6 +57,7 @@ captures/
 .idea/tasks.xml
 .idea/gradle.xml
 .idea/assetWizardSettings.xml
+.idea/planningMode.xml
 .idea/dictionaries
 .idea/libraries
 .idea/caches
@@ -69,3 +70,6 @@ Thumbs.db
 
 # Gradle cache
 /app/release/baselineProfiles
+
+# Local Gradle configuration
+/gradle/gradle-daemon-jvm.properties
