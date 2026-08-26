@@ -13,14 +13,14 @@ kotlin {
 
 android {
     namespace = "ch.opum.tricktrack"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "29.0.14206865"
     defaultConfig {
         applicationId = "ch.opum.tricktrack"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 7
-        versionName = "1.5.8"
+        targetSdk = 37
+        versionCode = 8
+        versionName = "1.5.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

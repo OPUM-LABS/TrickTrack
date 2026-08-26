@@ -5,8 +5,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.app.UiModeManager
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
+import androidx.core.content.IntentCompat
 import android.location.Location
 import android.os.Build
 import android.os.CountDownTimer
@@ -32,7 +35,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
@@ -84,7 +86,7 @@ class LocationService : Service() {
             return START_STICKY
         }
 
-        val trigger = intent?.getSerializableExtra("trigger", TripTrigger::class.java)
+        val trigger = intent?.let { IntentCompat.getSerializableExtra(it, "trigger", TripTrigger::class.java) }
 
         if (trigger != null) {
             _currentTripTrigger.value = trigger
@@ -137,8 +139,10 @@ class LocationService : Service() {
         val scheduleTarget = scheduleSettings.target
 
         val selectedDevices = userPreferencesRepository.selectedBluetoothDevices.first()
-        val isAnySelectedDeviceConnected = selectedDevices.any { bluetoothRepository.isDeviceConnected(it) }
-
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        val isCarMode = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_CAR
+        val isAnySelectedDeviceConnected = selectedDevices.any { bluetoothRepository.isDeviceConnected(it) } || isCarMode
+        
         // Determine if Bluetooth or Auto tracking should be active based on schedule or direct settings
         val shouldBluetoothBeActive = if (isScheduleEnabled) {
             isWithinSchedule() && (scheduleTarget == ScheduleTarget.BLUETOOTH || scheduleTarget == ScheduleTarget.BOTH)
@@ -620,11 +624,3 @@ class LocationService : Service() {
     }
 }
 
-inline fun <reified T : Serializable> Intent.getSerializableExtra(key: String, clazz: Class<T>): T? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getSerializableExtra(key, clazz)
-    } else {
-        @Suppress("DEPRECATION")
-        getSerializableExtra(key) as? T
-    }
-}

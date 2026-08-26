@@ -16,6 +16,30 @@ import kotlinx.coroutines.launch
 class BluetoothReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
+        
+        if (action == android.app.UiModeManager.ACTION_ENTER_CAR_MODE || action == android.app.UiModeManager.ACTION_EXIT_CAR_MODE) {
+            val scope = CoroutineScope(Dispatchers.IO)
+            scope.launch {
+                when (action) {
+                    android.app.UiModeManager.ACTION_ENTER_CAR_MODE -> {
+                        AppLogger.log("BluetoothReceiver", "Android Auto connected. Notifying LocationService.")
+                        val serviceIntent = Intent(context, LocationService::class.java).apply {
+                            this.action = LocationService.ACTION_BLUETOOTH_CONNECTED
+                        }
+                        context.startService(serviceIntent)
+                    }
+                    android.app.UiModeManager.ACTION_EXIT_CAR_MODE -> {
+                        AppLogger.log("BluetoothReceiver", "Android Auto disconnected. Notifying LocationService.")
+                        val serviceIntent = Intent(context, LocationService::class.java).apply {
+                            this.action = LocationService.ACTION_BLUETOOTH_DISCONNECTED
+                        }
+                        context.startService(serviceIntent)
+                    }
+                }
+            }
+            return
+        }
+
         val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
         } else {
