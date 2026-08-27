@@ -267,6 +267,7 @@
     <string name="favourites_license_plate_label">Kennzeichen</string>
     <string name="favourites_car_brand_label">Marke</string>
     <string name="favourites_car_model_label">Automodell (optional)</string>
+    <string name="odometer_label">Anfänglicher Kilometerstand</string>
     <string name="backup_successful">Backup erfolgreich erstellt!</string>
     <string name="permission_dialog_title_location">Standortberechtigung</string>
     <string name="permission_dialog_message_location">Diese Funktion erfordert eine Standortberechtigung, um Ihre Reisen zu verfolgen. Bitte erteilen Sie die Berechtigung.</string>

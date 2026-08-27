@@ -275,4 +275,5 @@
     <string name="favourites_license_plate_label">License Plate</string>
     <string name="favourites_car_brand_label">Brand</string>
     <string name="favourites_car_model_label">Car Model (Optional)</string>
+    <string name="odometer_label">Initial Odometer</string>
 </resources>

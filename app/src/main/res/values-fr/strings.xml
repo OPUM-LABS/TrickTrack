@@ -268,6 +268,7 @@
     <string name="favourites_license_plate_label">Plaque d\'immatriculation</string>
     <string name="favourites_car_brand_label">Marque</string>
     <string name="favourites_car_model_label">Modèle de voiture (facultatif)</string>
+    <string name="odometer_label">Kilométrage initial</string>
     <string name="backup_successful">Sauvegarde créée avec succès !</string>
     <string name="permission_dialog_title_location">Autorisation de localisation</string>
     <string name="permission_dialog_message_location">Cette fonctionnalité nécessite l\'autorisation de localisation pour suivre vos déplacements. Veuillez accorder cette autorisation.</string>

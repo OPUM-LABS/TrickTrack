@@ -376,9 +376,9 @@ class FavouritesViewModel(
         }
     }
 
-    fun addVehicle(licensePlate: String, carModel: String?, brand: String?) {
+    fun addVehicle(licensePlate: String, carModel: String?, brand: String?, odometer: Double) {
         viewModelScope.launch {
-            vehicleDao.insert(VehicleEntity(licensePlate = licensePlate, carModel = carModel, brand = brand))
+            vehicleDao.insert(VehicleEntity(licensePlate = licensePlate, carModel = carModel, brand = brand, currentOdometer = odometer))
         }
     }
 

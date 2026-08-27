@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -18,9 +19,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.opum.tricktrack.R
@@ -30,9 +37,69 @@ import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ViewModelFactory
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 // Data class for the generic list
-data class SimpleItem(val id: Int, val title: String, val subtitle: String? = null, val brand: String? = null)
+data class SimpleItem(
+    val id: Int, 
+    val title: String, 
+    val subtitle: String? = null, 
+    val brand: String? = null, 
+    val odometer: Double = 0.0
+)
+
+class ThousandsSeparatorTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val originalText = text.text
+        if (originalText.isEmpty()) {
+            return TransformedText(text, OffsetMapping.Identity)
+        }
+
+        val symbols = DecimalFormatSymbols.getInstance(Locale.getDefault())
+        val separator = symbols.groupingSeparator
+        
+        val df = DecimalFormat("#,###", symbols)
+        val formatted = try {
+            df.format(originalText.toLong())
+        } catch (_: Exception) {
+            originalText
+        }
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 0) return 0
+                var transformedOffset = 0
+                var originalCount = 0
+                for (char in formatted) {
+                    if (originalCount == offset) break
+                    transformedOffset++
+                    if (char != separator) {
+                        originalCount++
+                    }
+                }
+                return transformedOffset
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset <= 0) return 0
+                var originalOffset = 0
+                var transformedCount = 0
+                for (char in formatted) {
+                    if (transformedCount == offset) break
+                    if (char != separator) {
+                        originalOffset++
+                    }
+                    transformedCount++
+                }
+                return originalOffset
+            }
+        }
+
+        return TransformedText(AnnotatedString(formatted), offsetMapping)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,11 +172,11 @@ fun PlacesListScreen(
             AddSimpleItemDialog(
                 title = dialogTitle,
                 onDismiss = { showAddDialog = false },
-                onAdd = { name, subtitle, brand ->
+                onAdd = { name, subtitle, brand, odometer ->
                     when (selectedTabIndex) {
                         1 -> viewModel.addDriver(name)
                         2 -> viewModel.addCompany(name)
-                        3 -> viewModel.addVehicle(name, subtitle, brand)
+                        3 -> viewModel.addVehicle(name, subtitle, brand, odometer)
                     }
                     showAddDialog = false
                 },
@@ -130,7 +197,7 @@ fun PlacesListScreen(
                     when (selectedTabIndex) {
                         1 -> viewModel.updateDriver(viewModel.driversList.value.first{it.id == updatedItem.id}.copy(name = updatedItem.title))
                         2 -> viewModel.updateCompany(viewModel.companiesList.value.first{it.id == updatedItem.id}.copy(name = updatedItem.title))
-                        3 -> viewModel.updateVehicle(viewModel.vehiclesList.value.first{it.id == updatedItem.id}.copy(licensePlate = updatedItem.title, carModel = updatedItem.subtitle, brand = updatedItem.brand))
+                        3 -> viewModel.updateVehicle(viewModel.vehiclesList.value.first{it.id == updatedItem.id}.copy(licensePlate = updatedItem.title, carModel = updatedItem.subtitle, brand = updatedItem.brand, currentOdometer = updatedItem.odometer))
                     }
                     showEditDialog = false
                     itemToEdit = null
@@ -212,7 +279,7 @@ fun PlacesListScreen(
                 val groupedVehicles by viewModel.groupedVehicles.collectAsState()
                 val selectedId by viewModel.selectedVehicleId.collectAsState()
                 GenericGroupedList(
-                    groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel, it.brand) } },
+                    groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel, it.brand, it.currentOdometer) } },
                     onEdit = { item ->
                         itemToEdit = item
                         showEditDialog = true
@@ -343,13 +410,14 @@ fun BrandSelectionField(
 fun AddSimpleItemDialog(
     title: String,
     onDismiss: () -> Unit,
-    onAdd: (String, String?, String?) -> Unit,
+    onAdd: (String, String?, String?, Double) -> Unit,
     isVehicle: Boolean,
     viewModel: FavouritesViewModel? = null
 ) {
     var text by remember { mutableStateOf("") }
     var subtitle by remember { mutableStateOf("") }
     var brand by remember { mutableStateOf("") }
+    var odometer by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         if (isVehicle && viewModel != null) {
@@ -382,6 +450,30 @@ fun AddSimpleItemDialog(
                         label = { Text(stringResource(R.string.favourites_car_model_label)) },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = odometer,
+                        onValueChange = { 
+                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                                odometer = it 
+                            }
+                        },
+                        label = { Text(stringResource(R.string.odometer_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = ThousandsSeparatorTransformation(),
+                        suffix = { Text("km") },
+                        trailingIcon = {
+                            if (odometer.isNotEmpty()) {
+                                IconButton(onClick = { odometer = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.clear_text)
+                                    )
+                                }
+                            }
+                        }
+                    )
                 } else if (isVehicle) {
                      Spacer(modifier = Modifier.height(8.dp))
                      ClearableTextField(
@@ -395,7 +487,7 @@ fun AddSimpleItemDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onAdd(text, if (isVehicle) subtitle else null, if (isVehicle) brand else null) },
+                onClick = { onAdd(text, if (isVehicle) subtitle else null, if (isVehicle) brand else null, odometer.toDoubleOrNull() ?: 0.0) },
                 enabled = text.isNotBlank()
             ) {
                 Text(stringResource(R.string.button_add))
@@ -422,6 +514,7 @@ fun EditSimpleItemDialog(
     var text by remember(item) { mutableStateOf(item.title) }
     var subtitle by remember(item) { mutableStateOf(item.subtitle ?: "") }
     var brand by remember(item) { mutableStateOf(item.brand ?: "") }
+    var odometer by remember(item) { mutableStateOf(if (item.odometer > 0) item.odometer.toLong().toString() else "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -464,6 +557,30 @@ fun EditSimpleItemDialog(
                         label = { Text(stringResource(R.string.favourites_car_model_label)) },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = odometer,
+                        onValueChange = { 
+                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                                odometer = it 
+                            }
+                        },
+                        label = { Text(stringResource(R.string.odometer_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = ThousandsSeparatorTransformation(),
+                        suffix = { Text("km") },
+                        trailingIcon = {
+                            if (odometer.isNotEmpty()) {
+                                IconButton(onClick = { odometer = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.clear_text)
+                                    )
+                                }
+                            }
+                        }
+                    )
                 } else if (isVehicle) {
                     Spacer(modifier = Modifier.height(8.dp))
                     ClearableTextField(
@@ -477,7 +594,7 @@ fun EditSimpleItemDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null, brand = if (isVehicle) brand else null)) },
+                onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null, brand = if (isVehicle) brand else null, odometer = odometer.toDoubleOrNull() ?: 0.0)) },
                 enabled = text.isNotBlank()
             ) {
                 Text(stringResource(R.string.button_save))
@@ -606,6 +723,22 @@ fun SimpleListItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+        if (item.odometer > 0) {
+            val locale = LocalLocale.current.platformLocale
+            val symbols = DecimalFormatSymbols.getInstance(locale)
+            val df = DecimalFormat("#,###", symbols)
+            val formattedOdometer = try {
+                df.format(item.odometer.toLong())
+            } catch (_: Exception) {
+                item.odometer.toLong().toString()
+            }
+            Text(
+                text = "$formattedOdometer km",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
         }
         RadioButton(
             selected = isSelected,
