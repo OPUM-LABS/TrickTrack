@@ -41,6 +41,7 @@ import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoMode
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -1281,7 +1282,19 @@ fun EditTripDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded) },
+                        trailingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (selectedVehicle != null) {
+                                    IconButton(onClick = { selectedVehicle = null }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = stringResource(R.string.clear_text)
+                                        )
+                                    }
+                                }
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
+                            }
+                        },
                         leadingIcon = {
                             val iconResId = selectedVehicle?.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
                             if (iconResId != 0) {

@@ -3,20 +3,9 @@ package ch.opum.tricktrack.ui.review
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -24,38 +13,24 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
+import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.TripWithVehicle
+import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.LicensePlateBadge
@@ -104,6 +79,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
             Text(stringResource(R.string.review_no_trips), style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
         }
     } else {
+        val allVehicles by viewModel.allVehicles.collectAsState()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
@@ -120,7 +96,13 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                 items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
                     ReviewTripCard(
                         tripWithVehicle = tripWithVehicle,
-                        onApprove = { finalType -> viewModel.approveTrip(tripWithVehicle.trip, finalType) },
+                        allVehicles = allVehicles,
+                        onApprove = { finalType, selectedVehicle ->
+                            viewModel.approveTrip(
+                                trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
+                                finalType = finalType
+                            )
+                        },
                         onDiscard = { showDeleteDialog = tripWithVehicle },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
@@ -159,14 +141,18 @@ fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double) {
 @Composable
 fun ReviewTripCard(
     tripWithVehicle: TripWithVehicle,
-    onApprove: (TripType) -> Unit,
+    allVehicles: List<VehicleEntity>,
+    onApprove: (TripType, VehicleEntity?) -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val trip = tripWithVehicle.trip
     var selectedType by remember { mutableStateOf(if (trip.type == "Business") TripType.BUSINESS else TripType.PERSONAL) }
+    var selectedVehicle by remember(tripWithVehicle) { mutableStateOf(tripWithVehicle.vehicle) }
+    var vehicleExpanded by remember { mutableStateOf(false) }
     val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
     val icons = listOf(Icons.Default.Work, Icons.Default.Person)
+    val context = LocalContext.current
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -191,9 +177,80 @@ fun ReviewTripCard(
                             tint = if (selectedType == TripType.BUSINESS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
-                        tripWithVehicle.vehicle?.let {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            LicensePlateBadge(it)
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Box {
+                            Box(
+                                modifier = Modifier
+                                    .clickable { vehicleExpanded = true }
+                            ) {
+                                if (selectedVehicle != null) {
+                                    LicensePlateBadge(selectedVehicle!!)
+                                } else {
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.DirectionsCar,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.favourites_tab_vehicles),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = vehicleExpanded,
+                                onDismissRequest = { vehicleExpanded = false }
+                            ) {
+                                allVehicles.forEach { vehicle ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                                                if (itemIconResId != 0) {
+                                                    Icon(
+                                                        painter = painterResource(id = itemIconResId),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                        tint = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                }
+                                                Text(vehicle.licensePlate)
+                                            }
+                                        },
+                                        onClick = {
+                                            selectedVehicle = vehicle
+                                            vehicleExpanded = false
+                                        }
+                                    )
+                                }
+                                if (selectedVehicle != null) {
+                                    HorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.clear_text), color = MaterialTheme.colorScheme.error) },
+                                        onClick = {
+                                            selectedVehicle = null
+                                            vehicleExpanded = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -307,7 +364,7 @@ fun ReviewTripCard(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 FilledIconButton(
-                    onClick = { onApprove(selectedType) },
+                    onClick = { onApprove(selectedType, selectedVehicle) },
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )

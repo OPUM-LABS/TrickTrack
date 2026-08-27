@@ -17,7 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -292,7 +291,7 @@ fun BrandSelectionField(
                         painter = painterResource(id = iconResId),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        tint = Color.Unspecified
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 } else {
                     Icon(
@@ -321,7 +320,7 @@ fun BrandSelectionField(
                                         painter = painterResource(id = itemIconResId),
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp),
-                                        tint = Color.Unspecified
+                                        tint = MaterialTheme.colorScheme.onSurface
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                 }
@@ -586,7 +585,7 @@ fun SimpleListItem(
                 painter = painterResource(id = iconResId),
                 contentDescription = null,
                 modifier = Modifier.size(32.dp).clickable(onClick = onEdit),
-                tint = Color.Unspecified
+                tint = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
