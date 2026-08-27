@@ -14,5 +14,7 @@ data class VehicleEntity(
     @SerializedName(value = "licensePlate", alternate = ["b"])
     val licensePlate: String,
     @SerializedName(value = "carModel", alternate = ["c"])
-    val carModel: String?
+    val carModel: String?,
+    @SerializedName(value = "brand", alternate = ["d"])
+    val brand: String? = null
 )

@@ -12,7 +12,7 @@ import ch.opum.tricktrack.data.place.SavedPlaceDao
 
 @Database(
     entities = [Trip::class, SavedPlace::class, DriverEntity::class, CompanyEntity::class, VehicleEntity::class],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -36,6 +36,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `vehicles` ADD COLUMN `brand` TEXT")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -43,7 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "trip_database"
                 )
-                    .addMigrations(MIGRATION_7_8)
+                    .addMigrations(MIGRATION_7_8, MIGRATION_8_9)
                     .build()
                 INSTANCE = instance
                 instance

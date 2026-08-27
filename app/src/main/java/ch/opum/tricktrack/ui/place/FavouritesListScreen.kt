@@ -9,26 +9,31 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripApplication
+import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ViewModelFactory
 import kotlinx.coroutines.launch
 
 // Data class for the generic list
-data class SimpleItem(val id: Int, val title: String, val subtitle: String? = null)
+data class SimpleItem(val id: Int, val title: String, val subtitle: String? = null, val brand: String? = null)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,15 +106,16 @@ fun PlacesListScreen(
             AddSimpleItemDialog(
                 title = dialogTitle,
                 onDismiss = { showAddDialog = false },
-                onAdd = { name, subtitle ->
+                onAdd = { name, subtitle, brand ->
                     when (selectedTabIndex) {
                         1 -> viewModel.addDriver(name)
                         2 -> viewModel.addCompany(name)
-                        3 -> viewModel.addVehicle(name, subtitle)
+                        3 -> viewModel.addVehicle(name, subtitle, brand)
                     }
                     showAddDialog = false
                 },
-                isVehicle = selectedTabIndex == 3
+                isVehicle = selectedTabIndex == 3,
+                viewModel = viewModel
             )
         }
 
@@ -125,7 +131,7 @@ fun PlacesListScreen(
                     when (selectedTabIndex) {
                         1 -> viewModel.updateDriver(viewModel.driversList.value.first{it.id == updatedItem.id}.copy(name = updatedItem.title))
                         2 -> viewModel.updateCompany(viewModel.companiesList.value.first{it.id == updatedItem.id}.copy(name = updatedItem.title))
-                        3 -> viewModel.updateVehicle(viewModel.vehiclesList.value.first{it.id == updatedItem.id}.copy(licensePlate = updatedItem.title, carModel = updatedItem.subtitle))
+                        3 -> viewModel.updateVehicle(viewModel.vehiclesList.value.first{it.id == updatedItem.id}.copy(licensePlate = updatedItem.title, carModel = updatedItem.subtitle, brand = updatedItem.brand))
                     }
                     showEditDialog = false
                     itemToEdit = null
@@ -139,7 +145,8 @@ fun PlacesListScreen(
                     showEditDialog = false
                     itemToEdit = null
                 },
-                isVehicle = selectedTabIndex == 3
+                isVehicle = selectedTabIndex == 3,
+                viewModel = viewModel
             )
         }
 
@@ -206,7 +213,7 @@ fun PlacesListScreen(
                 val groupedVehicles by viewModel.groupedVehicles.collectAsState()
                 val selectedId by viewModel.selectedVehicleId.collectAsState()
                 GenericGroupedList(
-                    groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel) } },
+                    groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel, it.brand) } },
                     onEdit = { item ->
                         itemToEdit = item
                         showEditDialog = true
@@ -219,10 +226,138 @@ fun PlacesListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddSimpleItemDialog(title: String, onDismiss: () -> Unit, onAdd: (String, String?) -> Unit, isVehicle: Boolean) {
+fun BrandSelectionField(
+    viewModel: FavouritesViewModel,
+    onBrandSelected: (String) -> Unit,
+    initialBrand: String? = null
+) {
+    val brandQuery by viewModel.brandQuery.collectAsState()
+    val filteredBrands by viewModel.filteredBrands.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
+    val localContext = LocalContext.current
+
+    LaunchedEffect(initialBrand) {
+        if (initialBrand != null) {
+            viewModel.updateBrandQuery(initialBrand)
+        }
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = brandQuery,
+                onValueChange = {
+                    viewModel.updateBrandQuery(it)
+                    onBrandSelected(it)
+                    expanded = true
+                },
+                label = { Text(stringResource(R.string.favourites_car_brand_label)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true),
+                trailingIcon = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (brandQuery.isNotEmpty()) {
+                            IconButton(onClick = {
+                                viewModel.updateBrandQuery("")
+                                onBrandSelected("")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.clear_text)
+                                )
+                            }
+                        }
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    }
+                },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            val iconResId = remember(brandQuery) { CarBrandHelper.getBrandIconResId(localContext, brandQuery) }
+            
+            Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                if (iconResId != 0) {
+                    Icon(
+                        painter = painterResource(id = iconResId),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        tint = Color.Unspecified
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.DirectionsCar,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        if (filteredBrands.isNotEmpty()) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.exposedDropdownSize()
+            ) {
+                filteredBrands.forEach { brand ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val itemIconResId = remember(brand) { CarBrandHelper.getBrandIconResId(localContext, brand) }
+                                if (itemIconResId != 0) {
+                                    Icon(
+                                        painter = painterResource(id = itemIconResId),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.Unspecified
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
+                                Text(brand)
+                            }
+                        },
+                        onClick = {
+                            onBrandSelected(brand)
+                            viewModel.updateBrandQuery(brand)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddSimpleItemDialog(
+    title: String,
+    onDismiss: () -> Unit,
+    onAdd: (String, String?, String?) -> Unit,
+    isVehicle: Boolean,
+    viewModel: FavouritesViewModel? = null
+) {
     var text by remember { mutableStateOf("") }
     var subtitle by remember { mutableStateOf("") }
+    var brand by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        if (isVehicle && viewModel != null) {
+            viewModel.updateBrandQuery("")
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -232,11 +367,25 @@ fun AddSimpleItemDialog(title: String, onDismiss: () -> Unit, onAdd: (String, St
                     value = text,
                     onValueChange = { text = it },
                     label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = text.isBlank()
                 )
-                if (isVehicle) {
+                if (isVehicle && viewModel != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    BrandSelectionField(
+                        viewModel = viewModel,
+                        onBrandSelected = { brand = it }
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     ClearableTextField(
+                        value = subtitle,
+                        onValueChange = { subtitle = it },
+                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else if (isVehicle) {
+                     Spacer(modifier = Modifier.height(8.dp))
+                     ClearableTextField(
                         value = subtitle,
                         onValueChange = { subtitle = it },
                         label = { Text(stringResource(R.string.favourites_car_model_label)) },
@@ -246,13 +395,16 @@ fun AddSimpleItemDialog(title: String, onDismiss: () -> Unit, onAdd: (String, St
             }
         },
         confirmButton = {
-            Button(onClick = { onAdd(text, if (isVehicle) subtitle else null) }) {
+            Button(
+                onClick = { onAdd(text, if (isVehicle) subtitle else null, if (isVehicle) brand else null) },
+                enabled = text.isNotBlank()
+            ) {
                 Text(stringResource(R.string.button_add))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
+                Text(stringResource(id = R.string.button_cancel))
             }
         }
     )
@@ -265,10 +417,12 @@ fun EditSimpleItemDialog(
     onDismiss: () -> Unit,
     onSave: (SimpleItem) -> Unit,
     onDelete: () -> Unit,
-    isVehicle: Boolean
+    isVehicle: Boolean,
+    viewModel: FavouritesViewModel? = null
 ) {
     var text by remember(item) { mutableStateOf(item.title) }
     var subtitle by remember(item) { mutableStateOf(item.subtitle ?: "") }
+    var brand by remember(item) { mutableStateOf(item.brand ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -294,9 +448,24 @@ fun EditSimpleItemDialog(
                     value = text,
                     onValueChange = { text = it },
                     label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = text.isBlank()
                 )
-                if (isVehicle) {
+                if (isVehicle && viewModel != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    BrandSelectionField(
+                        viewModel = viewModel,
+                        onBrandSelected = { brand = it },
+                        initialBrand = brand
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ClearableTextField(
+                        value = subtitle,
+                        onValueChange = { subtitle = it },
+                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else if (isVehicle) {
                     Spacer(modifier = Modifier.height(8.dp))
                     ClearableTextField(
                         value = subtitle,
@@ -308,13 +477,16 @@ fun EditSimpleItemDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null)) }) {
+            Button(
+                onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null, brand = if (isVehicle) brand else null)) },
+                enabled = text.isNotBlank()
+            ) {
                 Text(stringResource(R.string.button_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
+                Text(stringResource(id = R.string.button_cancel))
             }
         }
     )
@@ -407,6 +579,18 @@ fun SimpleListItem(
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val localContext = LocalContext.current
+        val iconResId = item.brand?.let { CarBrandHelper.getBrandIconResId(localContext, it) } ?: 0
+        if (iconResId != 0) {
+            Icon(
+                painter = painterResource(id = iconResId),
+                contentDescription = null,
+                modifier = Modifier.size(32.dp).clickable(onClick = onEdit),
+                tint = Color.Unspecified
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+        }
+
         Column(
             modifier = Modifier.weight(1f).clickable(onClick = onEdit),
             verticalArrangement = Arrangement.spacedBy(4.dp)

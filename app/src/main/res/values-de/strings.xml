@@ -265,6 +265,7 @@
     <string name="favourites_add_vehicle_title">Fahrzeug hinzufügen</string>
     <string name="favourites_no_items">Noch keine Elemente.</string>
     <string name="favourites_license_plate_label">Kennzeichen</string>
+    <string name="favourites_car_brand_label">Marke</string>
     <string name="favourites_car_model_label">Automodell (optional)</string>
     <string name="backup_successful">Backup erfolgreich erstellt!</string>
     <string name="permission_dialog_title_location">Standortberechtigung</string>

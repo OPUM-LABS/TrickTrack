@@ -266,6 +266,7 @@
     <string name="favourites_add_vehicle_title">Ajouter un véhicule</string>
     <string name="favourites_no_items">Aucun élément pour le moment.</string>
     <string name="favourites_license_plate_label">Plaque d\'immatriculation</string>
+    <string name="favourites_car_brand_label">Marque</string>
     <string name="favourites_car_model_label">Modèle de voiture (facultatif)</string>
     <string name="backup_successful">Sauvegarde créée avec succès !</string>
     <string name="permission_dialog_title_location">Autorisation de localisation</string>

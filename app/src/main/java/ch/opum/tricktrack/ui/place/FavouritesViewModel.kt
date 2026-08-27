@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
+import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.CompanyDao
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DriverDao
@@ -19,6 +20,7 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -144,6 +146,22 @@ class FavouritesViewModel(
         .map { groupByName(it) { item -> item.licensePlate } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    private val _brandQuery = MutableStateFlow("")
+    val brandQuery: StateFlow<String> = _brandQuery.asStateFlow()
+
+    val filteredBrands: StateFlow<List<String>> = _brandQuery
+        .map { query: String ->
+            if (query.isBlank()) {
+                emptyList<String>()
+            } else {
+                CarBrandHelper.brands.filter { it.contains(query, ignoreCase = true) }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun updateBrandQuery(query: String) {
+        _brandQuery.value = query
+    }
 
     private val _addressSuggestions = MutableStateFlow<List<LocationSuggestion>>(emptyList())
     val addressSuggestions = _addressSuggestions.asStateFlow()
@@ -160,7 +178,7 @@ class FavouritesViewModel(
             return
         }
         searchJob = viewModelScope.launch(Dispatchers.IO) {
-            delay(300) // Debounce delay
+            delay(300.milliseconds) // Debounce delay
 
             val localPlaces = savedPlaceDao.getAll().first()
             val localSuggestions = localPlaces
@@ -186,7 +204,7 @@ class FavouritesViewModel(
                 // --- Get current location for bias ---
                 val lastLocation = try {
                     fusedLocationClient.lastLocation.await()
-                } catch (e: SecurityException) {
+                } catch (_: SecurityException) {
                     null
                 }
 
@@ -276,7 +294,7 @@ class FavouritesViewModel(
         _nameSuggestions.value = emptyList()
     }
 
-    fun addPlace(name: String, address: String, latitude: Double, longitude: Double) {
+    fun addPlace(name: String, latitude: Double, longitude: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             val canonicalAddress = geocoderHelper.getAddressFromLocation(latitude, longitude)
 
@@ -358,9 +376,9 @@ class FavouritesViewModel(
         }
     }
 
-    fun addVehicle(licensePlate: String, carModel: String?) {
+    fun addVehicle(licensePlate: String, carModel: String?, brand: String?) {
         viewModelScope.launch {
-            vehicleDao.insert(VehicleEntity(licensePlate = licensePlate, carModel = carModel))
+            vehicleDao.insert(VehicleEntity(licensePlate = licensePlate, carModel = carModel, brand = brand))
         }
     }
 

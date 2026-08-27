@@ -273,5 +273,6 @@
     <string name="favourites_add_vehicle_title">Add Vehicle</string>
     <string name="favourites_no_items">No items yet.</string>
     <string name="favourites_license_plate_label">License Plate</string>
+    <string name="favourites_car_brand_label">Brand</string>
     <string name="favourites_car_model_label">Car Model (Optional)</string>
 </resources>
