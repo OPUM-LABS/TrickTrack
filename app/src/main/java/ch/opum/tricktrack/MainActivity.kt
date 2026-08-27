@@ -398,7 +398,7 @@ fun MainScreen(
             onDismiss = { showAddEditPlaceDialog = false },
             onSave = { name, address, latitude, longitude ->
                 if (selectedPlaceToEdit == null) {
-                    favouritesViewModel.addPlace(name, address, latitude, longitude)
+                    favouritesViewModel.addPlace(name, latitude, longitude)
                 } else {
                     favouritesViewModel.updatePlace(
                         selectedPlaceToEdit!!,
