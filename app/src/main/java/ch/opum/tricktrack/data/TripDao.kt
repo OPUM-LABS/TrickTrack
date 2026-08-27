@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import ch.opum.tricktrack.data.Trip
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,11 +23,13 @@ interface TripDao {
     @Delete
     suspend fun deleteTrips(trips: List<Trip>)
 
+    @Transaction
     @Query("SELECT * FROM trips WHERE isConfirmed = 1 ORDER BY date DESC")
-    fun getConfirmedTrips(): Flow<List<Trip>>
+    fun getConfirmedTrips(): Flow<List<TripWithVehicle>>
 
+    @Transaction
     @Query("SELECT * FROM trips WHERE isConfirmed = 0 ORDER BY date DESC")
-    fun getUnconfirmedTrips(): Flow<List<Trip>>
+    fun getUnconfirmedTrips(): Flow<List<TripWithVehicle>>
 
     @Query("SELECT * FROM trips ORDER BY id DESC LIMIT 1")
     suspend fun getLastTrip(): Trip?

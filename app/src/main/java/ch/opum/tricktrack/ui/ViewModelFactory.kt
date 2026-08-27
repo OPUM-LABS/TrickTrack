@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.TripApplication
-import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.TripRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
 import ch.opum.tricktrack.data.repository.FavouritesRepository
@@ -24,8 +23,7 @@ class ViewModelFactory(
                 val geocoderHelper = GeocoderHelper(application.applicationContext)
                 val database = (application as TripApplication).database
                 val favouritesRepository = FavouritesRepository(database.driverDao(), database.companyDao(), database.vehicleDao())
-                val appPreferences = AppPreferences(application.applicationContext)
-                TripsViewModel(application, repository, userPreferencesRepository, geocoderHelper, favouritesRepository, appPreferences) as T
+                TripsViewModel(application, repository, userPreferencesRepository, geocoderHelper, favouritesRepository) as T
             }
             modelClass.isAssignableFrom(FavouritesViewModel::class.java) -> {
                 val database = (application as TripApplication).database

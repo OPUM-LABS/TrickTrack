@@ -19,12 +19,12 @@ import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
 import ch.opum.tricktrack.R
-import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.data.Trip
+import ch.opum.tricktrack.data.TripWithVehicle
 import ch.opum.tricktrack.data.TripRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
 import ch.opum.tricktrack.data.VehicleEntity
@@ -33,7 +33,6 @@ import ch.opum.tricktrack.data.repository.FavouritesRepository
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.settings.PermissionItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -55,6 +54,8 @@ import java.util.Calendar
 import java.util.Currency
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 enum class TripType {
     ALL, BUSINESS, PERSONAL
@@ -69,7 +70,7 @@ data class FilterState(
 
 data class TripGroup(
     val date: Long,
-    val trips: List<Trip>,
+    val trips: List<TripWithVehicle>,
     val totalDistance: Double
 )
 
@@ -78,8 +79,7 @@ class TripsViewModel(
     private val repository: TripRepository,
     val userPreferencesRepository: UserPreferencesRepository,
     private val geocoderHelper: GeocoderHelper, // Inject GeocoderHelper
-    private val favouritesRepository: FavouritesRepository,
-    private val appPreferences: AppPreferences
+    private val favouritesRepository: FavouritesRepository
 ) : AndroidViewModel(application) {
 
     private val distanceRepository = DistanceRepository(application)
@@ -98,7 +98,8 @@ class TripsViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val confirmedTrips = combine(repository.confirmedTrips, _filterState) { allTrips, filter ->
-        allTrips.filter { trip ->
+        allTrips.filter { tripWithVehicle ->
+            val trip = tripWithVehicle.trip
             val matchesType = when (filter.type) {
                 TripType.ALL -> true
                 TripType.BUSINESS -> trip.type == "Business"
@@ -140,7 +141,8 @@ class TripsViewModel(
         userPreferencesRepository.isSmartLocationEnabled,
         userPreferencesRepository.smartLocationRadius
     ) { trips, isSmartLocationEnabled, smartLocationRadius ->
-        trips.map { trip ->
+        trips.map { item ->
+            val trip = item.trip
             val smartStart = geocoderHelper.getSmartAddress(
                 originalAddress = trip.startLoc,
                 lat = trip.startLat,
@@ -158,11 +160,11 @@ class TripsViewModel(
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
-            trip.copy(startLoc = smartStart, endLoc = smartEnd)
+            item.copy(trip = trip.copy(startLoc = smartStart, endLoc = smartEnd))
         }.groupBy {
             // Normalize date to the start of the day
             val cal = Calendar.getInstance()
-            cal.time = it.date
+            cal.time = it.trip.date
             cal.set(Calendar.HOUR_OF_DAY, 0)
             cal.set(Calendar.MINUTE, 0)
             cal.set(Calendar.SECOND, 0)
@@ -172,7 +174,7 @@ class TripsViewModel(
             TripGroup(
                 date = date,
                 trips = tripsOnDate,
-                totalDistance = tripsOnDate.sumOf { it.distance }
+                totalDistance = tripsOnDate.sumOf { it.trip.distance }
             )
         }.sortedByDescending { it.date }
     }.stateIn(
@@ -181,7 +183,7 @@ class TripsViewModel(
         initialValue = emptyList()
     )
 
-    val unconfirmedTrips: StateFlow<List<Trip>> = repository.unconfirmedTrips
+    val unconfirmedTrips: StateFlow<List<TripWithVehicle>> = repository.unconfirmedTrips
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -193,7 +195,8 @@ class TripsViewModel(
         userPreferencesRepository.isSmartLocationEnabled,
         userPreferencesRepository.smartLocationRadius
     ) { trips, isSmartLocationEnabled, smartLocationRadius ->
-        trips.map { trip ->
+        trips.map { item ->
+            val trip = item.trip
             val smartStart = geocoderHelper.getSmartAddress(
                 originalAddress = trip.startLoc,
                 lat = trip.startLat,
@@ -211,11 +214,11 @@ class TripsViewModel(
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
-            trip.copy(startLoc = smartStart, endLoc = smartEnd)
+            item.copy(trip = trip.copy(startLoc = smartStart, endLoc = smartEnd))
         }.groupBy {
             // Normalize date to the start of the day
             val cal = Calendar.getInstance()
-            cal.time = it.date
+            cal.time = it.trip.date
             cal.set(Calendar.HOUR_OF_DAY, 0)
             cal.set(Calendar.MINUTE, 0)
             cal.set(Calendar.SECOND, 0)
@@ -224,8 +227,8 @@ class TripsViewModel(
         }.map { (date, tripsOnDate) ->
             TripGroup(
                 date = date,
-                trips = tripsOnDate.sortedByDescending { it.date },
-                totalDistance = tripsOnDate.sumOf { it.distance }
+                trips = tripsOnDate.sortedByDescending { it.trip.date },
+                totalDistance = tripsOnDate.sumOf { it.trip.distance }
             )
         }.sortedByDescending { it.date }
     }.stateIn(
@@ -236,7 +239,7 @@ class TripsViewModel(
 
     // New StateFlow for total distance label
     val totalDistanceLabel: StateFlow<String> = confirmedTrips.map { filteredTrips ->
-        val total = filteredTrips.sumOf { it.distance }
+        val total = filteredTrips.sumOf { it.trip.distance }
         "Total: %.1f km".format(total)
     }.stateIn(
         scope = viewModelScope,
@@ -300,12 +303,6 @@ class TripsViewModel(
     // Event to request background location permission from the UI
     private val _permissionEvent = MutableSharedFlow<Unit>()
     val permissionEvent: SharedFlow<Unit> = _permissionEvent.asSharedFlow()
-
-    // Flag to indicate if a permission request is pending due to auto-tracking toggle
-    private val _pendingPermissionRequest = MutableStateFlow(false)
-    val pendingPermissionRequest: StateFlow<Boolean> = _pendingPermissionRequest.asStateFlow()
-
-    private var distanceJob: Job? = null
 
     val selectedBluetoothDevices: StateFlow<Set<String>> =
         userPreferencesRepository.selectedBluetoothDevices
@@ -407,7 +404,7 @@ class TripsViewModel(
         expenseTrackingEnabled
     ) { trips, rate, enabled ->
         if (enabled) {
-            val totalDistanceKm = trips.sumOf { it.distance }.toFloat()
+            val totalDistanceKm = trips.sumOf { it.trip.distance }.toFloat()
             totalDistanceKm * rate
         } else {
             0.0f
@@ -504,8 +501,27 @@ class TripsViewModel(
             viewModelScope.launch(Dispatchers.IO) {
                 val geocoder = Geocoder(getApplication(), Locale.getDefault())
                 try {
-                    val startAddresses = geocoder.getFromLocationName(startAddress, 1)
-                    val endAddresses = geocoder.getFromLocationName(endAddress, 1)
+                    val startAddresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        suspendCancellableCoroutine { continuation ->
+                            geocoder.getFromLocationName(startAddress, 1) { addresses ->
+                                continuation.resume(addresses)
+                            }
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        geocoder.getFromLocationName(startAddress, 1)
+                    }
+
+                    val endAddresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        suspendCancellableCoroutine { continuation ->
+                            geocoder.getFromLocationName(endAddress, 1) { addresses ->
+                                continuation.resume(addresses)
+                            }
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        geocoder.getFromLocationName(endAddress, 1)
+                    }
 
                     if (startAddresses != null && endAddresses != null && startAddresses.isNotEmpty() && endAddresses.isNotEmpty()) {
                         val start = startAddresses[0]
@@ -601,8 +617,7 @@ class TripsViewModel(
     }
 
     fun onToggleAutoTracking(
-        checked: Boolean,
-        hasBackgroundLocationPermission: Boolean
+        checked: Boolean
     ) {
         viewModelScope.launch {
             userPreferencesRepository.setAutoTrackingEnabled(checked)
@@ -659,11 +674,6 @@ class TripsViewModel(
         }
     }
 
-    fun dismissSummaryDialog() {
-        showSummaryDialog = false
-        _distance.value = 0.0 // Reset distance after dismissing dialog
-    }
-
     suspend fun exportAllTripsToCsv(
         context: Context,
         driverName: String?,
@@ -700,7 +710,8 @@ class TripsViewModel(
 
         val csvHeader = headers.joinToString(",") + "\n"
 
-        val csvBody = trips.joinToString(separator = "\n") { trip ->
+        val csvBody = trips.joinToString(separator = "\n") { item ->
+            val trip = item.trip
             val row = mutableListOf<String>()
 
             if (columns.contains("DATE")) row.add(dateFormat.format(trip.date))
@@ -718,7 +729,7 @@ class TripsViewModel(
             }
             if (includeDriver) row.add(escape(driverName))
             if (includeCompany) row.add(escape(companyName))
-            if (includeVehicle) row.add(escape(vehicleName))
+            if (includeVehicle) row.add(escape(item.vehicle?.licensePlate ?: vehicleName))
             row.joinToString(",")
         }
 
@@ -750,7 +761,7 @@ class TripsViewModel(
             val pdfFile = withContext(Dispatchers.IO) {
                 PdfGenerator().generateTripReport(
                     context = context,
-                    trips = trips,
+                    trips = trips.map { it.trip },
                     columns = exportSettings,
                     isExpenseEnabled = isExpenseEnabled,
                     expenseRate = rate,

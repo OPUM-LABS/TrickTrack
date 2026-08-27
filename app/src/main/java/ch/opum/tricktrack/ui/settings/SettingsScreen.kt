@@ -533,10 +533,10 @@ fun SettingsScreen(
                             onCheckedChange = { enabled ->
                                 if (enabled) {
                                     permissionHelper(TrackingMode.AUTO) {
-                                        viewModel.onToggleAutoTracking(true, hasBackgroundLocationPermission(context))
+                                        viewModel.onToggleAutoTracking(true)
                                     }
                                 } else {
-                                    viewModel.onToggleAutoTracking(false, hasBackgroundLocationPermission(context))
+                                    viewModel.onToggleAutoTracking(false)
                                 }
                             },
                             enabled = isAutomaticSwitchEnabled

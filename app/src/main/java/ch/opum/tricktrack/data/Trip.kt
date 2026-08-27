@@ -39,5 +39,7 @@ data class Trip(
     val endLon: Double? = null,
     @SerializedName(value = "isAutomatic", alternate = ["n"])
     @ColumnInfo(defaultValue = "false")
-    val isAutomatic: Boolean = false
+    val isAutomatic: Boolean = false,
+    @SerializedName(value = "vehicleId", alternate = ["o"])
+    val vehicleId: Int? = null
 )

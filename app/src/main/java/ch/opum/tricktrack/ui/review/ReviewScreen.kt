@@ -55,9 +55,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
-import ch.opum.tricktrack.data.Trip
+import ch.opum.tricktrack.data.TripWithVehicle
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
+import ch.opum.tricktrack.ui.LicensePlateBadge
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -67,7 +68,7 @@ import androidx.compose.ui.platform.LocalLocale
 @Composable
 fun ReviewScreen(viewModel: TripsViewModel) {
     val groupedTrips by viewModel.groupedReviewTrips.collectAsState()
-    var showDeleteDialog by remember { mutableStateOf<Trip?>(null) }
+    var showDeleteDialog by remember { mutableStateOf<TripWithVehicle?>(null) }
 
     if (showDeleteDialog != null) {
         AlertDialog(
@@ -77,7 +78,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
             confirmButton = {
                 Button(
                     onClick = {
-                        showDeleteDialog?.let { viewModel.discardTrip(it) }
+                        showDeleteDialog?.let { viewModel.discardTrip(it.trip) }
                         showDeleteDialog = null
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
@@ -116,11 +117,11 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                         totalDistance = group.totalDistance
                     )
                 }
-                items(group.trips, key = { it.id }) { trip ->
+                items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
                     ReviewTripCard(
-                        trip = trip,
-                        onApprove = { finalType -> viewModel.approveTrip(trip, finalType) },
-                        onDiscard = { showDeleteDialog = trip },
+                        tripWithVehicle = tripWithVehicle,
+                        onApprove = { finalType -> viewModel.approveTrip(tripWithVehicle.trip, finalType) },
+                        onDiscard = { showDeleteDialog = tripWithVehicle },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
                 }
@@ -157,11 +158,12 @@ fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ReviewTripCard(
-    trip: Trip,
+    tripWithVehicle: TripWithVehicle,
     onApprove: (TripType) -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val trip = tripWithVehicle.trip
     var selectedType by remember { mutableStateOf(if (trip.type == "Business") TripType.BUSINESS else TripType.PERSONAL) }
     val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
     val icons = listOf(Icons.Default.Work, Icons.Default.Person)
@@ -177,13 +179,31 @@ fun ReviewTripCard(
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 12.dp)
             ) {
-                Text(
-                    text = "%.2f km".format(trip.distance),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.End)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = icons[if (selectedType == TripType.BUSINESS) 0 else 1],
+                            contentDescription = null,
+                            tint = if (selectedType == TripType.BUSINESS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        tripWithVehicle.vehicle?.let {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            LicensePlateBadge(it)
+                        }
+                    }
+
+                    Text(
+                        text = "%.2f km".format(trip.distance),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     tripTypes.forEachIndexed { index, label ->
                         SegmentedButton(

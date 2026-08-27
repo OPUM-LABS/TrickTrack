@@ -546,6 +546,7 @@ class LocationService : Service() {
             )
 
             val isBusinessDefault = userPreferencesRepository.defaultIsBusiness.first()
+            val defaultVehicleId = userPreferencesRepository.defaultVehicleId.first().takeIf { it != -1 }
             val tripType = if (isBusinessDefault) "Business" else "Personal"
 
             val isConfirmed = _currentTripTrigger.value == TripTrigger.MANUAL || isManualStop
@@ -559,7 +560,8 @@ class LocationService : Service() {
                 date = tripStartDate ?: Date(),
                 endDate = System.currentTimeMillis(),
                 isConfirmed = isConfirmed,
-                isAutomatic = _currentTripTrigger.value == TripTrigger.AUTOMATIC
+                isAutomatic = _currentTripTrigger.value == TripTrigger.AUTOMATIC,
+                vehicleId = defaultVehicleId
             )
             repository.insert(trip)
             AppLogger.log("LocationService", "Trip saved. Confirmed: $isConfirmed")

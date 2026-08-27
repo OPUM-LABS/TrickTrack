@@ -1,7 +1,6 @@
 package ch.opum.tricktrack
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -65,6 +64,9 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -104,6 +106,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -121,10 +124,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ch.opum.tricktrack.data.Trip
+import ch.opum.tricktrack.data.TripWithVehicle
+import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ExportFormatDialog
 import ch.opum.tricktrack.ui.FilterDialog
+import ch.opum.tricktrack.ui.LicensePlateBadge
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
@@ -146,20 +152,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
-
-// Extension function to check background location permission
-fun Context.hasBackgroundLocationPermission(): Boolean {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    } else {
-        // ACCESS_BACKGROUND_LOCATION permission does not exist below API 29.
-        // For older versions, ACCESS_FINE_LOCATION implicitly grants background access.
-        false
-    }
-}
 
 class MainActivity : ComponentActivity() {
 
@@ -798,7 +790,7 @@ fun TripScreen(
         groupedTrips.forEach { group ->
             stickyHeader {
                 val dailyTotalCost = if (expenseTrackingEnabled) {
-                    group.trips.sumOf { it.distance }.toFloat() * expenseRatePerKm
+                    group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
                 } else {
                     0.0f
                 }
@@ -839,10 +831,10 @@ fun TripScreen(
                     }
                 }
             }
-            items(group.trips) { trip ->
+            items(group.trips) { tripWithVehicle ->
                 TripItem(
-                    trip = trip,
-                    onClick = { onTripClick(trip) },
+                    tripWithVehicle = tripWithVehicle,
+                    onClick = { onTripClick(tripWithVehicle.trip) },
                     expenseTrackingEnabled = expenseTrackingEnabled,
                     expenseRatePerKm = expenseRatePerKm,
                     expenseCurrency = expenseCurrency
@@ -877,6 +869,13 @@ fun EditTripDialog(
     }
     var description by remember { mutableStateOf(trip?.description ?: "") }
     var isError by remember { mutableStateOf(false) }
+
+    val allVehicles by tripsViewModel.allVehicles.collectAsState()
+    var selectedVehicle by remember(trip, allVehicles) {
+        mutableStateOf(trip?.vehicleId?.let { id -> allVehicles.find { it.id == id } }
+            ?: tripsViewModel.selectedVehicle)
+    }
+    var vehicleExpanded by remember { mutableStateOf(false) }
 
     // Use the ViewModel's distanceInput for the text field
     var distanceText by remember(tripsViewModel.distanceInput) { mutableStateOf(tripsViewModel.distanceInput) }
@@ -1267,6 +1266,67 @@ fun EditTripDialog(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = vehicleExpanded,
+                    onExpandedChange = { vehicleExpanded = it }
+                ) {
+                    val context = LocalContext.current
+                    OutlinedTextField(
+                        value = selectedVehicle?.licensePlate ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded) },
+                        leadingIcon = {
+                            val iconResId = selectedVehicle?.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                            if (iconResId != 0) {
+                                Icon(
+                                    painter = painterResource(id = iconResId),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            } else {
+                                Icon(Icons.Default.DirectionsCar, contentDescription = null)
+                            }
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = vehicleExpanded,
+                        onDismissRequest = { vehicleExpanded = false }
+                    ) {
+                        allVehicles.forEach { vehicle ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                                        if (itemIconResId != 0) {
+                                            Icon(
+                                                painter = painterResource(id = itemIconResId),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                                tint = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                        }
+                                        Text(vehicle.licensePlate)
+                                    }
+                                },
+                                onClick = {
+                                    selectedVehicle = vehicle
+                                    vehicleExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
                 ClearableTextField( // Using ClearableTextField
                     value = description,
@@ -1301,7 +1361,8 @@ fun EditTripDialog(
                         startLat = startLat,
                         startLon = startLon,
                         endLat = endLat,
-                        endLon = endLon
+                        endLon = endLon,
+                        vehicleId = selectedVehicle?.id
                     ) ?: Trip(
                         startLoc = startText, // Pass String directly
                         endLoc = endText, // Pass String directly
@@ -1314,7 +1375,8 @@ fun EditTripDialog(
                         startLon = startLon,
                         endLat = endLat,
                         endLon = endLon,
-                        isConfirmed = true // Default for manual add/edit
+                        isConfirmed = true, // Default for manual add/edit
+                        vehicleId = selectedVehicle?.id
                     )
                     onSave(tripToSave)
                 }
@@ -1436,12 +1498,13 @@ fun TripSummaryDialog(
 
 @Composable
 fun TripItem(
-    trip: Trip,
+    tripWithVehicle: TripWithVehicle,
     onClick: () -> Unit,
     expenseTrackingEnabled: Boolean,
     expenseRatePerKm: Float,
     expenseCurrency: String
 ) {
+    val trip = tripWithVehicle.trip
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1471,14 +1534,12 @@ fun TripItem(
                             tint = typeColor,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (isBusiness) stringResource(R.string.trip_type_business) else stringResource(R.string.trip_type_personal),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = typeColor
-                        )
+                        tripWithVehicle.vehicle?.let {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            LicensePlateBadge(it)
+                        }
                     }
+
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = stringResource(R.string.trip_distance_label, trip.distance),

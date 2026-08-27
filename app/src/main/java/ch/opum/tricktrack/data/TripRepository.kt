@@ -1,10 +1,6 @@
 package ch.opum.tricktrack.data
 
-import ch.opum.tricktrack.data.CompanyEntity
-import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.place.SavedPlace
-import ch.opum.tricktrack.data.Trip
-import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.data.place.SavedPlaceDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -17,8 +13,8 @@ class TripRepository(
     private val vehicleDao: VehicleDao
 ) {
 
-    val confirmedTrips: Flow<List<Trip>> = tripDao.getConfirmedTrips()
-    val unconfirmedTrips: Flow<List<Trip>> = tripDao.getUnconfirmedTrips()
+    val confirmedTrips: Flow<List<TripWithVehicle>> = tripDao.getConfirmedTrips()
+    val unconfirmedTrips: Flow<List<TripWithVehicle>> = tripDao.getUnconfirmedTrips()
 
     fun getAllSavedPlaces(): Flow<List<SavedPlace>> {
         return savedPlaceDao.getAll()
@@ -42,8 +38,8 @@ class TripRepository(
         tripDao.delete(trip)
     }
 
-    suspend fun deleteTrips(trips: List<Trip>) {
-        tripDao.deleteTrips(trips)
+    suspend fun deleteTrips(trips: List<TripWithVehicle>) {
+        tripDao.deleteTrips(trips.map { it.trip })
     }
 
     suspend fun getTripsForBackup(): List<Trip> {
