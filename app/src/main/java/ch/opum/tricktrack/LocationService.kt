@@ -27,9 +27,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -62,7 +60,7 @@ class LocationService : Service() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        createNotificationChannel()
+        createNotificationChannels()
         TripNotificationManager.createNotificationChannel(this)
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
@@ -112,7 +110,7 @@ class LocationService : Service() {
             }
             ACTION_STOP -> { // Manual stop from UI or stillness timer
                 applicationScope.launch {
-                    stopTripAndPrepareForSummary(true)
+                    stopTripAndPrepareForSummary()
                 }
             }
             ACTION_STOP_MONITORING -> { // Explicit stop monitoring command
@@ -166,7 +164,7 @@ class LocationService : Service() {
             // A trip is active (and not manual), but Bluetooth conditions are no longer met.
             // Or, if it was an auto trip and auto tracking is now disabled.
             AppLogger.log("LocationService", "Trip active, but conditions no longer met. Stopping trip.")
-            stopTripAndPrepareForSummary(false) // This will call evaluateTrackingState again, which will then decide the next state.
+            stopTripAndPrepareForSummary() // This will call evaluateTrackingState again, which will then decide the next state.
         } else if (shouldAutoTrackBeActive) {
             // Auto tracking conditions met, start monitoring
             AppLogger.log("LocationService", "Auto tracking enabled. Starting/Continuing monitoring.")
@@ -223,11 +221,12 @@ class LocationService : Service() {
         previousMonitoringLocation = null
         highSpeedCounter = 0
         AppLogger.log("LocationService", "Starting monitoring and resetting state.")
-        val notification = NotificationCompat.Builder(this, "location_service_channel")
+        val notification = NotificationCompat.Builder(this, "monitoring_channel")
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.waiting_for_movement))
             .setSmallIcon(R.drawable.tricktrack_outline)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -428,7 +427,7 @@ class LocationService : Service() {
 
         val notificationText = getString(R.string.tracking_is_running, distance / 1000.0)
 
-        return NotificationCompat.Builder(this, "location_service_channel")
+        return NotificationCompat.Builder(this, "tracking_channel")
             .setContentTitle(getString(R.string.app_name))
             .setContentText(notificationText)
             .setSmallIcon(R.drawable.tricktrack_logo)
@@ -478,12 +477,12 @@ class LocationService : Service() {
         AppLogger.log("LocationService", "Stopping automatic trip and saving for review.")
         _isTracking.value = false
         applicationScope.launch {
-            saveTrip(isManualStop = false)
+            saveTrip()
             evaluateTrackingState() // Re-evaluate state after trip ends
         }
     }
 
-    private suspend fun stopTripAndPrepareForSummary(isManualStop: Boolean) {
+    private suspend fun stopTripAndPrepareForSummary() {
         AppLogger.log("LocationService", "Stopping trip for summary.")
         val wasTracking = _isTracking.value
         _isTracking.value = false
@@ -492,14 +491,14 @@ class LocationService : Service() {
         isManualTrip = false
         isBluetoothTriggeredTrip = false
         if (wasTracking) {
-            saveTrip(isManualStop)
+            saveTrip()
         }
         applicationScope.launch {
             evaluateTrackingState() // Re-evaluate state after trip ends
         }
     }
 
-    private suspend fun saveTrip(isManualStop: Boolean) {
+    private suspend fun saveTrip() {
         val finalDistance = _distance.value
         if (finalDistance > 100) { // Only save if distance is more than 100 meters
             val startLocation = _startLocation.value
@@ -540,7 +539,7 @@ class LocationService : Service() {
             val defaultVehicleId = userPreferencesRepository.defaultVehicleId.first().takeIf { it != -1 }
             val tripType = if (isBusinessDefault) "Business" else "Personal"
 
-            val isConfirmed = _currentTripTrigger.value == TripTrigger.MANUAL || isManualStop
+            val isConfirmed = _currentTripTrigger.value == TripTrigger.MANUAL
 
             val trip = Trip(
                 startLoc = startAddress,
@@ -555,7 +554,7 @@ class LocationService : Service() {
                 vehicleId = defaultVehicleId
             )
             repository.insert(trip)
-            AppLogger.log("LocationService", "Trip saved. Confirmed: $isConfirmed")
+            AppLogger.log("LocationService", "Trip saved. Trigger: ${_currentTripTrigger.value}, Confirmed: $isConfirmed")
 
             if (!isConfirmed) {
                 TripNotificationManager.sendTripReviewNotification(applicationContext, trip)
@@ -578,16 +577,26 @@ class LocationService : Service() {
         AppLogger.log("LocationService", "Service destroyed.")
     }
 
-    private fun createNotificationChannel() {
-        val name = "Location Service"
-        val descriptionText = "Channel for location service"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel("location_service_channel", name, importance).apply {
-            description = descriptionText
+    private fun createNotificationChannels() {
+        val trackingName = "Trip Tracking"
+        val trackingDesc = "Active trip tracking updates"
+        val trackingImportance = NotificationManager.IMPORTANCE_DEFAULT
+        val trackingChannel = NotificationChannel("tracking_channel", trackingName, trackingImportance).apply {
+            description = trackingDesc
         }
+
+        val monitoringName = "Background Service"
+        val monitoringDesc = "Background movement detection"
+        val monitoringImportance = NotificationManager.IMPORTANCE_LOW
+        val monitoringChannel = NotificationChannel("monitoring_channel", monitoringName, monitoringImportance).apply {
+            description = monitoringDesc
+            setShowBadge(false)
+        }
+
         val notificationManager: NotificationManager =
             getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(trackingChannel)
+        notificationManager.createNotificationChannel(monitoringChannel)
     }
 
     companion object {
@@ -611,9 +620,6 @@ class LocationService : Service() {
         val isTracking = _isTracking.asStateFlow()
 
         private val _currentTripTrigger = MutableStateFlow(TripTrigger.MANUAL)
-
-        private val _tripSavedForSummary = MutableSharedFlow<Trip>()
-        val tripSavedForSummary = _tripSavedForSummary.asSharedFlow()
     }
 }
 

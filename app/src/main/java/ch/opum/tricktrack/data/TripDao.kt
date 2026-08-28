@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TripDao {
     @Insert
-    suspend fun insert(trip: Trip)
+    suspend fun insert(trip: Trip): Long
+
+    @Query("SELECT * FROM trips WHERE id = :id")
+    suspend fun getTripById(id: Long): Trip?
 
     @Update
     suspend fun update(trip: Trip)

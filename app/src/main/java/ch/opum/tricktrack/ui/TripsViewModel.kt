@@ -265,9 +265,6 @@ class TripsViewModel(
             initialValue = false
         )
 
-    var showSummaryDialog by mutableStateOf(false)
-        private set
-
     // Changed distance to StateFlow
     private val _distance = MutableStateFlow(0.0)
     val distance: StateFlow<Double> = _distance.asStateFlow()
@@ -489,9 +486,6 @@ class TripsViewModel(
     private val _pdfFileCreated = MutableSharedFlow<Uri>()
     val pdfFileCreated: SharedFlow<Uri> = _pdfFileCreated.asSharedFlow()
 
-    private val _showTripSummaryDialog = MutableSharedFlow<Trip>()
-    val showTripSummaryDialog: SharedFlow<Trip> = _showTripSummaryDialog.asSharedFlow()
-
     val allDrivers: StateFlow<List<DriverEntity>> = favouritesRepository.getAllDrivers()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val allCompanies: StateFlow<List<CompanyEntity>> = favouritesRepository.getAllCompanies()
@@ -522,12 +516,6 @@ class TripsViewModel(
         viewModelScope.launch {
             LocationService.distance.collect { newDistance ->
                 _distance.value = newDistance // Update the StateFlow
-            }
-        }
-
-        viewModelScope.launch {
-            LocationService.tripSavedForSummary.collect { trip ->
-                _showTripSummaryDialog.emit(trip)
             }
         }
 
@@ -696,7 +684,6 @@ class TripsViewModel(
                 repository.updateTrip(trip)
             }
         }
-        showSummaryDialog = false
         _distance.value = 0.0 // Reset distance after adding trip
     }
 

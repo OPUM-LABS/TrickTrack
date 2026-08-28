@@ -26,8 +26,12 @@ class TripRepository(
         return savedPlaceDao.getAll().first()
     }
 
-    suspend fun insert(trip: Trip) {
-        tripDao.insert(trip)
+    suspend fun insert(trip: Trip): Long {
+        return tripDao.insert(trip)
+    }
+
+    suspend fun getTripById(id: Long): Trip? {
+        return tripDao.getTripById(id)
     }
 
     suspend fun updateTrip(trip: Trip) {

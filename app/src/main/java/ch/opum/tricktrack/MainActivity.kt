@@ -238,9 +238,6 @@ fun MainScreen(
 
     val latestIntent by currentIntent.collectAsState()
 
-    var showSummaryDialog by remember { mutableStateOf(false) }
-    var tripToSummarize by remember { mutableStateOf<Trip?>(null) }
-
     LaunchedEffect(Unit) {
         tripsViewModel.pdfFileCreated.collect { uri ->
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -257,17 +254,17 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        tripsViewModel.showTripSummaryDialog.collectLatest { trip ->
-            tripToSummarize = trip
-            showSummaryDialog = true
-        }
-    }
-
     LaunchedEffect(latestIntent) {
         latestIntent?.let { intent ->
             if (intent.action == LocationService.ACTION_STOP) {
                 tripsViewModel.stopTracking()
+                navController.navigate(Screen.Review.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
                 // Consume the action so it doesn't trigger again
                 intent.action = null
             } else if (intent.getBooleanExtra("NAVIGATE_TO_REVIEW", false)) {
@@ -350,22 +347,6 @@ fun MainScreen(
         )
     }
 
-    if (showSummaryDialog) {
-        val defaultIsBusiness by tripsViewModel.defaultIsBusiness.collectAsState()
-        TripSummaryDialog(
-            trip = tripToSummarize,
-            distance = distance,
-            startAddress = tripToSummarize?.startLoc ?: "",
-            endAddress = tripToSummarize?.endLoc ?: "",
-            defaultIsBusiness = defaultIsBusiness,
-            onDismiss = { showSummaryDialog = false },
-            onSave = { trip ->
-                tripsViewModel.saveOrUpdateTrip(trip)
-                showSummaryDialog = false
-            },
-            tripsViewModel = tripsViewModel
-        )
-    }
 
     selectedTripToEdit?.let { trip ->
         EditTripDialog(
@@ -599,7 +580,8 @@ fun MainScreen(
                                 Manifest.permission.ACCESS_COARSE_LOCATION
                             )
                         )
-                    }
+                    },
+                    navController = navController
                 )
             }
             composable(Screen.PlacesList.route) {
@@ -631,7 +613,8 @@ fun TripScreen(
     tripsViewModel: TripsViewModel,
     onTripClick: (Trip) -> Unit,
     totalDistanceLabel: String,
-    onStartTrip: () -> Unit
+    onStartTrip: () -> Unit,
+    navController: androidx.navigation.NavHostController
 ) {
     val groupedTrips by tripsViewModel.groupedTrips.collectAsState()
     val isFilterActive by tripsViewModel.isFilterActive.collectAsState()
@@ -681,6 +664,13 @@ fun TripScreen(
                     onClick = {
                         if (isTracking) {
                             tripsViewModel.stopTracking()
+                            navController.navigate(Screen.Review.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         } else {
                             onStartTrip()
                         }
@@ -1479,279 +1469,6 @@ fun EditTripDialog(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TripSummaryDialog(
-    trip: Trip?,
-    distance: Double,
-    startAddress: String,
-    endAddress: String,
-    defaultIsBusiness: Boolean,
-    onDismiss: () -> Unit,
-    onSave: (Trip) -> Unit,
-    tripsViewModel: TripsViewModel
-) {
-    var start by remember { mutableStateOf(startAddress) }
-    var end by remember { mutableStateOf(endAddress) }
-    var tripType by remember { mutableStateOf(if (defaultIsBusiness) "Business" else "Personal") }
-    var description by remember { mutableStateOf("") }
-
-    val isOdometerModeEnabled by tripsViewModel.isOdometerModeEnabled.collectAsState()
-    var odometerText by remember(trip) {
-        mutableStateOf(trip?.endOdometer?.toLong()?.toString() ?: "")
-    }
-
-    val allVehicles by tripsViewModel.allVehicles.collectAsState()
-    var selectedVehicle by remember(allVehicles) {
-        mutableStateOf(tripsViewModel.selectedVehicle)
-    }
-    var vehicleExpanded by remember { mutableStateOf(false) }
-
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Text(
-                text = stringResource(R.string.trip_summary_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            if (isOdometerModeEnabled) {
-                OutlinedTextField(
-                    value = odometerText,
-                    onValueChange = {
-                        if (it.length <= 8 && it.all { char -> char.isDigit() }) {
-                            odometerText = it
-                        }
-                    },
-                    label = { Text(stringResource(R.string.end_odometer_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    visualTransformation = ThousandsSeparatorTransformation(),
-                    suffix = { Text("km") },
-                    trailingIcon = {
-                        if (odometerText.isNotEmpty()) {
-                            IconButton(onClick = { odometerText = "" }) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = stringResource(R.string.clear_text)
-                                )
-                            }
-                        }
-                    }
-                )
-                if (selectedVehicle != null) {
-                    val endOdo = odometerText.toDoubleOrNull() ?: 0.0
-                    val calcDistance =
-                        (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
-                    Text(
-                        text = "Calculated: %.2f km".format(calcDistance),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            } else {
-                Text(
-                    text = stringResource(R.string.total_distance_label, distance / 1000.0),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            ClearableTextField( // Using ClearableTextField
-                value = start,
-                onValueChange = { start = it },
-                label = { Text(stringResource(R.string.start_address_label)) })
-            Spacer(modifier = Modifier.height(8.dp))
-            ClearableTextField( // Using ClearableTextField
-                value = end,
-                onValueChange = { end = it },
-                label = { Text(stringResource(R.string.end_address_label)) })
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ExposedDropdownMenuBox(
-                expanded = vehicleExpanded,
-                onExpandedChange = { vehicleExpanded = it }
-            ) {
-                val context = LocalContext.current
-                OutlinedTextField(
-                    value = selectedVehicle?.licensePlate ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
-                    trailingIcon = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (selectedVehicle != null) {
-                                IconButton(onClick = { selectedVehicle = null }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.clear_text)
-                                    )
-                                }
-                            }
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
-                        }
-                    },
-                    leadingIcon = {
-                        val iconResId = selectedVehicle?.brand?.let {
-                            CarBrandHelper.getBrandIconResId(
-                                context,
-                                it
-                            )
-                        } ?: 0
-                        if (iconResId != 0) {
-                            Icon(
-                                painter = painterResource(id = iconResId),
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        } else {
-                            Icon(Icons.Default.DirectionsCar, contentDescription = null)
-                        }
-                    },
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                )
-                ExposedDropdownMenu(
-                    expanded = vehicleExpanded,
-                    onDismissRequest = { vehicleExpanded = false }
-                ) {
-                    allVehicles.forEach { vehicle ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    val itemIconResId = vehicle.brand?.let {
-                                        CarBrandHelper.getBrandIconResId(
-                                            context,
-                                            it
-                                        )
-                                    } ?: 0
-                                    if (itemIconResId != 0) {
-                                        Icon(
-                                            painter = painterResource(id = itemIconResId),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp),
-                                            tint = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                    }
-                                    Text(vehicle.licensePlate)
-                                }
-                            },
-                            onClick = {
-                                selectedVehicle = vehicle
-                                vehicleExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            val tripTypes = listOf(
-                stringResource(R.string.trip_type_business),
-                stringResource(R.string.trip_type_personal)
-            )
-            val icons = listOf(Icons.Default.Work, Icons.Default.Person)
-
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                tripTypes.forEachIndexed { index, label ->
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = tripTypes.size
-                        ),
-                        onClick = { tripType = if (index == 0) "Business" else "Personal" },
-                        selected = (if (index == 0) "Business" else "Personal") == tripType,
-                        icon = {
-                            Icon(
-                                imageVector = icons[index],
-                                contentDescription = label,
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                        }
-                    ) {
-                        Text(label)
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            ClearableTextField( // Using ClearableTextField
-                value = description,
-                onValueChange = { description = it },
-                label = { Text(stringResource(R.string.description_optional_label)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                DialogDeclineButton(onClick = onDismiss)
-                Spacer(modifier = Modifier.width(12.dp))
-                DialogAcceptButton(onClick = {
-                    val updatedDistance = if (isOdometerModeEnabled) {
-                        val endOdo = odometerText.toDoubleOrNull() ?: 0.0
-                        if (selectedVehicle != null) {
-                            (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
-                        } else {
-                            distance / 1000.0
-                        }
-                    } else {
-                        distance / 1000.0
-                    }
-
-                    val tripToSave = trip?.copy(
-                        startLoc = start,
-                        endLoc = end,
-                        type = tripType,
-                        description = description,
-                        distance = updatedDistance,
-                        vehicleId = selectedVehicle?.id,
-                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
-                    ) ?: Trip(
-                        startLoc = start,
-                        endLoc = end,
-                        distance = updatedDistance,
-                        type = tripType,
-                        description = description,
-                        date = Date(),
-                        endDate = Date().time,
-                        isConfirmed = true,
-                        vehicleId = selectedVehicle?.id,
-                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
-                    )
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            onSave(tripToSave)
-                        }
-                    }
-                })
-            }
-        }
-    }
-}
 
 @Composable
 fun TripItem(
