@@ -281,4 +281,6 @@
     <string name="end_odometer_label">End Odometer</string>
     <string name="vehicles_selected_count">%1$d vehicles selected</string>
     <string name="filter_date_range_label">Date Range</string>
+    <string name="schedule_status_active">Active</string>
+    <string name="schedule_status_inactive">Inactive</string>
 </resources>

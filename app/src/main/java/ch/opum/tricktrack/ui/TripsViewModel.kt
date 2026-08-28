@@ -39,17 +39,21 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.seconds
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Currency
 import java.util.Date
@@ -282,29 +286,11 @@ class TripsViewModel(
             initialValue = ScheduleSettings(ScheduleTarget.AUTOMATIC, emptyMap())
         )
 
-    val isAutoTrackingEnabled: StateFlow<Boolean> = combine(
-        userPreferencesRepository.isAutoTrackingEnabled,
-        isScheduleEnabled,
-        scheduleSettings
-    ) { isAutoTracking, isSchedule, settings ->
-        if (isSchedule) {
-            settings.target == ScheduleTarget.AUTOMATIC || settings.target == ScheduleTarget.BOTH
-        } else {
-            isAutoTracking
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val isAutoTrackingEnabled: StateFlow<Boolean> = userPreferencesRepository.isAutoTrackingEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val isBluetoothTriggerEnabled: StateFlow<Boolean> = combine(
-        userPreferencesRepository.bluetoothTriggerEnabled,
-        isScheduleEnabled,
-        scheduleSettings
-    ) { isBluetoothOn, isSchedule, settings ->
-        if (isSchedule) {
-            settings.target == ScheduleTarget.BLUETOOTH || settings.target == ScheduleTarget.BOTH
-        } else {
-            isBluetoothOn
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val isBluetoothTriggerEnabled: StateFlow<Boolean> = userPreferencesRepository.bluetoothTriggerEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
 
     // Event to request background location permission from the UI
@@ -376,20 +362,6 @@ class TripsViewModel(
             initialValue = 150
         )
 
-    val isAutomaticSwitchEnabled: StateFlow<Boolean> = isScheduleEnabled.map { !it }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val isBluetoothSwitchEnabled: StateFlow<Boolean> = isScheduleEnabled.map { !it }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    val isBluetoothDeviceSelectionEnabled: StateFlow<Boolean> = combine(
-        isBluetoothTriggerEnabled,
-        isScheduleEnabled,
-        scheduleSettings
-    ) { isBluetoothEnabled, isScheduleEnabled, settings ->
-        isBluetoothEnabled || (isScheduleEnabled && (settings.target == ScheduleTarget.BLUETOOTH || settings.target == ScheduleTarget.BOTH))
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
     val stillnessTimer: StateFlow<Int> = userPreferencesRepository.stillnessTimer
         .stateIn(
             scope = viewModelScope,
@@ -410,6 +382,42 @@ class TripsViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = false
         )
+
+    private val scheduleTicker = flow {
+        while (true) {
+            emit(Unit)
+            delay(30.seconds) // Update every 30 seconds
+        }
+    }
+
+    val isScheduleActive: StateFlow<Boolean> = combine(
+        isScheduleEnabled,
+        scheduleSettings,
+        scheduleTicker
+    ) { enabled, settings, _ ->
+        if (!enabled) return@combine true
+        
+        val now = Calendar.getInstance()
+        val dayOfWeek = when (now.get(Calendar.DAY_OF_WEEK)) {
+            Calendar.MONDAY -> java.time.DayOfWeek.MONDAY
+            Calendar.TUESDAY -> java.time.DayOfWeek.TUESDAY
+            Calendar.WEDNESDAY -> java.time.DayOfWeek.WEDNESDAY
+            Calendar.THURSDAY -> java.time.DayOfWeek.THURSDAY
+            Calendar.FRIDAY -> java.time.DayOfWeek.FRIDAY
+            Calendar.SATURDAY -> java.time.DayOfWeek.SATURDAY
+            Calendar.SUNDAY -> java.time.DayOfWeek.SUNDAY
+            else -> return@combine true
+        }
+        
+        val daySchedule = settings.dailySchedules[dayOfWeek] ?: return@combine true
+        if (!daySchedule.isEnabled) return@combine false
+        
+        val currentTime = LocalTime.of(now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
+        val startTime = LocalTime.of(daySchedule.startHour, daySchedule.startMinute)
+        val endTime = LocalTime.of(daySchedule.endHour, daySchedule.endMinute)
+        
+        !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     // New: Total Expense for the entire filtered list
     val totalExpense: StateFlow<Float> = combine(

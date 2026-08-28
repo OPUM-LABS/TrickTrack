@@ -274,6 +274,8 @@
     <string name="end_odometer_label">Chilometraggio finale</string>
     <string name="vehicles_selected_count">%1$d veicoli selezionati</string>
     <string name="filter_date_range_label">Intervallo di date</string>
+    <string name="schedule_status_active">Attivo</string>
+    <string name="schedule_status_inactive">Inattivo</string>
     <string name="backup_successful">Backup creato con successo!</string>
     <string name="permission_dialog_title_location">Autorizzazione alla localizzazione</string>
     <string name="permission_dialog_message_location">Questa funzione richiede l\'autorizzazione alla localizzazione per tracciare i tuoi spostamenti. Concedi l\'autorizzazione.</string>

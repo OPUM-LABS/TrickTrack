@@ -17,7 +17,6 @@ import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.TripTrigger
@@ -135,8 +134,6 @@ class LocationService : Service() {
         val isBtTriggerEnabled = userPreferencesRepository.bluetoothTriggerEnabled.first()
         val isAutoTrackingEnabled = userPreferencesRepository.isAutoTrackingEnabled.first()
         val isScheduleEnabled = userPreferencesRepository.isScheduleEnabled.first()
-        val scheduleSettings = userPreferencesRepository.scheduleSettings.first()
-        val scheduleTarget = scheduleSettings.target
 
         val selectedDevices = userPreferencesRepository.selectedBluetoothDevices.first()
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
@@ -144,16 +141,10 @@ class LocationService : Service() {
         val isAnySelectedDeviceConnected = selectedDevices.any { bluetoothRepository.isDeviceConnected(it) } || isCarMode
         
         // Determine if Bluetooth or Auto tracking should be active based on schedule or direct settings
-        val shouldBluetoothBeActive = if (isScheduleEnabled) {
-            isWithinSchedule() && (scheduleTarget == ScheduleTarget.BLUETOOTH || scheduleTarget == ScheduleTarget.BOTH)
-        } else {
-            isBtTriggerEnabled
-        }
-        val shouldAutoTrackBeActive = if (isScheduleEnabled) {
-            isWithinSchedule() && (scheduleTarget == ScheduleTarget.AUTOMATIC || scheduleTarget == ScheduleTarget.BOTH)
-        } else {
-            isAutoTrackingEnabled
-        }
+        val isWithinSchedule = if (isScheduleEnabled) isWithinSchedule() else true
+
+        val shouldBluetoothBeActive = isBtTriggerEnabled && isWithinSchedule
+        val shouldAutoTrackBeActive = isAutoTrackingEnabled && isWithinSchedule
 
         AppLogger.log("LocationService", "Evaluating tracking state:")
         AppLogger.log("LocationService", "  shouldBluetoothBeActive: $shouldBluetoothBeActive")

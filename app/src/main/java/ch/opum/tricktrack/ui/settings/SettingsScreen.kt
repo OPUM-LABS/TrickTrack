@@ -89,6 +89,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -327,10 +328,6 @@ fun SettingsScreen(
     val isSmartLocationEnabled by viewModel.isSmartLocationEnabled.collectAsState()
     val smartLocationRadius by viewModel.smartLocationRadius.collectAsState()
     val isScheduleEnabled by viewModel.isScheduleEnabled.collectAsState()
-    val scheduleSettings by viewModel.scheduleSettings.collectAsState()
-    val isAutomaticSwitchEnabled by viewModel.isAutomaticSwitchEnabled.collectAsState()
-    val isBluetoothSwitchEnabled by viewModel.isBluetoothSwitchEnabled.collectAsState()
-    val isBluetoothDeviceSelectionEnabled by viewModel.isBluetoothDeviceSelectionEnabled.collectAsState()
     val stillnessTimer by viewModel.stillnessTimer.collectAsState()
     val minSpeed by viewModel.minSpeed.collectAsState()
     var pairedDevices by remember { mutableStateOf<Set<BluetoothDevice>>(emptySet()) }
@@ -538,17 +535,8 @@ fun SettingsScreen(
                             Text(
                                 stringResource(R.string.settings_automatic_tracking_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (!isAutomaticSwitchEnabled) MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.38f
-                                ) else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            if (!isAutomaticSwitchEnabled) {
-                                Text(
-                                    stringResource(R.string.settings_controlled_by_schedule),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
                         }
                         Switch(
                             checked = isAutoTrackingEnabled,
@@ -560,8 +548,7 @@ fun SettingsScreen(
                                 } else {
                                     viewModel.onToggleAutoTracking(false)
                                 }
-                            },
-                            enabled = isAutomaticSwitchEnabled
+                            }
                         )
                     }
                     if (isAutoTrackingEnabled && !isBatteryOptimizationIgnored) {
@@ -587,17 +574,8 @@ fun SettingsScreen(
                             Text(
                                 stringResource(R.string.settings_bluetooth_trigger_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (!isBluetoothSwitchEnabled) MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.38f
-                                ) else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            if (!isBluetoothSwitchEnabled) {
-                                Text(
-                                    stringResource(R.string.settings_controlled_by_schedule),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
                         }
                         Switch(
                             checked = isBluetoothTriggerEnabled,
@@ -609,12 +587,11 @@ fun SettingsScreen(
                                 } else {
                                     viewModel.setBluetoothTriggerEnabled(false)
                                 }
-                            },
-                            enabled = isBluetoothSwitchEnabled
+                            }
                         )
                     }
 
-                    if (isBluetoothDeviceSelectionEnabled) {
+                    if (isBluetoothTriggerEnabled) {
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
                             onClick = { showDeviceDialog = true },
@@ -641,7 +618,31 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.settings_enable_schedule_title))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.settings_enable_schedule_title))
+                                val isScheduleActive by viewModel.isScheduleActive.collectAsState()
+                                if (isScheduleEnabled) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = if (isScheduleActive) 
+                                            Color(0xFF4CAF50).copy(alpha = 0.1f) 
+                                            else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                                    ) {
+                                        Text(
+                                            text = if (isScheduleActive) 
+                                                stringResource(R.string.schedule_status_active) 
+                                                else stringResource(R.string.schedule_status_inactive),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = if (isScheduleActive) 
+                                                Color(0xFF2E7D32) 
+                                                else MaterialTheme.colorScheme.onErrorContainer,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
                             Text(
                                 stringResource(R.string.settings_enable_schedule_description),
                                 style = MaterialTheme.typography.bodySmall,
@@ -651,18 +652,7 @@ fun SettingsScreen(
                         Switch(
                             checked = isScheduleEnabled,
                             onCheckedChange = { enabled ->
-                                if (enabled) {
-                                    val trackingMode = when (scheduleSettings.target) {
-                                        ScheduleTarget.AUTOMATIC -> TrackingMode.AUTO
-                                        ScheduleTarget.BLUETOOTH -> TrackingMode.BLUETOOTH
-                                        ScheduleTarget.BOTH -> TrackingMode.BOTH
-                                    }
-                                    permissionHelper(trackingMode) {
-                                        viewModel.setScheduleEnabled(true)
-                                    }
-                                } else {
-                                    viewModel.setScheduleEnabled(false)
-                                }
+                                viewModel.setScheduleEnabled(enabled)
                             }
                         )
                     }
@@ -1225,45 +1215,6 @@ fun ScheduleSettingsDialog(
                     // Show a loading indicator or an empty state while the schedule is being loaded
                     Text(stringResource(R.string.schedule_loading))
                 } else {
-                    val targets =
-                        listOf(ScheduleTarget.AUTOMATIC, ScheduleTarget.BLUETOOTH, ScheduleTarget.BOTH)
-                    val targetLabels = listOf(
-                        stringResource(R.string.schedule_target_automatic),
-                        stringResource(R.string.schedule_target_bluetooth),
-                        stringResource(R.string.schedule_target_both)
-                    )
-                    val targetIcons: (ScheduleTarget) -> ImageVector = { target ->
-                        when (target) {
-                            ScheduleTarget.AUTOMATIC -> Icons.Default.DirectionsCar
-                            ScheduleTarget.BLUETOOTH -> Icons.Default.Bluetooth
-                            ScheduleTarget.BOTH -> Icons.Default.Layers
-                        }
-                    }
-
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                        targets.forEachIndexed { index, target ->
-                            SegmentedButton(
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = targets.size
-                                ),
-                                onClick = { selectedTarget = target },
-                                selected = selectedTarget == target,
-                                icon = {
-                                    Icon(
-                                        imageVector = targetIcons(target),
-                                        contentDescription = targetLabels[index],
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                }
-                            ) {
-                                Text(targetLabels[index])
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     Column(
                         modifier = Modifier
                             .weight(1f, fill = false)

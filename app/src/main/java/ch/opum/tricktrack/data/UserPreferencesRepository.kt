@@ -193,17 +193,6 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setScheduleEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
-            if (enabled) {
-                val autoTracking = isAutoTrackingEnabled.first()
-                val bluetooth = bluetoothTriggerEnabled.first()
-                preferences[PreferencesKeys.KEY_SNAPSHOT_AUTO_TRACKING] = autoTracking
-                preferences[PreferencesKeys.KEY_SNAPSHOT_BLUETOOTH] = bluetooth
-            } else {
-                val snapshotAuto = preferences[PreferencesKeys.KEY_SNAPSHOT_AUTO_TRACKING] ?: false
-                val snapshotBluetooth = preferences[PreferencesKeys.KEY_SNAPSHOT_BLUETOOTH] ?: false
-                preferences[PreferencesKeys.IS_AUTO_TRACKING_ENABLED] = snapshotAuto
-                preferences[PreferencesKeys.KEY_BLUETOOTH_TRIGGER_ENABLED] = snapshotBluetooth
-            }
             preferences[PreferencesKeys.IS_SCHEDULE_ENABLED] = enabled
         }
     }

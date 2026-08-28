@@ -273,6 +273,8 @@
     <string name="end_odometer_label">Endkilometerstand</string>
     <string name="vehicles_selected_count">%1$d Fahrzeuge ausgewählt</string>
     <string name="filter_date_range_label">Datumsbereich</string>
+    <string name="schedule_status_active">Aktiv</string>
+    <string name="schedule_status_inactive">Inaktiv</string>
     <string name="backup_successful">Backup erfolgreich erstellt!</string>
     <string name="permission_dialog_title_location">Standortberechtigung</string>
     <string name="permission_dialog_message_location">Diese Funktion erfordert eine Standortberechtigung, um Ihre Reisen zu verfolgen. Bitte erteilen Sie die Berechtigung.</string>
