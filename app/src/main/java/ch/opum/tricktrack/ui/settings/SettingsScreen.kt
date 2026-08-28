@@ -58,12 +58,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ElevatedAssistChip
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -101,6 +105,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -117,6 +125,7 @@ import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.DialogResetButton
+import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
 import ch.opum.tricktrack.ui.settings.PermissionHealthState
@@ -481,7 +490,7 @@ fun SettingsScreen(
     }
 
     if (showScheduleDialog) {
-        ScheduleSettingsDialog(
+        ScheduleBottomSheet(
             viewModel = viewModel,
             onDismiss = { showScheduleDialog = false }
         )
@@ -1066,319 +1075,362 @@ fun BatteryWarningCard(onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleSettingsDialog(
+fun ScheduleBottomSheet(
     viewModel: TripsViewModel,
     onDismiss: () -> Unit
 ) {
-    var selectedDayForStartTime by remember { mutableStateOf<DayOfWeek?>(null) }
-    var selectedDayForEndTime by remember { mutableStateOf<DayOfWeek?>(null) }
-    var showAllDaysStartTimePicker by remember { mutableStateOf(false) }
-    var showAllDaysEndTimePicker by remember { mutableStateOf(false) }
-
+    val context = LocalContext.current
     val scheduleSettings by viewModel.scheduleSettings.collectAsState()
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Temporary state for the schedule, held in a mutable map
+    // Temporary state for the schedule
     val tempSchedule = remember { mutableStateMapOf<DayOfWeek, DaySchedule>() }
-    var allDaysStartTime by remember { mutableStateOf(0 to 0) }
-    var allDaysEndTime by remember { mutableStateOf(23 to 59) }
+    var globalStartTime by remember { mutableStateOf(8 to 0) }
+    var globalEndTime by remember { mutableStateOf(17 to 0) }
+    var customizeIndividualDays by remember { mutableStateOf(false) }
 
-    // Initialize the temporary state from the collected scheduleSettings
     LaunchedEffect(scheduleSettings) {
         if (scheduleSettings.dailySchedules.isNotEmpty()) {
             tempSchedule.clear()
             tempSchedule.putAll(scheduleSettings.dailySchedules)
+            
+            // Infer global time and customization state
+            val first = scheduleSettings.dailySchedules.values.first()
+            globalStartTime = first.startHour to first.startMinute
+            globalEndTime = first.endHour to first.endMinute
+            customizeIndividualDays = scheduleSettings.dailySchedules.values.any { 
+                it.startHour != first.startHour || it.startMinute != first.startMinute ||
+                it.endHour != first.endHour || it.endMinute != first.endMinute
+            }
         }
     }
 
-    if (showAllDaysStartTimePicker) {
-        val timePickerState = rememberTimePickerState(initialHour = allDaysStartTime.first, initialMinute = allDaysStartTime.second)
-        AlertDialog(
-            onDismissRequest = { showAllDaysStartTimePicker = false },
-            title = { Text(stringResource(R.string.schedule_select_start_time, stringResource(R.string.settings_all_days))) },
-            text = { TimePicker(state = timePickerState) },
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
+    var dayForTimePicker by remember { mutableStateOf<DayOfWeek?>(null) }
+    var isPickingStartTime by remember { mutableStateOf(true) }
+
+    if (showStartTimePicker || showEndTimePicker) {
+        val initialTime = if (dayForTimePicker == null) {
+            if (showStartTimePicker) globalStartTime else globalEndTime
+        } else {
+            val daySched = tempSchedule[dayForTimePicker!!]!!
+            if (showStartTimePicker) daySched.startHour to daySched.startMinute else daySched.endHour to daySched.endMinute
+        }
+        
+        val timePickerState = rememberTimePickerState(
+            initialHour = initialTime.first,
+            initialMinute = initialTime.second
+        )
+
+        TimePickerDialog(
+            onDismissRequest = { 
+                showStartTimePicker = false
+                showEndTimePicker = false
+                dayForTimePicker = null
+            },
+            title = stringResource(if (showStartTimePicker) R.string.start_time_label else R.string.end_time_label),
             confirmButton = {
                 Button(onClick = {
-                    allDaysStartTime = timePickerState.hour to timePickerState.minute
-                    tempSchedule.keys.forEach { day ->
-                        tempSchedule[day] = tempSchedule[day]!!.copy(startHour = timePickerState.hour, startMinute = timePickerState.minute)
+                    if (dayForTimePicker == null) {
+                        if (showStartTimePicker) globalStartTime = timePickerState.hour to timePickerState.minute
+                        else globalEndTime = timePickerState.hour to timePickerState.minute
+                        
+                        if (!customizeIndividualDays) {
+                            tempSchedule.keys.forEach { day ->
+                                tempSchedule[day] = tempSchedule[day]!!.copy(
+                                    startHour = globalStartTime.first,
+                                    startMinute = globalStartTime.second,
+                                    endHour = globalEndTime.first,
+                                    endMinute = globalEndTime.second
+                                )
+                            }
+                        }
+                    } else {
+                        val day = dayForTimePicker!!
+                        val current = tempSchedule[day]!!
+                        tempSchedule[day] = if (showStartTimePicker) {
+                            current.copy(startHour = timePickerState.hour, startMinute = timePickerState.minute)
+                        } else {
+                            current.copy(endHour = timePickerState.hour, endMinute = timePickerState.minute)
+                        }
                     }
-                    showAllDaysStartTimePicker = false
+                    showStartTimePicker = false
+                    showEndTimePicker = false
+                    dayForTimePicker = null
                 }) {
-                    Text(stringResource(id = R.string.button_ok))
+                    Text(stringResource(R.string.button_ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showAllDaysStartTimePicker = false }) {
-                    Text(stringResource(id = R.string.button_cancel))
-                }
-            }
-        )
-    }
-
-    if (showAllDaysEndTimePicker) {
-        val timePickerState = rememberTimePickerState(initialHour = allDaysEndTime.first, initialMinute = allDaysEndTime.second)
-        AlertDialog(
-            onDismissRequest = { showAllDaysEndTimePicker = false },
-            title = { Text(stringResource(R.string.schedule_select_end_time, stringResource(R.string.settings_all_days))) },
-            text = { TimePicker(state = timePickerState) },
-            confirmButton = {
-                Button(onClick = {
-                    allDaysEndTime = timePickerState.hour to timePickerState.minute
-                    tempSchedule.keys.forEach { day ->
-                        tempSchedule[day] = tempSchedule[day]!!.copy(endHour = timePickerState.hour, endMinute = timePickerState.minute)
-                    }
-                    showAllDaysEndTimePicker = false
+                TextButton(onClick = { 
+                    showStartTimePicker = false
+                    showEndTimePicker = false
+                    dayForTimePicker = null
                 }) {
-                    Text(stringResource(id = R.string.button_ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAllDaysEndTimePicker = false }) {
-                    Text(stringResource(id = R.string.button_cancel))
+                    Text(stringResource(R.string.button_cancel))
                 }
             }
-        )
-    }
-
-    if (selectedDayForStartTime != null) {
-        val day = selectedDayForStartTime!!
-        val schedule = tempSchedule[day]
-        if (schedule != null) {
-            val timePickerState = rememberTimePickerState(initialHour = schedule.startHour, initialMinute = schedule.startMinute)
-            AlertDialog(
-                onDismissRequest = { selectedDayForStartTime = null },
-                title = { Text(stringResource(R.string.schedule_select_start_time, stringResource(dayToResId(day)))) },
-                text = { TimePicker(state = timePickerState) },
-                confirmButton = {
-                    Button(onClick = {
-                        tempSchedule[day] = schedule.copy(startHour = timePickerState.hour, startMinute = timePickerState.minute)
-                        selectedDayForStartTime = null
-                    }) {
-                        Text(stringResource(id = R.string.button_ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { selectedDayForStartTime = null }) {
-                        Text(stringResource(id = R.string.button_cancel))
-                    }
-                }
-            )
+        ) {
+            TimePicker(state = timePickerState)
         }
     }
 
-    if (selectedDayForEndTime != null) {
-        val day = selectedDayForEndTime!!
-        val schedule = tempSchedule[day]
-        if (schedule != null) {
-            val timePickerState = rememberTimePickerState(initialHour = schedule.endHour, initialMinute = schedule.endMinute)
-            AlertDialog(
-                onDismissRequest = { selectedDayForEndTime = null },
-                title = { Text(stringResource(R.string.schedule_select_end_time, stringResource(dayToResId(day)))) },
-                text = { TimePicker(state = timePickerState) },
-                confirmButton = {
-                    Button(onClick = {
-                        tempSchedule[day] = schedule.copy(endHour = timePickerState.hour, endMinute = timePickerState.minute)
-                        selectedDayForEndTime = null
-                    }) {
-                        Text(stringResource(id = R.string.button_ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { selectedDayForEndTime = null }) {
-                        Text(stringResource(id = R.string.button_cancel))
-                    }
-                }
-            )
-        }
-    }
-
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = {
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = stringResource(R.string.settings_schedule_title),
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
             )
-        },
-        text = {
-            if (tempSchedule.isEmpty()) {
-                // Show a loading indicator or an empty state while the schedule is being loaded
-                Text(stringResource(R.string.schedule_loading))
-            } else {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .horizontalScroll(rememberScrollState())
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Spacer(modifier = Modifier.width(80.dp)) // Align with day buttons
-                            Text(
-                                stringResource(R.string.schedule_from),
-                                modifier = Modifier.width(100.dp),
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                stringResource(R.string.schedule_to),
-                                modifier = Modifier.width(100.dp),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
-                        }
+            
+            Spacer(modifier = Modifier.height(24.dp))
 
-                        Row(
-                            modifier = Modifier
-                                .height(IntrinsicSize.Min),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.settings_all_days),
-                                modifier = Modifier.width(80.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+            // Side-by-side Time Cards
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                TimeSelectionCard(
+                    label = stringResource(R.string.schedule_from),
+                    hour = globalStartTime.first,
+                    minute = globalStartTime.second,
+                    onClick = { showStartTimePicker = true },
+                    modifier = Modifier.weight(1f)
+                )
+                TimeSelectionCard(
+                    label = stringResource(R.string.schedule_to),
+                    hour = globalEndTime.first,
+                    minute = globalEndTime.second,
+                    onClick = { showEndTimePicker = true },
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-                            OutlinedButton(
-                                onClick = { showAllDaysStartTimePicker = true },
-                                modifier = Modifier.width(100.dp)
-                            ) {
-                                Text(
-                                    String.format(
-                                        LocalLocale.current.platformLocale,
-                                        "%02d:%02d",
-                                        allDaysStartTime.first,
-                                        allDaysStartTime.second
-                                    )
-                                )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Presets
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                item {
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            val weekdays = listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)
+                            tempSchedule.keys.forEach { day ->
+                                tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekdays.contains(day))
                             }
-                            OutlinedButton(
-                                onClick = { showAllDaysEndTimePicker = true },
-                                modifier = Modifier.width(100.dp)
-                            ) {
-                                Text(
-                                    String.format(
-                                        LocalLocale.current.platformLocale,
-                                        "%02d:%02d",
-                                        allDaysEndTime.first,
-                                        allDaysEndTime.second
-                                    )
-                                )
+                        },
+                        label = { Text("Weekdays") }
+                    )
+                }
+                item {
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+                            tempSchedule.keys.forEach { day ->
+                                tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekend.contains(day))
                             }
-                            Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
-                        }
-
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                        DayOfWeek.entries.forEach { day ->
-                            val schedule = tempSchedule[day]
-                            if (schedule != null) {
-                                Row(
-                                    modifier = Modifier
-                                        .height(IntrinsicSize.Min),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Button(
-                                        onClick = {
-                                            tempSchedule[day] =
-                                                schedule.copy(isEnabled = !schedule.isEnabled)
-                                        },
-                                        modifier = Modifier.width(80.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = if (schedule.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                                            contentColor = if (schedule.isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    ) {
-                                        Text(stringResource(dayToResId(day)))
-                                    }
-
-                                    OutlinedButton(
-                                        onClick = { selectedDayForStartTime = day },
-                                        modifier = Modifier.width(100.dp),
-                                        enabled = schedule.isEnabled
-                                    ) {
-                                        Text(
-                                            String.format(
-                                                LocalLocale.current.platformLocale,
-                                                "%02d:%02d",
-                                                schedule.startHour,
-                                                schedule.startMinute
-                                            )
-                                        )
-                                    }
-                                    OutlinedButton(
-                                        onClick = { selectedDayForEndTime = day },
-                                        modifier = Modifier.width(100.dp),
-                                        enabled = schedule.isEnabled
-                                    ) {
-                                        Text(
-                                            String.format(
-                                                LocalLocale.current.platformLocale,
-                                                "%02d:%02d",
-                                                schedule.endHour,
-                                                schedule.endMinute
-                                            )
-                                        )
-                                    }
-                                    IconButton(onClick = {
-                                        tempSchedule[day] = schedule.copy(
-                                            startHour = 0,
-                                            startMinute = 0,
-                                            endHour = 23,
-                                            endMinute = 59
-                                        )
-                                    }) {
-                                        Icon(
-                                            Icons.Default.Refresh,
-                                            contentDescription = stringResource(R.string.schedule_reset_cd)
-                                        )
-                                    }
-                                }
+                        },
+                        label = { Text("Weekend") }
+                    )
+                }
+                item {
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            tempSchedule.keys.forEach { day ->
+                                tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = true)
                             }
+                        },
+                        label = { Text("All Days") }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Day Selector Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                DayOfWeek.entries.forEach { day ->
+                    val isEnabled = tempSchedule[day]?.isEnabled == true
+                    val dayLabel = day.getDisplayName(java.time.format.TextStyle.SHORT, LocalLocale.current.platformLocale)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .clickable {
+                                tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = !isEnabled)
+                            },
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        border = if (isEnabled) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = dayLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
                         }
                     }
                 }
             }
-        },
-        confirmButton = {
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Advanced Mode
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                DialogResetButton(onClick = {
-                    allDaysStartTime = 0 to 0
-                    allDaysEndTime = 23 to 59
-                    DayOfWeek.entries.forEach { day ->
-                        tempSchedule[day]?.let {
-                            tempSchedule[day] = it.copy(
-                                isEnabled = true,
-                                startHour = 0,
-                                startMinute = 0,
-                                endHour = 23,
-                                endMinute = 59
-                            )
+                Text(
+                    text = "Customize individual days",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = customizeIndividualDays,
+                    onCheckedChange = { customizeIndividualDays = it }
+                )
+            }
+
+            if (customizeIndividualDays) {
+                Spacer(modifier = Modifier.height(16.dp))
+                tempSchedule.toSortedMap().forEach { (day, schedule) ->
+                    if (schedule.isEnabled) {
+                        IndividualDayRow(
+                            day = day,
+                            schedule = schedule,
+                            onStartTimeClick = { 
+                                dayForTimePicker = day
+                                showStartTimePicker = true 
+                            },
+                            onEndTimeClick = { 
+                                dayForTimePicker = day
+                                showEndTimePicker = true 
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Actions
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DialogResetButton(
+                    onClick = {
+                        globalStartTime = 8 to 0
+                        globalEndTime = 17 to 0
+                        customizeIndividualDays = false
+                        DayOfWeek.entries.forEach { day ->
+                            tempSchedule[day] = DaySchedule(true, 8, 0, 17, 0)
                         }
                     }
-                })
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 DialogDeclineButton(onClick = onDismiss)
-                Spacer(modifier = Modifier.width(8.dp))
-                DialogAcceptButton(onClick = {
-                    val newSettings = ScheduleSettings(
-                        target = scheduleSettings.target,
-                        dailySchedules = tempSchedule.toMap()
-                    )
-                    viewModel.updateScheduleSettings(newSettings)
-                    onDismiss()
-                })
+                DialogAcceptButton(
+                    onClick = {
+                        viewModel.updateScheduleSettings(
+                            ScheduleSettings(
+                                target = scheduleSettings.target,
+                                dailySchedules = tempSchedule.toMap()
+                            )
+                        )
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) onDismiss()
+                        }
+                    }
+                )
             }
         }
-    )
+    }
+}
+
+@Composable
+fun TimeSelectionCard(
+    label: String,
+    hour: Int,
+    minute: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedCard(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = label, style = MaterialTheme.typography.labelMedium)
+            Text(
+                text = String.format(LocalLocale.current.platformLocale, "%02d:%02d", hour, minute),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+fun IndividualDayRow(
+    day: DayOfWeek,
+    schedule: DaySchedule,
+    onStartTimeClick: () -> Unit,
+    onEndTimeClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(dayToResId(day)),
+            modifier = Modifier.width(80.dp),
+            style = MaterialTheme.typography.bodyMedium
+        )
+        ElevatedAssistChip(
+            onClick = onStartTimeClick,
+            label = { Text(String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.startHour, schedule.startMinute)) },
+            modifier = Modifier.weight(1f)
+        )
+        Text("–")
+        ElevatedAssistChip(
+            onClick = onEndTimeClick,
+            label = { Text(String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.endHour, schedule.endMinute)) },
+            modifier = Modifier.weight(1f)
+        )
+    }
 }
 
 @Composable
