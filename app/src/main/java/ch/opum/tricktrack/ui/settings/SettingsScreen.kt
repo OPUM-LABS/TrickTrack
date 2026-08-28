@@ -107,6 +107,9 @@ import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.permission.TrackingMode
 import ch.opum.tricktrack.ui.ClearableTextField
+import ch.opum.tricktrack.ui.DialogAcceptButton
+import ch.opum.tricktrack.ui.DialogDeclineButton
+import ch.opum.tricktrack.ui.DialogResetButton
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
@@ -393,9 +396,7 @@ fun SettingsScreen(
                 }
             },
             confirmButton = {
-                Button(onClick = { showDeviceDialog = false }) {
-                    Text(stringResource(R.string.button_done))
-                }
+                DialogAcceptButton(onClick = { showDeviceDialog = false })
             }
         )
     }
@@ -1410,7 +1411,7 @@ fun ScheduleSettingsDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = {
+                    DialogResetButton(onClick = {
                         allDaysStartTime = 0 to 0
                         allDaysEndTime = 23 to 59
                         DayOfWeek.entries.forEach { day ->
@@ -1424,23 +1425,18 @@ fun ScheduleSettingsDialog(
                                 )
                             }
                         }
-                    }) {
-                        Text(stringResource(R.string.schedule_reset_times))
-                    }
+                    })
                     Spacer(modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) {
-                        Text(stringResource(id = R.string.button_cancel))
-                    }
-                    Button(onClick = {
+                    DialogDeclineButton(onClick = onDismiss)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    DialogAcceptButton(onClick = {
                         val newSettings = ScheduleSettings(
                             target = selectedTarget,
                             dailySchedules = tempSchedule.toMap()
                         )
                         viewModel.updateScheduleSettings(newSettings)
                         onDismiss()
-                    }) {
-                        Text(stringResource(R.string.button_apply))
-                    }
+                    })
                 }
             }
         }

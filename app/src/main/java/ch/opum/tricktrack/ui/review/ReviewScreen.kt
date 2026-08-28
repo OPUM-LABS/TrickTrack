@@ -36,6 +36,8 @@ import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.LicensePlateBadge
+import ch.opum.tricktrack.ui.DialogAcceptButton
+import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,20 +56,15 @@ fun ReviewScreen(viewModel: TripsViewModel) {
             title = { Text(stringResource(R.string.review_discard_trip_title)) },
             text = { Text(stringResource(R.string.review_discard_trip_message)) },
             confirmButton = {
-                Button(
+                DialogAcceptButton(
                     onClick = {
                         showDeleteDialog?.let { viewModel.discardTrip(it.trip) }
                         showDeleteDialog = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(stringResource(R.string.review_discard_button))
-                }
+                    }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = null }) {
-                    Text(stringResource(R.string.button_cancel))
-                }
+                DialogDeclineButton(onClick = { showDeleteDialog = null })
             }
         )
     }

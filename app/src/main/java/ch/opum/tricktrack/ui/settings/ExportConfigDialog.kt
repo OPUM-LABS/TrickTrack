@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
+import ch.opum.tricktrack.ui.DialogAcceptButton
+import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.TripsViewModel
 
 @Composable
@@ -116,17 +116,13 @@ fun ExportConfigDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
+            DialogAcceptButton(onClick = {
                 viewModel.setExportColumns(tempSelectedColumns)
                 onDismiss()
-            }) {
-                Text(stringResource(R.string.button_done))
-            }
+            })
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
+            DialogDeclineButton(onClick = onDismiss)
         }
     )
 }

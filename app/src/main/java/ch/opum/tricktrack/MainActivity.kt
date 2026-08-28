@@ -129,6 +129,8 @@ import ch.opum.tricktrack.data.TripWithVehicle
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
+import ch.opum.tricktrack.ui.DialogAcceptButton
+import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.ExportFormatDialog
 import ch.opum.tricktrack.ui.FilterDialog
 import ch.opum.tricktrack.ui.LicensePlateBadge
@@ -513,20 +515,15 @@ fun MainScreen(
                                     title = { Text(stringResource(R.string.delete_filtered_trips_title)) },
                                     text = { Text(stringResource(R.string.delete_filtered_trips_confirmation)) },
                                     confirmButton = {
-                                        Button(
+                                        DialogAcceptButton(
                                             onClick = {
                                                 tripsViewModel.deleteFilteredTrips()
                                                 showDeleteConfirmationDialog = false
-                                            },
-                                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                                        ) {
-                                            Text(stringResource(R.string.action_delete))
-                                        }
+                                            }
+                                        )
                                     },
                                     dismissButton = {
-                                        TextButton(onClick = { showDeleteConfirmationDialog = false }) {
-                                            Text(stringResource(R.string.button_cancel))
-                                        }
+                                        DialogDeclineButton(onClick = { showDeleteConfirmationDialog = false })
                                     }
                                 )
                             }
@@ -1404,14 +1401,14 @@ fun EditTripDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
+            DialogAcceptButton(onClick = {
                 if (selectedEndDate.value.before(selectedStartDate.value)) {
                     Toast.makeText(
                         context,
                         endTimeBeforeStartTimeToast,
                         Toast.LENGTH_SHORT
                     ).show()
-                    return@Button
+                    return@DialogAcceptButton
                 }
                 val updatedDistance = if (isOdometerModeEnabled) {
                     val endOdo = odometerText.toDoubleOrNull() ?: 0.0
@@ -1461,14 +1458,10 @@ fun EditTripDialog(
                     )
                     onSave(tripToSave)
                 }
-            }) {
-                Text(if (isEditMode) stringResource(R.string.button_save) else stringResource(R.string.button_add))
-            }
+            })
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
+            DialogDeclineButton(onClick = onDismiss)
         },
         modifier = Modifier.padding(bottom = 48.dp),
         shape = MaterialTheme.shapes.large,
@@ -1684,7 +1677,7 @@ fun TripSummaryDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
+            DialogAcceptButton(onClick = {
                 val updatedDistance = if (isOdometerModeEnabled) {
                     val endOdo = odometerText.toDoubleOrNull() ?: 0.0
                     if (selectedVehicle != null) {
@@ -1717,14 +1710,10 @@ fun TripSummaryDialog(
                     endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
                 )
                 onSave(tripToSave)
-            }) {
-                Text(stringResource(R.string.button_save))
-            }
+            })
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
+            DialogDeclineButton(onClick = onDismiss)
         }
     )
 }

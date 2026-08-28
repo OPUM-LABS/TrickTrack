@@ -22,12 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.opum.tricktrack.R
@@ -35,12 +31,13 @@ import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
+import ch.opum.tricktrack.ui.DialogAcceptButton
+import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import ch.opum.tricktrack.ui.ViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
-import java.util.Locale
 
 // Data class for the generic list
 data class SimpleItem(
@@ -436,17 +433,13 @@ fun AddSimpleItemDialog(
             }
         },
         confirmButton = {
-            Button(
+            DialogAcceptButton(
                 onClick = { onAdd(text, if (isVehicle) subtitle else null, if (isVehicle) brand else null, odometer.toDoubleOrNull() ?: 0.0) },
                 enabled = text.isNotBlank()
-            ) {
-                Text(stringResource(R.string.button_add))
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(id = R.string.button_cancel))
-            }
+            DialogDeclineButton(onClick = onDismiss)
         }
     )
 }
@@ -543,17 +536,13 @@ fun EditSimpleItemDialog(
             }
         },
         confirmButton = {
-            Button(
+            DialogAcceptButton(
                 onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null, brand = if (isVehicle) brand else null, odometer = odometer.toDoubleOrNull() ?: 0.0)) },
                 enabled = text.isNotBlank()
-            ) {
-                Text(stringResource(R.string.button_save))
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(id = R.string.button_cancel))
-            }
+            DialogDeclineButton(onClick = onDismiss)
         }
     )
 }

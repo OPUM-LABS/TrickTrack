@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -26,23 +25,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.Checkbox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,10 +51,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CarBrandHelper
@@ -228,23 +220,22 @@ fun FilterDialog(
         confirmButton = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = {
+                DialogResetButton(onClick = {
                     keyword = ""
                     selectedType = null
                     startDate = null
                     endDate = null
                     selectedVehicleIds = emptySet()
-                }) {
-                    Text(stringResource(R.string.filter_reset_button))
-                }
-                Row {
-                    TextButton(onClick = onDismiss) {
-                        Text(stringResource(R.string.button_cancel))
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = {
+                })
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    DialogDeclineButton(onClick = onDismiss)
+                    DialogAcceptButton(onClick = {
                         val endOfDay = endDate?.let {
                             val calendar = Calendar.getInstance()
                             calendar.timeInMillis = it
@@ -264,9 +255,7 @@ fun FilterDialog(
                                 vehicleIds = selectedVehicleIds
                             )
                         )
-                    }) {
-                        Text(stringResource(R.string.button_apply))
-                    }
+                    })
                 }
             }
         }

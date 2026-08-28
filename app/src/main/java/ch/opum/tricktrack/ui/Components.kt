@@ -9,9 +9,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -159,6 +164,72 @@ fun ClearableTextField(
         placeholder = placeholder, // Pass placeholder to OutlinedTextField
         isError = isError // Pass isError to OutlinedTextField
     )
+}
+
+@Composable
+fun DialogAcceptButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.Check,
+            contentDescription = stringResource(R.string.button_save),
+            tint = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
+fun DialogDeclineButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = stringResource(R.string.button_cancel),
+            tint = MaterialTheme.colorScheme.onErrorContainer
+        )
+    }
+}
+
+@Composable
+fun DialogResetButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.Refresh,
+            contentDescription = stringResource(R.string.filter_reset_button),
+            tint = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
 }
 
 @Preview(showBackground = true)

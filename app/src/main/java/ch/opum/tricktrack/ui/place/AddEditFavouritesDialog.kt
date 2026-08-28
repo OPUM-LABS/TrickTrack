@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +40,8 @@ import androidx.compose.ui.window.PopupProperties
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField // Import ClearableTextField
+import ch.opum.tricktrack.ui.DialogAcceptButton
+import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.LocationSuggestion
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,7 +149,7 @@ fun AddEditPlaceDialog(
             }
         },
         confirmButton = {
-            Button(
+            DialogAcceptButton(
                 onClick = {
                     selectedLatitude?.let { lat ->
                         selectedLongitude?.let { lon ->
@@ -159,17 +159,13 @@ fun AddEditPlaceDialog(
                     onDismiss()
                 },
                 enabled = name.isNotBlank() && addressText.isNotBlank() && selectedLatitude != null
-            ) {
-                Text(stringResource(R.string.button_save))
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = {
+            DialogDeclineButton(onClick = {
                 clearAllSuggestions()
                 onDismiss()
-            }) {
-                Text(stringResource(R.string.button_cancel))
-            }
+            })
         }
     )
 }

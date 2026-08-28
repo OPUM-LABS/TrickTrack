@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.ServerValidator
+import ch.opum.tricktrack.ui.DialogAcceptButton
+import ch.opum.tricktrack.ui.DialogDeclineButton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -181,7 +183,7 @@ fun ServerSettingsDialog(
             }
         },
         confirmButton = {
-            Button(
+            DialogAcceptButton(
                 onClick = {
                     appPreferences.setOsrmUrl(osrmUrlInput)
                     appPreferences.setPhotonUrl(photonUrlInput)
@@ -189,14 +191,10 @@ fun ServerSettingsDialog(
                     onDismiss()
                 },
                 enabled = isOsrmValid && isPhotonValid
-            ) {
-                Text(stringResource(R.string.button_save))
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
+            DialogDeclineButton(onClick = onDismiss)
         }
     )
 }
