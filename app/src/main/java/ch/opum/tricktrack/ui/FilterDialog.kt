@@ -10,32 +10,60 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DateRangePickerDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import ch.opum.tricktrack.R
+import ch.opum.tricktrack.data.CarBrandHelper
+import ch.opum.tricktrack.data.VehicleEntity
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -45,6 +73,7 @@ import androidx.compose.ui.platform.LocalLocale
 @Composable
 fun FilterDialog(
     currentFilterState: FilterState,
+    allVehicles: List<VehicleEntity>,
     onApplyFilter: (FilterState) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -52,9 +81,10 @@ fun FilterDialog(
     var selectedType by remember { mutableStateOf(currentFilterState.type.takeIf { it != TripType.ALL }) }
     var startDate by remember { mutableStateOf(currentFilterState.startDate) }
     var endDate by remember { mutableStateOf(currentFilterState.endDate) }
+    var selectedVehicleIds by remember { mutableStateOf(currentFilterState.vehicleIds) }
 
-    var showStartDatePicker by remember { mutableStateOf(false) }
-    var showEndDatePicker by remember { mutableStateOf(false) }
+    var showRangePicker by remember { mutableStateOf(false) }
+    var vehicleExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -112,16 +142,86 @@ fun FilterDialog(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DateSelectionField(
-                    label = stringResource(R.string.filter_start_date_label),
-                    selectedDate = startDate,
-                    onClick = { showStartDatePicker = true }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                DateSelectionField(
-                    label = stringResource(R.string.filter_end_date_label),
-                    selectedDate = endDate,
-                    onClick = { showEndDatePicker = true }
+                ExposedDropdownMenuBox(
+                    expanded = vehicleExpanded,
+                    onExpandedChange = { vehicleExpanded = it }
+                ) {
+                    val context = LocalContext.current
+                    val displayText = if (selectedVehicleIds.isEmpty()) {
+                        stringResource(R.string.filter_trip_type_all)
+                    } else if (selectedVehicleIds.size == 1) {
+                        allVehicles.find { it.id == selectedVehicleIds.first() }?.licensePlate ?: ""
+                    } else {
+                        stringResource(R.string.vehicles_selected_count, selectedVehicleIds.size)
+                    }
+
+                    OutlinedTextField(
+                        value = displayText,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                        trailingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (selectedVehicleIds.isNotEmpty()) {
+                                    IconButton(onClick = { selectedVehicleIds = emptySet() }) {
+                                        Icon(Icons.Default.Clear, contentDescription = null)
+                                    }
+                                }
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.DirectionsCar, contentDescription = null)
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = vehicleExpanded,
+                        onDismissRequest = { vehicleExpanded = false }
+                    ) {
+                        allVehicles.forEach { vehicle ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(
+                                            checked = selectedVehicleIds.contains(vehicle.id),
+                                            onCheckedChange = null
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                                        if (itemIconResId != 0) {
+                                            Icon(
+                                                painter = painterResource(id = itemIconResId),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                                tint = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                        }
+                                        Text(vehicle.licensePlate)
+                                    }
+                                },
+                                onClick = {
+                                    selectedVehicleIds = if (selectedVehicleIds.contains(vehicle.id)) {
+                                        selectedVehicleIds - vehicle.id
+                                    } else {
+                                        selectedVehicleIds + vehicle.id
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                DateRangeSelectionField(
+                    startDate = startDate,
+                    endDate = endDate,
+                    onClick = { showRangePicker = true }
                 )
             }
         },
@@ -135,6 +235,7 @@ fun FilterDialog(
                     selectedType = null
                     startDate = null
                     endDate = null
+                    selectedVehicleIds = emptySet()
                 }) {
                     Text(stringResource(R.string.filter_reset_button))
                 }
@@ -159,7 +260,8 @@ fun FilterDialog(
                                 keyword = keyword,
                                 type = selectedType ?: TripType.ALL,
                                 startDate = startDate,
-                                endDate = endOfDay
+                                endDate = endOfDay,
+                                vehicleIds = selectedVehicleIds
                             )
                         )
                     }) {
@@ -170,65 +272,85 @@ fun FilterDialog(
         }
     )
 
-    if (showStartDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = startDate)
-        DatePickerDialog(
-            onDismissRequest = { showStartDatePicker = false },
-            confirmButton = {
-                Button(onClick = {
-                    startDate = datePickerState.selectedDateMillis
-                    showStartDatePicker = false
-                }) {
-                    Text(stringResource(R.string.button_ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showStartDatePicker = false }) {
-                    Text(stringResource(R.string.button_cancel))
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
+    if (showRangePicker) {
+        val today = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
 
-    if (showEndDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = endDate)
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = startDate ?: today,
+            initialSelectedEndDateMillis = endDate ?: today
+        )
+
         DatePickerDialog(
-            onDismissRequest = { showEndDatePicker = false },
+            onDismissRequest = { showRangePicker = false },
             confirmButton = {
-                Button(onClick = {
-                    endDate = datePickerState.selectedDateMillis
-                    showEndDatePicker = false
+                TextButton(onClick = {
+                    startDate = dateRangePickerState.selectedStartDateMillis
+                    endDate = dateRangePickerState.selectedEndDateMillis
+                    showRangePicker = false
                 }) {
                     Text(stringResource(R.string.button_ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showEndDatePicker = false }) {
+                TextButton(onClick = { showRangePicker = false }) {
                     Text(stringResource(R.string.button_cancel))
                 }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DateRangePicker(
+                state = dateRangePickerState,
+                title = {
+                    Text(
+                        text = stringResource(R.string.filter_date_range_label),
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                },
+                headline = {
+                    CompositionLocalProvider(
+                        LocalTextStyle provides MaterialTheme.typography.titleMedium
+                    ) {
+                        DateRangePickerDefaults.DateRangePickerHeadline(
+                            selectedStartDateMillis = dateRangePickerState.selectedStartDateMillis,
+                            selectedEndDateMillis = dateRangePickerState.selectedEndDateMillis,
+                            displayMode = dateRangePickerState.displayMode,
+                            dateFormatter = DatePickerDefaults.dateFormatter(),
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        )
+                    }
+                },
+                showModeToggle = true,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
 
 @Composable
-fun DateSelectionField(
-    label: String,
-    selectedDate: Long?,
+fun DateRangeSelectionField(
+    startDate: Long?,
+    endDate: Long?,
     onClick: () -> Unit
 ) {
     val formatter = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale)
-    val dateText = selectedDate?.let { formatter.format(Date(it)) } ?: ""
+    val dateText = if (startDate != null && endDate != null) {
+        "${formatter.format(Date(startDate))} - ${formatter.format(Date(endDate))}"
+    } else if (startDate != null) {
+        formatter.format(Date(startDate))
+    } else {
+        ""
+    }
 
     Box {
         OutlinedTextField(
             value = dateText,
             onValueChange = {},
-            label = { Text(label) },
+            label = { Text(stringResource(R.string.filter_date_range_label)) },
             readOnly = true,
             modifier = Modifier.fillMaxWidth()
         )

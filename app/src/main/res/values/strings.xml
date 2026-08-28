@@ -279,4 +279,6 @@
     <string name="favourites_car_model_label">Car Model (Optional)</string>
     <string name="odometer_label">Initial Odometer</string>
     <string name="end_odometer_label">End Odometer</string>
+    <string name="vehicles_selected_count">%1$d vehicles selected</string>
+    <string name="filter_date_range_label">Date Range</string>
 </resources>

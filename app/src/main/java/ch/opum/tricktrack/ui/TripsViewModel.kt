@@ -65,7 +65,8 @@ data class FilterState(
     val type: TripType = TripType.ALL,
     val keyword: String = "",
     val startDate: Long? = null, // Timestamp for start of day
-    val endDate: Long? = null    // Timestamp for end of day
+    val endDate: Long? = null,    // Timestamp for end of day
+    val vehicleIds: Set<Int> = emptySet()
 )
 
 data class TripGroup(
@@ -94,7 +95,7 @@ class TripsViewModel(
     )
 
     val isFilterActive: StateFlow<Boolean> = _filterState.map {
-        it.type != TripType.ALL || it.keyword.isNotEmpty() || it.startDate != null || it.endDate != null
+        it.type != TripType.ALL || it.keyword.isNotEmpty() || it.startDate != null || it.endDate != null || it.vehicleIds.isNotEmpty()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val confirmedTrips = combine(repository.confirmedTrips, _filterState) { allTrips, filter ->
@@ -128,7 +129,13 @@ class TripsViewModel(
                 trip.date.time <= filter.endDate
             }
 
-            matchesType && matchesKeyword && matchesStartDate && matchesEndDate
+            val matchesVehicle = if (filter.vehicleIds.isEmpty()) {
+                true
+            } else {
+                trip.vehicleId != null && filter.vehicleIds.contains(trip.vehicleId)
+            }
+
+            matchesType && matchesKeyword && matchesStartDate && matchesEndDate && matchesVehicle
         }
     }.stateIn(
         scope = viewModelScope,

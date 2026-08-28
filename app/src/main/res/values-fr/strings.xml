@@ -272,6 +272,8 @@
     <string name="favourites_car_model_label">Modèle de voiture (facultatif)</string>
     <string name="odometer_label">Kilométrage initial</string>
     <string name="end_odometer_label">Kilométrage final</string>
+    <string name="vehicles_selected_count">%1$d véhicules sélectionnés</string>
+    <string name="filter_date_range_label">Plage de dates</string>
     <string name="backup_successful">Sauvegarde créée avec succès !</string>
     <string name="permission_dialog_title_location">Autorisation de localisation</string>
     <string name="permission_dialog_message_location">Cette fonctionnalité nécessite l\'autorisation de localisation pour suivre vos déplacements. Veuillez accorder cette autorisation.</string>

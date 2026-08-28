@@ -495,8 +495,10 @@ fun MainScreen(
 
                             if (showFilterDialog) {
                                 val currentFilterState by tripsViewModel.filterState.collectAsState()
+                                val allVehicles by tripsViewModel.allVehicles.collectAsState()
                                 FilterDialog(
                                     currentFilterState = currentFilterState,
+                                    allVehicles = allVehicles,
                                     onApplyFilter = { newFilterState ->
                                         tripsViewModel.updateFilter(newFilterState)
                                         showFilterDialog = false
@@ -777,6 +779,25 @@ fun TripScreen(
                             selected = true,
                             onClick = { tripsViewModel.removeFilter(currentFilterState.copy(endDate = null)) },
                             label = { Text(stringResource(R.string.to_date_label, date)) },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.remove_filter_cd)
+                                )
+                            }
+                        )
+                    }
+                    if (currentFilterState.vehicleIds.isNotEmpty()) {
+                        val allVehicles by tripsViewModel.allVehicles.collectAsState()
+                        val displayText = if (currentFilterState.vehicleIds.size == 1) {
+                            allVehicles.find { it.id == currentFilterState.vehicleIds.first() }?.licensePlate ?: ""
+                        } else {
+                            stringResource(R.string.vehicles_selected_count, currentFilterState.vehicleIds.size)
+                        }
+                        InputChip(
+                            selected = true,
+                            onClick = { tripsViewModel.removeFilter(currentFilterState.copy(vehicleIds = emptySet())) },
+                            label = { Text(displayText) },
                             trailingIcon = {
                                 Icon(
                                     Icons.Default.Close,
