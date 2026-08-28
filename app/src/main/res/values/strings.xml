@@ -13,6 +13,8 @@
     <string name="settings_tracking_settings_description">Configure automatic tracking and triggers.</string>
     <string name="settings_automatic_tracking_title">Automatic Tracking</string>
     <string name="settings_automatic_tracking_description">Automatically records trips when you start driving.</string>
+    <string name="settings_odometer_mode_title">Odometer Mode</string>
+    <string name="settings_odometer_mode_description">Manually enter end odometer reading to calculate trip distance.</string>
     <string name="settings_bluetooth_trigger_title">Start on Bluetooth Connection</string>
     <string name="settings_bluetooth_trigger_description">Automatically start tracking when a selected Bluetooth device connects.</string>
     <string name="settings_bluetooth_select_device">Select device</string>
@@ -276,4 +278,5 @@
     <string name="favourites_car_brand_label">Brand</string>
     <string name="favourites_car_model_label">Car Model (Optional)</string>
     <string name="odometer_label">Initial Odometer</string>
+    <string name="end_odometer_label">End Odometer</string>
 </resources>

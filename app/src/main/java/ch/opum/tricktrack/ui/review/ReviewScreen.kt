@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -34,6 +36,7 @@ import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.LicensePlateBadge
+import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -80,6 +83,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
         }
     } else {
         val allVehicles by viewModel.allVehicles.collectAsState()
+        val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
@@ -90,17 +94,20 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                     ReviewListHeader(
                         date = group.date,
                         tripCount = group.trips.size,
-                        totalDistance = group.totalDistance
+                        totalDistance = group.totalDistance,
+                        isOdometerModeEnabled = isOdometerModeEnabled
                     )
                 }
                 items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
                     ReviewTripCard(
                         tripWithVehicle = tripWithVehicle,
                         allVehicles = allVehicles,
-                        onApprove = { finalType, selectedVehicle ->
+                        isOdometerModeEnabled = isOdometerModeEnabled,
+                        onApprove = { finalType, selectedVehicle, endOdometer ->
                             viewModel.approveTrip(
                                 trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
-                                finalType = finalType
+                                finalType = finalType,
+                                endOdometer = endOdometer
                             )
                         },
                         onDiscard = { showDeleteDialog = tripWithVehicle },
@@ -113,7 +120,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
 }
 
 @Composable
-fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double) {
+fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double, isOdometerModeEnabled: Boolean) {
     val dateFormatter = remember { SimpleDateFormat("EEE, d MMM", Locale.getDefault()) }
     Row(
         modifier = Modifier
@@ -128,8 +135,15 @@ fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double) {
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.weight(1f))
+        val distanceText = if (isOdometerModeEnabled) {
+            // In odometer mode, total distance might be slightly different if user hasn't entered all yet
+            // But we display what we have.
+            stringResource(R.string.review_trip_count_and_distance, tripCount, totalDistance)
+        } else {
+            stringResource(R.string.review_trip_count_and_distance, tripCount, totalDistance)
+        }
         Text(
-            text = stringResource(R.string.review_trip_count_and_distance, tripCount, totalDistance),
+            text = distanceText,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -142,7 +156,8 @@ fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double) {
 fun ReviewTripCard(
     tripWithVehicle: TripWithVehicle,
     allVehicles: List<VehicleEntity>,
-    onApprove: (TripType, VehicleEntity?) -> Unit,
+    isOdometerModeEnabled: Boolean,
+    onApprove: (TripType, VehicleEntity?, Double?) -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -150,6 +165,12 @@ fun ReviewTripCard(
     var selectedType by remember { mutableStateOf(if (trip.type == "Business") TripType.BUSINESS else TripType.PERSONAL) }
     var selectedVehicle by remember(tripWithVehicle) { mutableStateOf(tripWithVehicle.vehicle) }
     var vehicleExpanded by remember { mutableStateOf(false) }
+    var odometerText by remember(tripWithVehicle) { 
+        mutableStateOf(trip.endOdometer?.toLong()?.toString() ?: "") 
+    }
+    val odometerValue = odometerText.toDoubleOrNull() ?: 0.0
+    val isOdometerError = isOdometerModeEnabled && selectedVehicle != null && odometerValue <= selectedVehicle!!.currentOdometer
+
     val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
     val icons = listOf(Icons.Default.Work, Icons.Default.Person)
     val context = LocalContext.current
@@ -254,10 +275,39 @@ fun ReviewTripCard(
                         }
                     }
 
+                    if (isOdometerModeEnabled) {
+                        OutlinedTextField(
+                            value = odometerText,
+                            onValueChange = { 
+                                if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                                    odometerText = it 
+                                }
+                            },
+                            label = { Text(stringResource(R.string.end_odometer_label)) },
+                            modifier = Modifier.width(140.dp),
+                            isError = isOdometerError,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            visualTransformation = ThousandsSeparatorTransformation(),
+                            suffix = { Text("km") },
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodySmall
+                        )
+                    } else {
+                        Text(
+                            text = "%.2f km".format(trip.distance),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                if (isOdometerModeEnabled && selectedVehicle != null) {
+                    val calcDistance = (odometerValue - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
                     Text(
-                        text = "%.2f km".format(trip.distance),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
+                        text = "Calculated: %.2f km".format(calcDistance),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isOdometerError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -364,7 +414,8 @@ fun ReviewTripCard(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 FilledIconButton(
-                    onClick = { onApprove(selectedType, selectedVehicle) },
+                    onClick = { onApprove(selectedType, selectedVehicle, odometerText.toDoubleOrNull()) },
+                    enabled = !isOdometerError,
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )

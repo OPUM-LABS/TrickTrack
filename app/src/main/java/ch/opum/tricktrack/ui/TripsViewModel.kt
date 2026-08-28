@@ -397,6 +397,13 @@ class TripsViewModel(
             initialValue = 15
         )
 
+    val isOdometerModeEnabled: StateFlow<Boolean> = userPreferencesRepository.isOdometerModeEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     // New: Total Expense for the entire filtered list
     val totalExpense: StateFlow<Float> = combine(
         confirmedTrips,
@@ -627,6 +634,12 @@ class TripsViewModel(
 
     fun saveOrUpdateTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
+            if (trip.endOdometer != null && trip.vehicleId != null) {
+                val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
+                if (vehicle != null) {
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = trip.endOdometer))
+                }
+            }
             if (trip.id == 0L) {
                 repository.insert(trip)
             } else {
@@ -639,6 +652,12 @@ class TripsViewModel(
 
     fun updateTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
+            if (trip.endOdometer != null && trip.vehicleId != null) {
+                val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
+                if (vehicle != null) {
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = trip.endOdometer))
+                }
+            }
             repository.updateTrip(trip)
         }
     }
@@ -656,14 +675,29 @@ class TripsViewModel(
         }
     }
 
-    fun approveTrip(trip: Trip, finalType: TripType) {
+    fun approveTrip(trip: Trip, finalType: TripType, endOdometer: Double? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             val typeString = when (finalType) {
                 TripType.BUSINESS -> "Business"
                 TripType.PERSONAL -> "Personal"
                 TripType.ALL -> trip.type // Fallback
             }
-            val updatedTrip = trip.copy(type = typeString, isConfirmed = true)
+            
+            var updatedTrip = trip.copy(type = typeString, isConfirmed = true)
+            
+            if (endOdometer != null && trip.vehicleId != null) {
+                val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
+                if (vehicle != null) {
+                    val distance = endOdometer - vehicle.currentOdometer
+                    updatedTrip = updatedTrip.copy(
+                        distance = if (distance > 0) distance else updatedTrip.distance,
+                        endOdometer = endOdometer
+                    )
+                    // Update vehicle odometer
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = endOdometer))
+                }
+            }
+            
             repository.updateTrip(updatedTrip)
         }
     }
@@ -896,6 +930,12 @@ class TripsViewModel(
     fun toggleIncludeVehicle() {
         viewModelScope.launch {
             userPreferencesRepository.setExportIncludeVehicle(!exportIncludeVehicle.first())
+        }
+    }
+
+    fun setOdometerModeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setOdometerModeEnabled(enabled)
         }
     }
 }

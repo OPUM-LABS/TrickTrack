@@ -14,6 +14,8 @@
     <string name="settings_tracking_settings_description">Configurer le suivi automatique et les déclencheurs</string>
     <string name="settings_automatic_tracking_title">Suivi automatique</string>
     <string name="settings_automatic_tracking_description">Enregistre automatiquement les trajets lorsque vous commencez à conduire.</string>
+    <string name="settings_odometer_mode_title">Mode Odomètre</string>
+    <string name="settings_odometer_mode_description">Saisir manuellement le kilométrage final pour calculer la distance du trajet.</string>
     <string name="settings_bluetooth_trigger_title">Démarrer à la connexion Bluetooth</string>
     <string name="settings_bluetooth_trigger_description">Démarre automatiquement le suivi lorsqu\'un appareil Bluetooth sélectionné se connecte.</string>
     <string name="settings_bluetooth_select_device">Sélectionner l\'appareil</string>
@@ -269,6 +271,7 @@
     <string name="favourites_car_brand_label">Marque</string>
     <string name="favourites_car_model_label">Modèle de voiture (facultatif)</string>
     <string name="odometer_label">Kilométrage initial</string>
+    <string name="end_odometer_label">Kilométrage final</string>
     <string name="backup_successful">Sauvegarde créée avec succès !</string>
     <string name="permission_dialog_title_location">Autorisation de localisation</string>
     <string name="permission_dialog_message_location">Cette fonctionnalité nécessite l\'autorisation de localisation pour suivre vos déplacements. Veuillez accorder cette autorisation.</string>

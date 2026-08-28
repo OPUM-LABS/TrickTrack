@@ -14,6 +14,8 @@
     <string name="settings_tracking_settings_description">Configura il tracciamento automatico e i trigger</string>
     <string name="settings_automatic_tracking_title">Tracciamento automatico</string>
     <string name="settings_automatic_tracking_description">Registra automaticamente i viaggi quando inizi a guidare.</string>
+    <string name="settings_odometer_mode_title">Modalità Contachilometri</string>
+    <string name="settings_odometer_mode_description">Inserisci manualmente la lettura finale del contachilometri per calcolare la distanza del viaggio.</string>
     <string name="settings_bluetooth_trigger_title">Avvia alla connessione Bluetooth</string>
     <string name="settings_bluetooth_trigger_description">Avvia automaticamente il tracciamento quando un dispositivo Bluetooth selezionato si connette.</string>
     <string name="settings_bluetooth_select_device">Seleziona dispositivo</string>
@@ -269,6 +271,7 @@
     <string name="favourites_car_brand_label">Marca</string>
     <string name="favourites_car_model_label">Modello auto (facoltativo)</string>
     <string name="odometer_label">Chilometraggio iniziale</string>
+    <string name="end_odometer_label">Chilometraggio finale</string>
     <string name="backup_successful">Backup creato con successo!</string>
     <string name="permission_dialog_title_location">Autorizzazione alla localizzazione</string>
     <string name="permission_dialog_message_location">Questa funzione richiede l\'autorizzazione alla localizzazione per tracciare i tuoi spostamenti. Concedi l\'autorizzazione.</string>

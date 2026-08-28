@@ -20,4 +20,8 @@ class FavouritesRepository(
     suspend fun getDriverById(id: Int): DriverEntity? = driverDao.getById(id)
     suspend fun getCompanyById(id: Int): CompanyEntity? = companyDao.getById(id)
     suspend fun getVehicleById(id: Int): VehicleEntity? = vehicleDao.getById(id)
+
+    suspend fun updateVehicle(vehicle: VehicleEntity) {
+        vehicleDao.update(vehicle)
+    }
 }

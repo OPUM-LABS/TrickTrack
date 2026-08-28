@@ -53,6 +53,7 @@ class UserPreferencesRepository(private val context: Context) {
         val DEFAULT_DRIVER_ID = intPreferencesKey("default_driver_id")
         val DEFAULT_COMPANY_ID = intPreferencesKey("default_company_id")
         val DEFAULT_VEHICLE_ID = intPreferencesKey("default_vehicle_id")
+        val IS_ODOMETER_MODE_ENABLED = booleanPreferencesKey("is_odometer_mode_enabled")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -376,6 +377,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setDefaultVehicleId(id: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DEFAULT_VEHICLE_ID] = id
+        }
+    }
+
+    val isOdometerModeEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.IS_ODOMETER_MODE_ENABLED] ?: false
+        }
+
+    suspend fun setOdometerModeEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_ODOMETER_MODE_ENABLED] = enabled
         }
     }
 

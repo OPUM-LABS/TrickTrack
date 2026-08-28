@@ -35,6 +35,7 @@ import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
+import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import ch.opum.tricktrack.ui.ViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
@@ -49,57 +50,6 @@ data class SimpleItem(
     val brand: String? = null, 
     val odometer: Double = 0.0
 )
-
-class ThousandsSeparatorTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val originalText = text.text
-        if (originalText.isEmpty()) {
-            return TransformedText(text, OffsetMapping.Identity)
-        }
-
-        val symbols = DecimalFormatSymbols.getInstance(Locale.getDefault())
-        val separator = symbols.groupingSeparator
-        
-        val df = DecimalFormat("#,###", symbols)
-        val formatted = try {
-            df.format(originalText.toLong())
-        } catch (_: Exception) {
-            originalText
-        }
-
-        val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                if (offset <= 0) return 0
-                var transformedOffset = 0
-                var originalCount = 0
-                for (char in formatted) {
-                    if (originalCount == offset) break
-                    transformedOffset++
-                    if (char != separator) {
-                        originalCount++
-                    }
-                }
-                return transformedOffset
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                if (offset <= 0) return 0
-                var originalOffset = 0
-                var transformedCount = 0
-                for (char in formatted) {
-                    if (transformedCount == offset) break
-                    if (char != separator) {
-                        originalOffset++
-                    }
-                    transformedCount++
-                }
-                return originalOffset
-            }
-        }
-
-        return TransformedText(AnnotatedString(formatted), offsetMapping)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

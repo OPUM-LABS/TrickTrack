@@ -132,6 +132,7 @@ import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ExportFormatDialog
 import ch.opum.tricktrack.ui.FilterDialog
 import ch.opum.tricktrack.ui.LicensePlateBadge
+import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
@@ -364,7 +365,8 @@ fun MainScreen(
             onSave = { trip ->
                 tripsViewModel.saveOrUpdateTrip(trip)
                 showSummaryDialog = false
-            }
+            },
+            tripsViewModel = tripsViewModel
         )
     }
 
@@ -871,6 +873,11 @@ fun EditTripDialog(
     var description by remember { mutableStateOf(trip?.description ?: "") }
     var isError by remember { mutableStateOf(false) }
 
+    val isOdometerModeEnabled by tripsViewModel.isOdometerModeEnabled.collectAsState()
+    var odometerText by remember(trip) {
+        mutableStateOf(trip?.endOdometer?.toLong()?.toString() ?: "")
+    }
+
     val allVehicles by tripsViewModel.allVehicles.collectAsState()
     var selectedVehicle by remember(trip, allVehicles) {
         mutableStateOf(trip?.vehicleId?.let { id -> allVehicles.find { it.id == id } }
@@ -1216,29 +1223,55 @@ fun EditTripDialog(
                         }
                     }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ClearableTextField(
-                        value = distanceText,
-                        onValueChange = {
-                            val sanitizedText =
-                                it.replace(',', '.').filter { char -> char == '.' || char.isDigit() }
-                            val dotCount = sanitizedText.count { char -> char == '.' }
-                            if (dotCount <= 1) {
-                                distanceText = sanitizedText
+                if (isOdometerModeEnabled) {
+                    OutlinedTextField(
+                        value = odometerText,
+                        onValueChange = { 
+                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                                odometerText = it 
                             }
-                            isError = false
                         },
-                        label = { Text(stringResource(R.string.distance_km_label)) },
-                        placeholder = { Text("0.0") },
-                        isError = isError,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
+                        label = { Text(stringResource(R.string.end_odometer_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = ThousandsSeparatorTransformation(),
+                        suffix = { Text("km") },
+                        trailingIcon = {
+                            if (odometerText.isNotEmpty()) {
+                                IconButton(onClick = { odometerText = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.clear_text)
+                                    )
+                                }
+                            }
+                        }
                     )
-                    if (tripsViewModel.isCalculating) {
-                        CircularProgressIndicator(modifier = Modifier.padding(start = 8.dp))
-                    } else {
-                        IconButton(onClick = { tripsViewModel.calculateDistance(startText, endText) }) {
-                            Icon(Icons.Default.Calculate, contentDescription = "Calculate distance")
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ClearableTextField(
+                            value = distanceText,
+                            onValueChange = {
+                                val sanitizedText =
+                                    it.replace(',', '.').filter { char -> char == '.' || char.isDigit() }
+                                val dotCount = sanitizedText.count { char -> char == '.' }
+                                if (dotCount <= 1) {
+                                    distanceText = sanitizedText
+                                }
+                                isError = false
+                            },
+                            label = { Text(stringResource(R.string.distance_km_label)) },
+                            placeholder = { Text("0.0") },
+                            isError = isError,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (tripsViewModel.isCalculating) {
+                            CircularProgressIndicator(modifier = Modifier.padding(start = 8.dp))
+                        } else {
+                            IconButton(onClick = { tripsViewModel.calculateDistance(startText, endText) }) {
+                                Icon(Icons.Default.Calculate, contentDescription = "Calculate distance")
+                            }
                         }
                     }
                 }
@@ -1359,7 +1392,19 @@ fun EditTripDialog(
                     ).show()
                     return@Button
                 }
-                val updatedDistance = distanceText.toDoubleOrNull()
+                val updatedDistance = if (isOdometerModeEnabled) {
+                    val endOdo = odometerText.toDoubleOrNull() ?: 0.0
+                    if (selectedVehicle != null) {
+                        // For editing existing trips, we might want a different logic for start odometer
+                        // but plan says recalculate distance relative to baseline
+                        (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                    } else {
+                        trip?.distance ?: 0.0
+                    }
+                } else {
+                    distanceText.toDoubleOrNull()
+                }
+
                 if (updatedDistance == null) {
                     isError = true
                 } else {
@@ -1375,7 +1420,8 @@ fun EditTripDialog(
                         startLon = startLon,
                         endLat = endLat,
                         endLon = endLon,
-                        vehicleId = selectedVehicle?.id
+                        vehicleId = selectedVehicle?.id,
+                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
                     ) ?: Trip(
                         startLoc = startText, // Pass String directly
                         endLoc = endText, // Pass String directly
@@ -1389,7 +1435,8 @@ fun EditTripDialog(
                         endLat = endLat,
                         endLon = endLon,
                         isConfirmed = true, // Default for manual add/edit
-                        vehicleId = selectedVehicle?.id
+                        vehicleId = selectedVehicle?.id,
+                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
                     )
                     onSave(tripToSave)
                 }
@@ -1417,12 +1464,24 @@ fun TripSummaryDialog(
     endAddress: String,
     defaultIsBusiness: Boolean,
     onDismiss: () -> Unit,
-    onSave: (Trip) -> Unit
+    onSave: (Trip) -> Unit,
+    tripsViewModel: TripsViewModel
 ) {
     var start by remember { mutableStateOf(startAddress) }
     var end by remember { mutableStateOf(endAddress) }
     var tripType by remember { mutableStateOf(if (defaultIsBusiness) "Business" else "Personal") }
     var description by remember { mutableStateOf("") }
+
+    val isOdometerModeEnabled by tripsViewModel.isOdometerModeEnabled.collectAsState()
+    var odometerText by remember(trip) {
+        mutableStateOf(trip?.endOdometer?.toLong()?.toString() ?: "")
+    }
+
+    val allVehicles by tripsViewModel.allVehicles.collectAsState()
+    var selectedVehicle by remember(allVehicles) {
+        mutableStateOf(tripsViewModel.selectedVehicle)
+    }
+    var vehicleExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1433,9 +1492,47 @@ fun TripSummaryDialog(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    stringResource(R.string.total_distance_label, distance / 1000.0)
-                )
+                if (isOdometerModeEnabled) {
+                    OutlinedTextField(
+                        value = odometerText,
+                        onValueChange = {
+                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                                odometerText = it
+                            }
+                        },
+                        label = { Text(stringResource(R.string.end_odometer_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = ThousandsSeparatorTransformation(),
+                        suffix = { Text("km") },
+                        trailingIcon = {
+                            if (odometerText.isNotEmpty()) {
+                                IconButton(onClick = { odometerText = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.clear_text)
+                                    )
+                                }
+                            }
+                        }
+                    )
+                    if (selectedVehicle != null) {
+                        val endOdo = odometerText.toDoubleOrNull() ?: 0.0
+                        val calcDistance =
+                            (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                        Text(
+                            text = "Calculated: %.2f km".format(calcDistance),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                } else {
+                    Text(
+                        stringResource(R.string.total_distance_label, distance / 1000.0)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
                 ClearableTextField( // Using ClearableTextField
                     value = start,
@@ -1446,7 +1543,93 @@ fun TripSummaryDialog(
                     onValueChange = { end = it },
                     label = { Text(stringResource(R.string.end_address_label)) })
                 Spacer(modifier = Modifier.height(16.dp))
-                val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
+
+                ExposedDropdownMenuBox(
+                    expanded = vehicleExpanded,
+                    onExpandedChange = { vehicleExpanded = it }
+                ) {
+                    val context = LocalContext.current
+                    OutlinedTextField(
+                        value = selectedVehicle?.licensePlate ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                        trailingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (selectedVehicle != null) {
+                                    IconButton(onClick = { selectedVehicle = null }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = stringResource(R.string.clear_text)
+                                        )
+                                    }
+                                }
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
+                            }
+                        },
+                        leadingIcon = {
+                            val iconResId = selectedVehicle?.brand?.let {
+                                CarBrandHelper.getBrandIconResId(
+                                    context,
+                                    it
+                                )
+                            } ?: 0
+                            if (iconResId != 0) {
+                                Icon(
+                                    painter = painterResource(id = iconResId),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            } else {
+                                Icon(Icons.Default.DirectionsCar, contentDescription = null)
+                            }
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = vehicleExpanded,
+                        onDismissRequest = { vehicleExpanded = false }
+                    ) {
+                        allVehicles.forEach { vehicle ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        val itemIconResId = vehicle.brand?.let {
+                                            CarBrandHelper.getBrandIconResId(
+                                                context,
+                                                it
+                                            )
+                                        } ?: 0
+                                        if (itemIconResId != 0) {
+                                            Icon(
+                                                painter = painterResource(id = itemIconResId),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                                tint = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                        }
+                                        Text(vehicle.licensePlate)
+                                    }
+                                },
+                                onClick = {
+                                    selectedVehicle = vehicle
+                                    vehicleExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                val tripTypes = listOf(
+                    stringResource(R.string.trip_type_business),
+                    stringResource(R.string.trip_type_personal)
+                )
                 val icons = listOf(Icons.Default.Work, Icons.Default.Person)
 
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -1481,20 +1664,36 @@ fun TripSummaryDialog(
         },
         confirmButton = {
             Button(onClick = {
+                val updatedDistance = if (isOdometerModeEnabled) {
+                    val endOdo = odometerText.toDoubleOrNull() ?: 0.0
+                    if (selectedVehicle != null) {
+                        (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                    } else {
+                        distance / 1000.0
+                    }
+                } else {
+                    distance / 1000.0
+                }
+
                 val tripToSave = trip?.copy(
                     startLoc = start,
                     endLoc = end,
                     type = tripType,
-                    description = description
+                    description = description,
+                    distance = updatedDistance,
+                    vehicleId = selectedVehicle?.id,
+                    endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
                 ) ?: Trip(
                     startLoc = start,
                     endLoc = end,
-                    distance = distance,
+                    distance = updatedDistance,
                     type = tripType,
                     description = description,
                     date = Date(),
                     endDate = Date().time,
-                    isConfirmed = true
+                    isConfirmed = true,
+                    vehicleId = selectedVehicle?.id,
+                    endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
                 )
                 onSave(tripToSave)
             }) {

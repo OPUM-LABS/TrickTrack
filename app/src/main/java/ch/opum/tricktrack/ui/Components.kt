@@ -26,12 +26,70 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.VehicleEntity
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
+
+class ThousandsSeparatorTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val originalText = text.text
+        if (originalText.isEmpty()) {
+            return TransformedText(text, OffsetMapping.Identity)
+        }
+
+        val symbols = DecimalFormatSymbols.getInstance(Locale.getDefault())
+        val separator = symbols.groupingSeparator
+        
+        val df = DecimalFormat("#,###", symbols)
+        val formatted = try {
+            df.format(originalText.toLong())
+        } catch (_: Exception) {
+            originalText
+        }
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 0) return 0
+                var transformedOffset = 0
+                var originalCount = 0
+                for (char in formatted) {
+                    if (originalCount == offset) break
+                    transformedOffset++
+                    if (char != separator) {
+                        originalCount++
+                    }
+                }
+                return transformedOffset
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset <= 0) return 0
+                var originalOffset = 0
+                var transformedCount = 0
+                for (char in formatted) {
+                    if (transformedCount == offset) break
+                    if (char != separator) {
+                        originalOffset++
+                    }
+                    transformedCount++
+                }
+                return originalOffset
+            }
+        }
+
+        return TransformedText(AnnotatedString(formatted), offsetMapping)
+    }
+}
 
 @Composable
 fun LicensePlateBadge(vehicle: VehicleEntity, modifier: Modifier = Modifier) {

@@ -511,6 +511,27 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_odometer_mode_title))
+                            Text(
+                                stringResource(R.string.settings_odometer_mode_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = isOdometerModeEnabled,
+                            onCheckedChange = { viewModel.setOdometerModeEnabled(it) }
+                        )
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.settings_automatic_tracking_title))
                             Text(

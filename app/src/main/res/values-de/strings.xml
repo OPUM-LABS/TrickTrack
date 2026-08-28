@@ -13,6 +13,8 @@
     <string name="settings_tracking_settings_description">Automatische Nachverfolgung und Auslöser konfigurieren</string>
     <string name="settings_automatic_tracking_title">Automatische Verfolgung</string>
     <string name="settings_automatic_tracking_description">Zeichnet Fahrten automatisch auf, wenn Sie losfahren.</string>
+    <string name="settings_odometer_mode_title">Kilometerzähler-Modus</string>
+    <string name="settings_odometer_mode_description">Endkilometerstand manuell eingeben, um die Fahrstrecke zu berechnen.</string>
     <string name="settings_bluetooth_trigger_title">Start bei Bluetooth-Verbindung</string>
     <string name="settings_bluetooth_trigger_description">Startet die Verfolgung automatisch, wenn ein ausgewähltes Bluetooth-Gerät verbunden wird.</string>
     <string name="settings_bluetooth_select_device">Gerät auswählen</string>
@@ -268,6 +270,7 @@
     <string name="favourites_car_brand_label">Marke</string>
     <string name="favourites_car_model_label">Automodell (optional)</string>
     <string name="odometer_label">Anfänglicher Kilometerstand</string>
+    <string name="end_odometer_label">Endkilometerstand</string>
     <string name="backup_successful">Backup erfolgreich erstellt!</string>
     <string name="permission_dialog_title_location">Standortberechtigung</string>
     <string name="permission_dialog_message_location">Diese Funktion erfordert eine Standortberechtigung, um Ihre Reisen zu verfolgen. Bitte erteilen Sie die Berechtigung.</string>
