@@ -617,34 +617,43 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        val isScheduleActive by viewModel.isScheduleActive.collectAsState()
+                        val scheduleSummary by viewModel.scheduleSummary.collectAsState()
+
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showScheduleDialog = true }
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(stringResource(R.string.settings_enable_schedule_title))
-                                val isScheduleActive by viewModel.isScheduleActive.collectAsState()
                                 if (isScheduleEnabled) {
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Surface(
                                         shape = RoundedCornerShape(4.dp),
-                                        color = if (isScheduleActive) 
-                                            Color(0xFF4CAF50).copy(alpha = 0.1f) 
-                                            else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                                        color = if (isScheduleActive)
+                                            Color(0xFF4CAF50).copy(alpha = 0.1f)
+                                        else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
                                     ) {
                                         Text(
-                                            text = if (isScheduleActive) 
-                                                stringResource(R.string.schedule_status_active) 
-                                                else stringResource(R.string.schedule_status_inactive),
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            text = if (isScheduleActive)
+                                                stringResource(R.string.schedule_status_active)
+                                            else stringResource(R.string.schedule_status_inactive),
+                                            modifier = Modifier.padding(
+                                                horizontal = 6.dp,
+                                                vertical = 2.dp
+                                            ),
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = if (isScheduleActive) 
-                                                Color(0xFF2E7D32) 
-                                                else MaterialTheme.colorScheme.onErrorContainer,
+                                            color = if (isScheduleActive)
+                                                Color(0xFF2E7D32)
+                                            else MaterialTheme.colorScheme.onErrorContainer,
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
                                 }
                             }
                             Text(
-                                stringResource(R.string.settings_enable_schedule_description),
+                                text = if (isScheduleEnabled) "$scheduleSummary • Tap to edit" else "Disabled • Tap to configure",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -655,28 +664,6 @@ fun SettingsScreen(
                                 viewModel.setScheduleEnabled(enabled)
                             }
                         )
-                    }
-                    if (isScheduleEnabled) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showScheduleDialog = true },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(stringResource(R.string.settings_schedule_title))
-                                Text(
-                                    stringResource(R.string.settings_schedule_description),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowForwardIos,
-                                contentDescription = stringResource(R.string.settings_schedule_edit_cd)
-                            )
-                        }
                     }
                 }
             }
@@ -1085,14 +1072,12 @@ fun ScheduleSettingsDialog(
     val tempSchedule = remember { mutableStateMapOf<DayOfWeek, DaySchedule>() }
     var allDaysStartTime by remember { mutableStateOf(0 to 0) }
     var allDaysEndTime by remember { mutableStateOf(23 to 59) }
-    var selectedTarget by remember { mutableStateOf(scheduleSettings.target) }
 
     // Initialize the temporary state from the collected scheduleSettings
     LaunchedEffect(scheduleSettings) {
         if (scheduleSettings.dailySchedules.isNotEmpty()) {
             tempSchedule.clear()
             tempSchedule.putAll(scheduleSettings.dailySchedules)
-            selectedTarget = scheduleSettings.target
         }
     }
 
@@ -1198,200 +1183,193 @@ fun ScheduleSettingsDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = stringResource(R.string.settings_schedule_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.settings_schedule_title),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
+        text = {
+            if (tempSchedule.isEmpty()) {
+                // Show a loading indicator or an empty state while the schedule is being loaded
+                Text(stringResource(R.string.schedule_loading))
+            } else {
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Spacer(modifier = Modifier.width(80.dp)) // Align with day buttons
+                            Text(
+                                stringResource(R.string.schedule_from),
+                                modifier = Modifier.width(100.dp),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                stringResource(R.string.schedule_to),
+                                modifier = Modifier.width(100.dp),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
+                        }
 
-                if (tempSchedule.isEmpty()) {
-                    // Show a loading indicator or an empty state while the schedule is being loaded
-                    Text(stringResource(R.string.schedule_loading))
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .verticalScroll(rememberScrollState())
-                            .horizontalScroll(rememberScrollState())
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Row(
+                            modifier = Modifier
+                                .height(IntrinsicSize.Min),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_all_days),
+                                modifier = Modifier.width(80.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+
+                            OutlinedButton(
+                                onClick = { showAllDaysStartTimePicker = true },
+                                modifier = Modifier.width(100.dp)
                             ) {
-                                Spacer(modifier = Modifier.width(80.dp)) // Align with day buttons
                                 Text(
-                                    stringResource(R.string.schedule_from),
-                                    modifier = Modifier.width(100.dp),
-                                    textAlign = TextAlign.Center
+                                    String.format(
+                                        LocalLocale.current.platformLocale,
+                                        "%02d:%02d",
+                                        allDaysStartTime.first,
+                                        allDaysStartTime.second
+                                    )
                                 )
-                                Text(
-                                    stringResource(R.string.schedule_to),
-                                    modifier = Modifier.width(100.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
                             }
-
-                            Row(
-                                modifier = Modifier
-                                    .height(IntrinsicSize.Min),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            OutlinedButton(
+                                onClick = { showAllDaysEndTimePicker = true },
+                                modifier = Modifier.width(100.dp)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.settings_all_days),
-                                    modifier = Modifier.width(80.dp),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyLarge
+                                    String.format(
+                                        LocalLocale.current.platformLocale,
+                                        "%02d:%02d",
+                                        allDaysEndTime.first,
+                                        allDaysEndTime.second
+                                    )
                                 )
-
-                                OutlinedButton(
-                                    onClick = { showAllDaysStartTimePicker = true },
-                                    modifier = Modifier.width(100.dp)
-                                ) {
-                                    Text(
-                                        String.format(
-                                            LocalLocale.current.platformLocale,
-                                            "%02d:%02d",
-                                            allDaysStartTime.first,
-                                            allDaysStartTime.second
-                                        )
-                                    )
-                                }
-                                OutlinedButton(
-                                    onClick = { showAllDaysEndTimePicker = true },
-                                    modifier = Modifier.width(100.dp)
-                                ) {
-                                    Text(
-                                        String.format(
-                                            LocalLocale.current.platformLocale,
-                                            "%02d:%02d",
-                                            allDaysEndTime.first,
-                                            allDaysEndTime.second
-                                        )
-                                    )
-                                }
-                                Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
                             }
+                            Spacer(modifier = Modifier.size(48.dp)) // Spacer for reset button
+                        }
 
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                            DayOfWeek.entries.forEach { day ->
-                                val schedule = tempSchedule[day]
-                                if (schedule != null) {
-                                    Row(
-                                        modifier = Modifier
-                                            .height(IntrinsicSize.Min),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        DayOfWeek.entries.forEach { day ->
+                            val schedule = tempSchedule[day]
+                            if (schedule != null) {
+                                Row(
+                                    modifier = Modifier
+                                        .height(IntrinsicSize.Min),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            tempSchedule[day] =
+                                                schedule.copy(isEnabled = !schedule.isEnabled)
+                                        },
+                                        modifier = Modifier.width(80.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (schedule.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                                            contentColor = if (schedule.isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                        )
                                     ) {
-                                        Button(
-                                            onClick = {
-                                                tempSchedule[day] =
-                                                    schedule.copy(isEnabled = !schedule.isEnabled)
-                                            },
-                                            modifier = Modifier.width(80.dp),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = if (schedule.isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                                                contentColor = if (schedule.isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                                            )
-                                        ) {
-                                            Text(stringResource(dayToResId(day)))
-                                        }
+                                        Text(stringResource(dayToResId(day)))
+                                    }
 
-                                        OutlinedButton(
-                                            onClick = { selectedDayForStartTime = day },
-                                            modifier = Modifier.width(100.dp),
-                                            enabled = schedule.isEnabled
-                                        ) {
-                                            Text(
-                                                String.format(
-                                                    LocalLocale.current.platformLocale,
-                                                    "%02d:%02d",
-                                                    schedule.startHour,
-                                                    schedule.startMinute
-                                                )
+                                    OutlinedButton(
+                                        onClick = { selectedDayForStartTime = day },
+                                        modifier = Modifier.width(100.dp),
+                                        enabled = schedule.isEnabled
+                                    ) {
+                                        Text(
+                                            String.format(
+                                                LocalLocale.current.platformLocale,
+                                                "%02d:%02d",
+                                                schedule.startHour,
+                                                schedule.startMinute
                                             )
-                                        }
-                                        OutlinedButton(
-                                            onClick = { selectedDayForEndTime = day },
-                                            modifier = Modifier.width(100.dp),
-                                            enabled = schedule.isEnabled
-                                        ) {
-                                            Text(
-                                                String.format(
-                                                    LocalLocale.current.platformLocale,
-                                                    "%02d:%02d",
-                                                    schedule.endHour,
-                                                    schedule.endMinute
-                                                )
+                                        )
+                                    }
+                                    OutlinedButton(
+                                        onClick = { selectedDayForEndTime = day },
+                                        modifier = Modifier.width(100.dp),
+                                        enabled = schedule.isEnabled
+                                    ) {
+                                        Text(
+                                            String.format(
+                                                LocalLocale.current.platformLocale,
+                                                "%02d:%02d",
+                                                schedule.endHour,
+                                                schedule.endMinute
                                             )
-                                        }
-                                        IconButton(onClick = {
-                                            tempSchedule[day] = schedule.copy(
-                                                startHour = 0,
-                                                startMinute = 0,
-                                                endHour = 23,
-                                                endMinute = 59
-                                            )
-                                        }) {
-                                            Icon(
-                                                Icons.Default.Refresh,
-                                                contentDescription = stringResource(R.string.schedule_reset_cd)
-                                            )
-                                        }
+                                        )
+                                    }
+                                    IconButton(onClick = {
+                                        tempSchedule[day] = schedule.copy(
+                                            startHour = 0,
+                                            startMinute = 0,
+                                            endHour = 23,
+                                            endMinute = 59
+                                        )
+                                    }) {
+                                        Icon(
+                                            Icons.Default.Refresh,
+                                            contentDescription = stringResource(R.string.schedule_reset_cd)
+                                        )
                                     }
                                 }
                             }
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    DialogResetButton(onClick = {
-                        allDaysStartTime = 0 to 0
-                        allDaysEndTime = 23 to 59
-                        DayOfWeek.entries.forEach { day ->
-                            tempSchedule[day]?.let {
-                                tempSchedule[day] = it.copy(
-                                    isEnabled = true,
-                                    startHour = 0,
-                                    startMinute = 0,
-                                    endHour = 23,
-                                    endMinute = 59
-                                )
-                            }
+            }
+        },
+        confirmButton = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DialogResetButton(onClick = {
+                    allDaysStartTime = 0 to 0
+                    allDaysEndTime = 23 to 59
+                    DayOfWeek.entries.forEach { day ->
+                        tempSchedule[day]?.let {
+                            tempSchedule[day] = it.copy(
+                                isEnabled = true,
+                                startHour = 0,
+                                startMinute = 0,
+                                endHour = 23,
+                                endMinute = 59
+                            )
                         }
-                    })
-                    Spacer(modifier = Modifier.weight(1f))
-                    DialogDeclineButton(onClick = onDismiss)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    DialogAcceptButton(onClick = {
-                        val newSettings = ScheduleSettings(
-                            target = selectedTarget,
-                            dailySchedules = tempSchedule.toMap()
-                        )
-                        viewModel.updateScheduleSettings(newSettings)
-                        onDismiss()
-                    })
-                }
+                    }
+                })
+                Spacer(modifier = Modifier.weight(1f))
+                DialogDeclineButton(onClick = onDismiss)
+                Spacer(modifier = Modifier.width(8.dp))
+                DialogAcceptButton(onClick = {
+                    val newSettings = ScheduleSettings(
+                        target = scheduleSettings.target,
+                        dailySchedules = tempSchedule.toMap()
+                    )
+                    viewModel.updateScheduleSettings(newSettings)
+                    onDismiss()
+                })
             }
         }
-    }
+    )
 }
 
 @Composable

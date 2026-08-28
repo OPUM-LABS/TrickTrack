@@ -286,6 +286,43 @@ class TripsViewModel(
             initialValue = ScheduleSettings(ScheduleTarget.AUTOMATIC, emptyMap())
         )
 
+    val scheduleSummary: StateFlow<String> = scheduleSettings.map { settings ->
+        val enabledDays = settings.dailySchedules.filter { it.value.isEnabled }
+        if (enabledDays.isEmpty()) return@map "No active days"
+
+        val first = enabledDays.values.first()
+        val allSame = enabledDays.values.all {
+            it.startHour == first.startHour && it.startMinute == first.startMinute &&
+                    it.endHour == first.endHour && it.endMinute == first.endMinute
+        }
+
+        val timeRange = "${formatTime(first.startHour, first.startMinute)}–${
+            formatTime(
+                first.endHour,
+                first.endMinute
+            )
+        }"
+
+        if (allSame) {
+            if (enabledDays.size == 7) {
+                "Daily, $timeRange"
+            } else if (enabledDays.size == 5 &&
+                enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
+                enabledDays.containsKey(java.time.DayOfWeek.FRIDAY)
+            ) {
+                "Mon–Fri, $timeRange"
+            } else {
+                "${enabledDays.size} days, $timeRange"
+            }
+        } else {
+            "${enabledDays.size} days active"
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    private fun formatTime(hour: Int, minute: Int): String {
+        return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+    }
+
     val isAutoTrackingEnabled: StateFlow<Boolean> = userPreferencesRepository.isAutoTrackingEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -903,6 +940,7 @@ class TripsViewModel(
     fun updateScheduleSettings(settings: ScheduleSettings) {
         viewModelScope.launch {
             userPreferencesRepository.updateScheduleSettings(settings)
+            userPreferencesRepository.setScheduleEnabled(true)
             applyScheduleChanges()
         }
     }
