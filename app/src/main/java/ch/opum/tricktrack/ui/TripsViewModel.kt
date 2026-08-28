@@ -329,6 +329,12 @@ class TripsViewModel(
     val isBluetoothTriggerEnabled: StateFlow<Boolean> = userPreferencesRepository.bluetoothTriggerEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val bluetoothSummary: StateFlow<String> = userPreferencesRepository.selectedBluetoothDevices.map { devices ->
+        if (devices.isEmpty()) "No devices selected"
+        else if (devices.size == 1) "1 device configured"
+        else "${devices.size} devices configured"
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
 
     // Event to request background location permission from the UI
     private val _permissionEvent = MutableSharedFlow<Unit>()

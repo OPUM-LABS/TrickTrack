@@ -569,12 +569,23 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.settings_bluetooth_trigger_title))
+                        val bluetoothSummary by viewModel.bluetoothSummary.collectAsState()
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(enabled = isBluetoothTriggerEnabled) { showDeviceDialog = true }
+                        ) {
                             Text(
-                                stringResource(R.string.settings_bluetooth_trigger_description),
+                                text = stringResource(R.string.settings_bluetooth_trigger_title),
+                                color = if (isBluetoothTriggerEnabled) MaterialTheme.colorScheme.onSurface 
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                            Text(
+                                text = if (isBluetoothTriggerEnabled) "$bluetoothSummary • Tap to change" 
+                                       else stringResource(R.string.settings_bluetooth_trigger_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isBluetoothTriggerEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             )
                         }
                         Switch(
@@ -589,21 +600,6 @@ fun SettingsScreen(
                                 }
                             }
                         )
-                    }
-
-                    if (isBluetoothTriggerEnabled) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedButton(
-                            onClick = { showDeviceDialog = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            val text = if (selectedBluetoothDevices.isEmpty()) {
-                                stringResource(R.string.settings_bluetooth_select_device)
-                            } else {
-                                stringResource(R.string.settings_bluetooth_change_device)
-                            }
-                            Text(text)
-                        }
                     }
                 }
             }
