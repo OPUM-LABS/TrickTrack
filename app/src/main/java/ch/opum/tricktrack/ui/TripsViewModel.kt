@@ -727,7 +727,6 @@ class TripsViewModel(
         val rate = expenseRatePerKm.first()
         val includeDriver = exportIncludeDriver.first()
         val includeCompany = exportIncludeCompany.first()
-        val includeVehicle = exportIncludeVehicle.first()
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -747,7 +746,7 @@ class TripsViewModel(
         if (isExpenseEnabled) headers.add("Expenses")
         if (includeDriver) headers.add("Driver")
         if (includeCompany) headers.add("Company")
-        if (includeVehicle) headers.add("Vehicle")
+        if (columns.contains("VEHICLE")) headers.add("Vehicle")
 
         val csvHeader = headers.joinToString(",") + "\n"
 
@@ -770,7 +769,7 @@ class TripsViewModel(
             }
             if (includeDriver) row.add(escape(driverName))
             if (includeCompany) row.add(escape(companyName))
-            if (includeVehicle) row.add(escape(item.vehicle?.licensePlate ?: vehicleName))
+            if (columns.contains("VEHICLE")) row.add(escape(item.vehicle?.licensePlate ?: vehicleName))
             row.joinToString(",")
         }
 
@@ -797,19 +796,19 @@ class TripsViewModel(
             val isExpenseEnabled = expenseTrackingEnabled.first() && exportSettings.contains("EXPENSES")
             val includeDriver = exportIncludeDriver.first()
             val includeCompany = exportIncludeCompany.first()
-            val includeVehicle = exportIncludeVehicle.first()
+            val filter = filterState.first()
 
             val pdfFile = withContext(Dispatchers.IO) {
                 PdfGenerator().generateTripReport(
                     context = context,
-                    trips = trips.map { it.trip },
+                    tripsWithVehicle = trips,
                     columns = exportSettings,
                     isExpenseEnabled = isExpenseEnabled,
                     expenseRate = rate,
                     expenseCurrency = currency,
                     driverName = if (includeDriver) selectedDriver?.name else null,
                     companyName = if (includeCompany) selectedCompany?.name else null,
-                    vehicleName = if (includeVehicle) selectedVehicle?.licensePlate else null
+                    vehicleName = if (filter.vehicleIds.size == 1) selectedVehicle?.licensePlate else null
                 )
             }
             pdfFile?.let {

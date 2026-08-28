@@ -43,7 +43,8 @@ fun ExportConfigDialog(
             "START_LOCATION" to R.string.export_column_start_location,
             "END_LOCATION" to R.string.export_column_end_location,
             "DISTANCE" to R.string.export_column_distance,
-            "TYPE" to R.string.export_column_type
+            "TYPE" to R.string.export_column_type,
+            "VEHICLE" to R.string.favourites_tab_vehicles
         )
     }
 

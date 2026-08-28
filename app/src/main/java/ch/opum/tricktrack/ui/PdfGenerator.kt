@@ -14,7 +14,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
 import androidx.core.graphics.withTranslation
 import ch.opum.tricktrack.R
-import ch.opum.tricktrack.data.Trip
+import ch.opum.tricktrack.data.TripWithVehicle
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -40,7 +40,7 @@ class PdfGenerator {
 
     fun generateTripReport(
         context: Context,
-        trips: List<Trip>,
+        tripsWithVehicle: List<TripWithVehicle>,
         columns: Set<String>,
         isExpenseEnabled: Boolean,
         expenseRate: Float,
@@ -49,25 +49,25 @@ class PdfGenerator {
         companyName: String?,
         vehicleName: String?
     ): File? {
-        if (trips.isEmpty()) return null
+        if (tripsWithVehicle.isEmpty()) return null
         this.context = context
 
         // First pass: Calculate total pages
-        totalPages = calculateTotalPages(trips, columns, isExpenseEnabled)
+        totalPages = calculateTotalPages(tripsWithVehicle, columns, isExpenseEnabled)
 
         document = PdfDocument()
 
         // Second pass: Draw the document
         // 1. Data Preparation
-        val groupedByMonth = trips.groupBy {
+        val groupedByMonth = tripsWithVehicle.groupBy {
             val cal = Calendar.getInstance()
-            cal.time = it.date
+            cal.time = it.trip.date
             SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(cal.time)
         }
-        val totalDistance = trips.sumOf { it.distance }
+        val totalDistance = tripsWithVehicle.sumOf { it.trip.distance }
         val totalExpenses = if (isExpenseEnabled) totalDistance * expenseRate else 0.0
-        val minDate = trips.minOf { it.date }
-        val maxDate = trips.maxOf { it.date }
+        val minDate = tripsWithVehicle.minOf { it.trip.date }
+        val maxDate = tripsWithVehicle.maxOf { it.trip.date }
         val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         dateRange = "${dateFormat.format(minDate)} - ${dateFormat.format(maxDate)}"
 
@@ -94,8 +94,8 @@ class PdfGenerator {
             drawMonthHeader(month)
             drawTableHeader(orderedColumns, columnWidths, isExpenseEnabled)
 
-            monthTrips.forEach { trip ->
-                drawTripRow(trip, orderedColumns, columnWidths, isExpenseEnabled, expenseRate, expenseCurrency)
+            monthTrips.forEach { item ->
+                drawTripRow(item, orderedColumns, columnWidths, isExpenseEnabled, expenseRate, expenseCurrency, columns.contains("VEHICLE"))
             }
         }
 
@@ -118,30 +118,32 @@ class PdfGenerator {
     }
 
     private fun calculateTotalPages(
-        trips: List<Trip>,
+        tripsWithVehicle: List<TripWithVehicle>,
         columns: Set<String>,
         isExpenseEnabled: Boolean
     ): Int {
         // This is a simplified calculation. A more accurate one would require a full layout pass.
         var pageCount = 2 // Summary page + at least one trip page
-        val groupedByMonth = trips.groupBy {
+        val groupedByMonth = tripsWithVehicle.groupBy {
             val cal = Calendar.getInstance()
-            cal.time = it.date
+            cal.time = it.trip.date
             SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(cal.time)
         }
         val orderedColumns = listOf("DATE", "START_TIME", "END_TIME", "START_LOCATION", "END_LOCATION", "DISTANCE", "TYPE", "EXPENSES")
             .filter { columns.contains(it.replace("_TIME", "")) }
         val columnWidths = getColumnWidths(orderedColumns, isExpenseEnabled)
+        val includeVehicle = columns.contains("VEHICLE")
 
         var tempY = margin + 60f
         groupedByMonth.forEach { (_, monthTrips) ->
             tempY += 60f // Month header
             tempY += 15f // Table header
-            monthTrips.forEach { trip ->
+            monthTrips.forEach { item ->
+                val trip = item.trip
                 var maxRowHeight = 0f
                 orderedColumns.forEach { column ->
                     val text = when (column) {
-                        "DATE" -> "01.01"
+                        "DATE" -> if (includeVehicle && item.vehicle != null) "01.01\n${item.vehicle.licensePlate}" else "01.01"
                         "START_TIME" -> "00:00"
                         "END_TIME" -> "00:00"
                         "START_LOCATION" -> trip.startLoc.replace(", ", "\n")
@@ -387,13 +389,15 @@ class PdfGenerator {
     }
 
     private fun drawTripRow(
-        trip: Trip,
+        item: TripWithVehicle,
         columns: List<String>,
         columnWidths: Map<String, Float>,
         isExpenseEnabled: Boolean,
         expenseRate: Float,
-        expenseCurrency: String
+        expenseCurrency: String,
+        includeVehicle: Boolean
     ) {
+        val trip = item.trip
         val textPaint = TextPaint().apply {
             color = Color.BLACK
             textSize = 10f
@@ -412,7 +416,13 @@ class PdfGenerator {
 
         columns.forEach { column ->
             val text = when (column) {
-                "DATE" -> dateFormat.format(trip.date)
+                "DATE" -> {
+                    if (includeVehicle && item.vehicle != null) {
+                        dateFormat.format(trip.date) + "\n" + item.vehicle.licensePlate
+                    } else {
+                        dateFormat.format(trip.date)
+                    }
+                }
                 "START_TIME" -> timeFormat.format(trip.date)
                 "END_TIME" -> timeFormat.format(Date(trip.endDate))
                 "START_LOCATION" -> trip.startLoc.replace(", ", "\n")
@@ -424,7 +434,8 @@ class PdfGenerator {
             }
             if (text.isNotEmpty()) {
                 val colWidth = (columnWidths[column] ?: 0f).toInt()
-                val layout = StaticLayout.Builder.obtain(text, 0, text.length, textPaint, colWidth).build()
+                val paint = if (column == "DATE" && text.contains("\n")) textPaint else textPaint // Simplification
+                val layout = StaticLayout.Builder.obtain(text, 0, text.length, paint, colWidth).build()
                 cellLayouts[column] = layout
                 if (layout.height > maxRowHeight) {
                     maxRowHeight = layout.height.toFloat()
