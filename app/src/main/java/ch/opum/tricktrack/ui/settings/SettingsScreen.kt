@@ -16,10 +16,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,16 +37,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -59,14 +53,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ElevatedAssistChip
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.SegmentedButton
@@ -92,7 +83,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -100,15 +90,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -119,24 +107,20 @@ import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.DaySchedule
 import ch.opum.tricktrack.data.ScheduleSettings
-import ch.opum.tricktrack.data.ScheduleTarget
 import ch.opum.tricktrack.permission.TrackingMode
 import ch.opum.tricktrack.ui.ClearableTextField
+import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.DialogResetButton
 import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
-import ch.opum.tricktrack.ui.settings.PermissionHealthState
-import ch.opum.tricktrack.ui.settings.PermissionRequirement
-import ch.opum.tricktrack.ui.settings.PermissionStatus
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.util.Date
 import java.util.Locale
-import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
@@ -144,7 +128,7 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
     var showDialog by remember { mutableStateOf(false) }
     var dialogTitle by remember { mutableStateOf("") }
     var dialogMessage by remember { mutableStateOf("") }
-    var onPositive by remember { mutableStateOf<() -> Unit>({}) }
+    var onPositive by remember { mutableStateOf({}) }
     var confirmButtonText by remember { mutableStateOf("OK") }
 
     var currentTrackingMode by remember { mutableStateOf(TrackingMode.AUTO) }
@@ -225,23 +209,14 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
     }
 
     if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(dialogTitle) },
-            text = { Text(dialogMessage) },
-            confirmButton = {
-                Button(onClick = {
-                    onPositive()
-                    showDialog = false
-                }) {
-                    Text(confirmButtonText)
-                }
+        ConfirmationBottomSheet(
+            title = dialogTitle,
+            message = dialogMessage,
+            onConfirm = {
+                onPositive()
+                showDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(stringResource(id = R.string.button_cancel))
-                }
-            }
+            onDismiss = { showDialog = false }
         )
     }
 
@@ -333,6 +308,7 @@ fun SettingsScreen(
     val settingsViewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModelFactory(application, application.repository, application.userPreferencesRepository)
     )
+    val scope = rememberCoroutineScope()
 
     val isAutoTrackingEnabled by viewModel.isAutoTrackingEnabled.collectAsState()
     val isBluetoothTriggerEnabled by viewModel.isBluetoothTriggerEnabled.collectAsState()
@@ -385,15 +361,34 @@ fun SettingsScreen(
     }
 
     if (showDeviceDialog) {
-        AlertDialog(
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
             onDismissRequest = { showDeviceDialog = false },
-            title = { Text(stringResource(R.string.settings_bluetooth_select_devices_dialog_title)) },
-            text = {
-                LazyColumn {
+            sheetState = sheetState,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_bluetooth_select_devices_dialog_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
                     items(pairedDevices.toList()) { device ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.toggleBluetoothDevice(device.address)
+                                }
+                                .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = device.name ?: stringResource(R.string.unknown_device),
@@ -401,18 +396,21 @@ fun SettingsScreen(
                             )
                             Checkbox(
                                 checked = selectedBluetoothDevices.contains(device.address),
-                                onCheckedChange = {
-                                    viewModel.toggleBluetoothDevice(device.address)
-                                }
+                                onCheckedChange = null
                             )
                         }
                     }
                 }
-            },
-            confirmButton = {
-                DialogAcceptButton(onClick = { showDeviceDialog = false })
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    DialogAcceptButton(onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) showDeviceDialog = false
+                        }
+                    })
+                }
             }
-        )
+        }
     }
 
     if (showPermissionSheet) {
@@ -450,43 +448,65 @@ fun SettingsScreen(
             }
         }
 
-        val context = LocalContext.current
         val packageInfo = try {
             context.packageManager.getPackageInfo(context.packageName, 0)
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (_: PackageManager.NameNotFoundException) {
             null
         }
         val versionName = packageInfo?.versionName ?: "1.0.0"
 
-        AlertDialog(
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
             onDismissRequest = onDismissAboutDialog,
-            icon = { Icon(Icons.Default.Map, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-            title = { Text(stringResource(R.string.app_name)) },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.about_version, versionName), style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(stringResource(R.string.about_license), style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = osmAnnotatedString,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = copyrightAnnotatedString,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(stringResource(R.string.about_made_with_love), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = onDismissAboutDialog) {
+            sheetState = sheetState,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Default.Map,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(stringResource(R.string.about_version, versionName), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.about_license), style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = osmAnnotatedString,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = copyrightAnnotatedString,
+                    style = MaterialTheme.typography.labelSmall
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(stringResource(R.string.about_made_with_love), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) onDismissAboutDialog()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(stringResource(R.string.button_close))
                 }
             }
-        )
+        }
     }
 
     if (showScheduleDialog) {
@@ -1079,7 +1099,6 @@ fun ScheduleBottomSheet(
     viewModel: TripsViewModel,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
     val scheduleSettings by viewModel.scheduleSettings.collectAsState()
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -1109,7 +1128,6 @@ fun ScheduleBottomSheet(
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
     var dayForTimePicker by remember { mutableStateOf<DayOfWeek?>(null) }
-    var isPickingStartTime by remember { mutableStateOf(true) }
 
     if (showStartTimePicker || showEndTimePicker) {
         val initialTime = if (dayForTimePicker == null) {
@@ -1500,7 +1518,7 @@ fun PermissionBottomSheet(
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
+    ) {
         viewModel.checkPermissions(context)
     }
 

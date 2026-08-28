@@ -52,7 +52,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomSheetDefaults
@@ -132,12 +131,14 @@ import ch.opum.tricktrack.data.TripWithVehicle
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
+import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.ExportFormatDialog
 import ch.opum.tricktrack.ui.FilterDialog
 import ch.opum.tricktrack.ui.LicensePlateBadge
 import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
+import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
@@ -331,30 +332,21 @@ fun MainScreen(
     }
 
     if (showBackgroundLocationDialog) {
-        AlertDialog(
-            onDismissRequest = { showBackgroundLocationDialog = false },
-            title = { Text(stringResource(R.string.background_location_required_title)) },
-            text = { Text(stringResource(R.string.background_location_required_text)) },
-            confirmButton = {
-                Button(onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        val uri = Uri.fromParts("package", context.packageName, null)
-                        intent.data = uri
-                        context.startActivity(intent)
-                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Add this check for API 29 and 30
-                        backgroundLocationPermissionLauncher.launch("android.permission.ACCESS_BACKGROUND_LOCATION")
-                    }
-                    showBackgroundLocationDialog = false
-                }) {
-                    Text(stringResource(R.string.open_settings))
+        ConfirmationBottomSheet(
+            title = stringResource(R.string.background_location_required_title),
+            message = stringResource(R.string.background_location_required_text),
+            onConfirm = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    val uri = Uri.fromParts("package", context.packageName, null)
+                    intent.data = uri
+                    context.startActivity(intent)
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Add this check for API 29 and 30
+                    backgroundLocationPermissionLauncher.launch("android.permission.ACCESS_BACKGROUND_LOCATION")
                 }
+                showBackgroundLocationDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showBackgroundLocationDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
+            onDismiss = { showBackgroundLocationDialog = false }
         )
     }
 
@@ -513,21 +505,14 @@ fun MainScreen(
                             }
 
                             if (showDeleteConfirmationDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showDeleteConfirmationDialog = false },
-                                    title = { Text(stringResource(R.string.delete_filtered_trips_title)) },
-                                    text = { Text(stringResource(R.string.delete_filtered_trips_confirmation)) },
-                                    confirmButton = {
-                                        DialogAcceptButton(
-                                            onClick = {
-                                                tripsViewModel.deleteFilteredTrips()
-                                                showDeleteConfirmationDialog = false
-                                            }
-                                        )
+                                ConfirmationBottomSheet(
+                                    title = stringResource(R.string.delete_filtered_trips_title),
+                                    message = stringResource(R.string.delete_filtered_trips_confirmation),
+                                    onConfirm = {
+                                        tripsViewModel.deleteFilteredTrips()
+                                        showDeleteConfirmationDialog = false
                                     },
-                                    dismissButton = {
-                                        DialogDeclineButton(onClick = { showDeleteConfirmationDialog = false })
-                                    }
+                                    onDismiss = { showDeleteConfirmationDialog = false }
                                 )
                             }
 
@@ -1973,21 +1958,3 @@ fun TimelineNode() {
     }
 }
 
-@Composable
-fun TimePickerDialog(
-    onDismissRequest: () -> Unit,
-    confirmButton: @Composable () -> Unit,
-    dismissButton: @Composable () -> Unit,
-    title: String,
-    content: @Composable () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(title) },
-        text = {
-            content()
-        },
-        confirmButton = confirmButton,
-        dismissButton = dismissButton
-    )
-}

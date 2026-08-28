@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -116,7 +118,7 @@ fun PlacesListScreen(
         }
 
         if (showAddDialog) {
-            AddSimpleItemDialog(
+            AddSimpleItemBottomSheet(
                 title = dialogTitle,
                 onDismiss = { showAddDialog = false },
                 onAdd = { name, subtitle, brand, odometer ->
@@ -133,7 +135,7 @@ fun PlacesListScreen(
         }
 
         if (showEditDialog && itemToEdit != null) {
-            EditSimpleItemDialog(
+            EditSimpleItemBottomSheet(
                 item = itemToEdit!!,
                 title = stringResource(R.string.favourites_edit_item),
                 onDismiss = {
@@ -353,8 +355,9 @@ fun BrandSelectionField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddSimpleItemDialog(
+fun AddSimpleItemBottomSheet(
     title: String,
     onDismiss: () -> Unit,
     onAdd: (String, String?, String?, Double) -> Unit,
@@ -366,86 +369,116 @@ fun AddSimpleItemDialog(
     var brand by remember { mutableStateOf("") }
     var odometer by remember { mutableStateOf("") }
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         if (isVehicle && viewModel != null) {
             viewModel.updateBrandQuery("")
         }
     }
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                ClearableTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = text.isBlank()
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ClearableTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
+                modifier = Modifier.fillMaxWidth(),
+                isError = text.isBlank()
+            )
+            if (isVehicle && viewModel != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                BrandSelectionField(
+                    viewModel = viewModel,
+                    onBrandSelected = { brand = it }
                 )
-                if (isVehicle && viewModel != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    BrandSelectionField(
-                        viewModel = viewModel,
-                        onBrandSelected = { brand = it }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ClearableTextField(
-                        value = subtitle,
-                        onValueChange = { subtitle = it },
-                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = odometer,
-                        onValueChange = { 
-                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
-                                odometer = it 
-                            }
-                        },
-                        label = { Text(stringResource(R.string.odometer_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        visualTransformation = ThousandsSeparatorTransformation(),
-                        suffix = { Text("km") },
-                        trailingIcon = {
-                            if (odometer.isNotEmpty()) {
-                                IconButton(onClick = { odometer = "" }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.clear_text)
-                                    )
-                                }
+                Spacer(modifier = Modifier.height(8.dp))
+                ClearableTextField(
+                    value = subtitle,
+                    onValueChange = { subtitle = it },
+                    label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = odometer,
+                    onValueChange = { 
+                        if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                            odometer = it 
+                        }
+                    },
+                    label = { Text(stringResource(R.string.odometer_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = ThousandsSeparatorTransformation(),
+                    suffix = { Text("km") },
+                    trailingIcon = {
+                        if (odometer.isNotEmpty()) {
+                            IconButton(onClick = { odometer = "" }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.clear_text)
+                                )
                             }
                         }
-                    )
-                } else if (isVehicle) {
-                     Spacer(modifier = Modifier.height(8.dp))
-                     ClearableTextField(
-                        value = subtitle,
-                        onValueChange = { subtitle = it },
-                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                    }
+                )
+            } else if (isVehicle) {
+                 Spacer(modifier = Modifier.height(8.dp))
+                 ClearableTextField(
+                    value = subtitle,
+                    onValueChange = { subtitle = it },
+                    label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-        },
-        confirmButton = {
-            DialogAcceptButton(
-                onClick = { onAdd(text, if (isVehicle) subtitle else null, if (isVehicle) brand else null, odometer.toDoubleOrNull() ?: 0.0) },
-                enabled = text.isNotBlank()
-            )
-        },
-        dismissButton = {
-            DialogDeclineButton(onClick = onDismiss)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DialogDeclineButton(onClick = onDismiss)
+                Spacer(modifier = Modifier.width(12.dp))
+                DialogAcceptButton(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                onAdd(text, if (isVehicle) subtitle else null, if (isVehicle) brand else null, odometer.toDoubleOrNull() ?: 0.0)
+                            }
+                        }
+                    },
+                    enabled = text.isNotBlank()
+                )
+            }
         }
-    )
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditSimpleItemDialog(
+fun EditSimpleItemBottomSheet(
     item: SimpleItem,
     title: String,
     onDismiss: () -> Unit,
@@ -456,18 +489,34 @@ fun EditSimpleItemDialog(
 ) {
     var text by remember(item) { mutableStateOf(item.title) }
     var subtitle by remember(item) { mutableStateOf(item.subtitle ?: "") }
-    var brand by remember(item) { mutableStateOf(item.brand ?: "") }
+    var brand by remember { mutableStateOf(item.brand ?: "") }
     var odometer by remember(item) { mutableStateOf(if (item.odometer > 0) item.odometer.toLong().toString() else "") }
 
-    AlertDialog(
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = {
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = title)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Default.Delete,
@@ -476,75 +525,86 @@ fun EditSimpleItemDialog(
                     )
                 }
             }
-        },
-        text = {
-            Column {
-                ClearableTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = text.isBlank()
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ClearableTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
+                modifier = Modifier.fillMaxWidth(),
+                isError = text.isBlank()
+            )
+            if (isVehicle && viewModel != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                BrandSelectionField(
+                    viewModel = viewModel,
+                    onBrandSelected = { brand = it },
+                    initialBrand = brand
                 )
-                if (isVehicle && viewModel != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    BrandSelectionField(
-                        viewModel = viewModel,
-                        onBrandSelected = { brand = it },
-                        initialBrand = brand
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ClearableTextField(
-                        value = subtitle,
-                        onValueChange = { subtitle = it },
-                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = odometer,
-                        onValueChange = { 
-                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
-                                odometer = it 
-                            }
-                        },
-                        label = { Text(stringResource(R.string.odometer_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        visualTransformation = ThousandsSeparatorTransformation(),
-                        suffix = { Text("km") },
-                        trailingIcon = {
-                            if (odometer.isNotEmpty()) {
-                                IconButton(onClick = { odometer = "" }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.clear_text)
-                                    )
-                                }
+                Spacer(modifier = Modifier.height(8.dp))
+                ClearableTextField(
+                    value = subtitle,
+                    onValueChange = { subtitle = it },
+                    label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = odometer,
+                    onValueChange = { 
+                        if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                            odometer = it 
+                        }
+                    },
+                    label = { Text(stringResource(R.string.odometer_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = ThousandsSeparatorTransformation(),
+                    suffix = { Text("km") },
+                    trailingIcon = {
+                        if (odometer.isNotEmpty()) {
+                            IconButton(onClick = { odometer = "" }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.clear_text)
+                                )
                             }
                         }
-                    )
-                } else if (isVehicle) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ClearableTextField(
-                        value = subtitle,
-                        onValueChange = { subtitle = it },
-                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                    }
+                )
+            } else if (isVehicle) {
+                Spacer(modifier = Modifier.height(8.dp))
+                ClearableTextField(
+                    value = subtitle,
+                    onValueChange = { subtitle = it },
+                    label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-        },
-        confirmButton = {
-            DialogAcceptButton(
-                onClick = { onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null, brand = if (isVehicle) brand else null, odometer = odometer.toDoubleOrNull() ?: 0.0)) },
-                enabled = text.isNotBlank()
-            )
-        },
-        dismissButton = {
-            DialogDeclineButton(onClick = onDismiss)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DialogDeclineButton(onClick = onDismiss)
+                Spacer(modifier = Modifier.width(12.dp))
+                DialogAcceptButton(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                onSave(item.copy(title = text, subtitle = if (isVehicle) subtitle else null, brand = if (isVehicle) brand else null, odometer = odometer.toDoubleOrNull() ?: 0.0))
+                            }
+                        }
+                    },
+                    enabled = text.isNotBlank()
+                )
+            }
         }
-    )
+    }
 }
 
 
@@ -630,55 +690,61 @@ fun SimpleListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onSelect)
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val localContext = LocalContext.current
-        val iconResId = item.brand?.let { CarBrandHelper.getBrandIconResId(localContext, it) } ?: 0
-        if (iconResId != 0) {
-            Icon(
-                painter = painterResource(id = iconResId),
-                contentDescription = null,
-                modifier = Modifier.size(32.dp).clickable(onClick = onEdit),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.width(12.dp))
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onEdit),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val localContext = LocalContext.current
+            val iconResId = item.brand?.let { CarBrandHelper.getBrandIconResId(localContext, it) } ?: 0
+            if (iconResId != 0) {
+                Icon(
+                    painter = painterResource(id = iconResId),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                item.subtitle?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (item.odometer > 0) {
+                    val locale = LocalLocale.current.platformLocale
+                    val symbols = DecimalFormatSymbols.getInstance(locale)
+                    val df = DecimalFormat("#,###", symbols)
+                    val formattedOdometer = try {
+                        df.format(item.odometer.toLong())
+                    } catch (_: Exception) {
+                        item.odometer.toLong().toString()
+                    }
+                    Text(
+                        text = "$formattedOdometer km",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
 
-        Column(
-            modifier = Modifier.weight(1f).clickable(onClick = onEdit),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            item.subtitle?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        if (item.odometer > 0) {
-            val locale = LocalLocale.current.platformLocale
-            val symbols = DecimalFormatSymbols.getInstance(locale)
-            val df = DecimalFormat("#,###", symbols)
-            val formattedOdometer = try {
-                df.format(item.odometer.toLong())
-            } catch (_: Exception) {
-                item.odometer.toLong().toString()
-            }
-            Text(
-                text = "$formattedOdometer km",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-        }
         RadioButton(
             selected = isSelected,
             onClick = onSelect

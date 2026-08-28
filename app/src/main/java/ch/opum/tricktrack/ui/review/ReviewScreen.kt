@@ -36,8 +36,7 @@ import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.LicensePlateBadge
-import ch.opum.tricktrack.ui.DialogAcceptButton
-import ch.opum.tricktrack.ui.DialogDeclineButton
+import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -51,21 +50,14 @@ fun ReviewScreen(viewModel: TripsViewModel) {
     var showDeleteDialog by remember { mutableStateOf<TripWithVehicle?>(null) }
 
     if (showDeleteDialog != null) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = null },
-            title = { Text(stringResource(R.string.review_discard_trip_title)) },
-            text = { Text(stringResource(R.string.review_discard_trip_message)) },
-            confirmButton = {
-                DialogAcceptButton(
-                    onClick = {
-                        showDeleteDialog?.let { viewModel.discardTrip(it.trip) }
-                        showDeleteDialog = null
-                    }
-                )
+        ConfirmationBottomSheet(
+            title = stringResource(R.string.review_discard_trip_title),
+            message = stringResource(R.string.review_discard_trip_message),
+            onConfirm = {
+                showDeleteDialog?.let { viewModel.discardTrip(it.trip) }
+                showDeleteDialog = null
             },
-            dismissButton = {
-                DialogDeclineButton(onClick = { showDeleteDialog = null })
-            }
+            onDismiss = { showDeleteDialog = null }
         )
     }
 

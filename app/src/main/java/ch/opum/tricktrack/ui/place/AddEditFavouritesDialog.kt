@@ -1,31 +1,13 @@
 package ch.opum.tricktrack.ui.place
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.requiredSizeIn
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -39,10 +21,11 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.place.SavedPlace
-import ch.opum.tricktrack.ui.ClearableTextField // Import ClearableTextField
+import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.LocationSuggestion
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,18 +61,34 @@ fun AddEditPlaceDialog(
         clearAllSuggestions()
     }
 
-    AlertDialog(
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
         onDismissRequest = {
             clearAllSuggestions()
             onDismiss()
         },
-        title = {
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(if (place == null) stringResource(R.string.add_place_title) else stringResource(R.string.edit_place_title))
+                Text(
+                    text = if (place == null) stringResource(R.string.add_place_title) else stringResource(R.string.edit_place_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
                 if (place != null) {
                     IconButton(onClick = onDelete) {
                         Icon(
@@ -100,74 +99,84 @@ fun AddEditPlaceDialog(
                     }
                 }
             }
-        },
-        text = {
-            Column {
-                // --- Name Field with Autocomplete ---
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    ClearableTextField( // Using ClearableTextField
-                        value = name,
-                        onValueChange = {
-                            name = it
-                            favouritesViewModel.searchName(it) // Pass String directly
-                        },
-                        label = { Text(stringResource(R.string.place_name_label)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { nameTextFieldSize = it.size.toSize() }
-                    )
-                    SuggestionDropdown(
-                        expanded = nameSuggestions.isNotEmpty(),
-                        onDismissRequest = { favouritesViewModel.clearNameSuggestions() },
-                        suggestions = nameSuggestions,
-                        onSuggestionClick = ::handleSuggestionClick,
-                        textFieldSize = nameTextFieldSize
-                    )
-                }
 
-                // --- Address Field with Autocomplete ---
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    ClearableTextField( // Using ClearableTextField
-                        value = addressText,
-                        onValueChange = {
-                            addressText = it
-                            favouritesViewModel.searchAddress(it) // Pass String directly
-                        },
-                        label = { Text(stringResource(R.string.place_address_label)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { addressTextFieldSize = it.size.toSize() }
-                    )
-                    SuggestionDropdown(
-                        expanded = addressSuggestions.isNotEmpty(),
-                        onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
-                        suggestions = addressSuggestions,
-                        onSuggestionClick = ::handleSuggestionClick,
-                        textFieldSize = addressTextFieldSize
-                    )
-                }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- Name Field with Autocomplete ---
+            Box(modifier = Modifier.fillMaxWidth()) {
+                ClearableTextField( // Using ClearableTextField
+                    value = name,
+                    onValueChange = {
+                        name = it
+                        favouritesViewModel.searchName(it) // Pass String directly
+                    },
+                    label = { Text(stringResource(R.string.place_name_label)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { nameTextFieldSize = it.size.toSize() }
+                )
+                SuggestionDropdown(
+                    expanded = nameSuggestions.isNotEmpty(),
+                    onDismissRequest = { favouritesViewModel.clearNameSuggestions() },
+                    suggestions = nameSuggestions,
+                    onSuggestionClick = ::handleSuggestionClick,
+                    textFieldSize = nameTextFieldSize
+                )
             }
-        },
-        confirmButton = {
-            DialogAcceptButton(
-                onClick = {
-                    selectedLatitude?.let { lat ->
-                        selectedLongitude?.let { lon ->
-                            onSave(name, addressText, lat, lon) // Pass String directly
-                        }
-                    }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // --- Address Field with Autocomplete ---
+            Box(modifier = Modifier.fillMaxWidth()) {
+                ClearableTextField( // Using ClearableTextField
+                    value = addressText,
+                    onValueChange = {
+                        addressText = it
+                        favouritesViewModel.searchAddress(it) // Pass String directly
+                    },
+                    label = { Text(stringResource(R.string.place_address_label)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { addressTextFieldSize = it.size.toSize() }
+                )
+                SuggestionDropdown(
+                    expanded = addressSuggestions.isNotEmpty(),
+                    onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
+                    suggestions = addressSuggestions,
+                    onSuggestionClick = ::handleSuggestionClick,
+                    textFieldSize = addressTextFieldSize
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DialogDeclineButton(onClick = {
+                    clearAllSuggestions()
                     onDismiss()
-                },
-                enabled = name.isNotBlank() && addressText.isNotBlank() && selectedLatitude != null
-            )
-        },
-        dismissButton = {
-            DialogDeclineButton(onClick = {
-                clearAllSuggestions()
-                onDismiss()
-            })
+                })
+                Spacer(modifier = Modifier.width(12.dp))
+                DialogAcceptButton(
+                    onClick = {
+                        selectedLatitude?.let { lat ->
+                            selectedLongitude?.let { lon ->
+                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        onSave(name, addressText, lat, lon) // Pass String directly
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    enabled = name.isNotBlank() && addressText.isNotBlank() && selectedLatitude != null
+                )
+            }
         }
-    )
+    }
 }
 
 @Composable
