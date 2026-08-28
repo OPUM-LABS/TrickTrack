@@ -71,6 +71,17 @@
     <string name="battery_optimization_warning">Die Aufzeichnung kann unterbrochen werden. Zum Beheben tippen.</string>
     <string name="warning">Warnung</string>
 
+    <string name="permission_banner_title">Tracking-Berechtigungen unvollständig</string>
+    <string name="permission_banner_desc">Einige Funktionen sind deaktiviert, da erforderliche Berechtigungen fehlen.</string>
+    <string name="permission_banner_action">Prüfen &amp; Beheben</string>
+    <string name="permission_precise_location_desc">Erforderlich, um die Fahrtstrecke und Route genau aufzuzeichnen.</string>
+    <string name="permission_background_location_desc">Erforderlich, um Fahrten automatisch im Hintergrund zu erkennen.</string>
+    <string name="permission_bluetooth_desc">Erforderlich, um die Aufzeichnung beim Verbinden mit Bluetooth automatisch zu starten.</string>
+    <string name="permission_notifications_desc">Erforderlich, um Sie zu benachrichtigen, wenn eine Fahrt zur Überprüfung bereit ist.</string>
+    <string name="permission_battery_optimization_title">Akku-Optimierung</string>
+    <string name="permission_battery_optimization_desc">Deaktivieren Sie Optimierungen, damit die Aufzeichnung nicht vom System beendet wird.</string>
+    <string name="permission_enable">Aktivieren</string>
+
     <!-- General -->
     <string name="button_save">Speichern</string>
     <string name="button_cancel">Abbrechen</string>

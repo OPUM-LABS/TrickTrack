@@ -36,7 +36,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
@@ -58,9 +57,14 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -78,6 +82,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,6 +106,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.DaySchedule
@@ -113,6 +119,9 @@ import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.DialogResetButton
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
+import ch.opum.tricktrack.ui.settings.PermissionHealthState
+import ch.opum.tricktrack.ui.settings.PermissionRequirement
+import ch.opum.tricktrack.ui.settings.PermissionStatus
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -320,7 +329,6 @@ fun SettingsScreen(
     val isBluetoothTriggerEnabled by viewModel.isBluetoothTriggerEnabled.collectAsState()
     val selectedBluetoothDevices by viewModel.selectedBluetoothDevices.collectAsState()
     val defaultIsBusiness by viewModel.defaultIsBusiness.collectAsState()
-    val permissionsStatus by viewModel.permissionsStatus.collectAsState()
     val isAllPermissionsGranted by viewModel.isAllPermissionsGranted.collectAsState()
     val expenseTrackingEnabled by viewModel.expenseTrackingEnabled.collectAsState()
     val expenseRatePerKm by viewModel.expenseRatePerKm.collectAsState()
@@ -332,7 +340,7 @@ fun SettingsScreen(
     val minSpeed by viewModel.minSpeed.collectAsState()
     var pairedDevices by remember { mutableStateOf<Set<BluetoothDevice>>(emptySet()) }
     var showDeviceDialog by remember { mutableStateOf(false) }
-    var showPermissionDialog by remember { mutableStateOf(false) }
+    var showPermissionSheet by remember { mutableStateOf(false) }
     var showScheduleDialog by remember { mutableStateOf(false) }
     var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
 
@@ -398,11 +406,10 @@ fun SettingsScreen(
         )
     }
 
-    if (showPermissionDialog) {
-        PermissionDetailDialog(
-            onDismiss = { showPermissionDialog = false },
-            permissions = permissionsStatus,
-            context = context
+    if (showPermissionSheet) {
+        PermissionBottomSheet(
+            onDismiss = { showPermissionSheet = false },
+            viewModel = viewModel
         )
     }
 
@@ -494,6 +501,12 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
+        val permissionHealth by viewModel.permissionHealth.collectAsState()
+        if (permissionHealth is PermissionHealthState.Missing) {
+            PermissionWarningBanner(onAction = { showPermissionSheet = true })
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_settings_title),
             description = stringResource(R.string.settings_tracking_settings_description),
@@ -976,7 +989,7 @@ fun SettingsScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { showPermissionDialog = true },
+                    .clickable { showPermissionSheet = true },
                 shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             ) {
                 Row(
@@ -1379,4 +1392,164 @@ private fun dayToResId(day: DayOfWeek): Int {
         DayOfWeek.SATURDAY -> R.string.day_saturday
         DayOfWeek.SUNDAY -> R.string.day_sunday
     }
+}
+
+@Composable
+fun PermissionWarningBanner(onAction: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.permission_banner_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.permission_banner_desc),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(
+                onClick = onAction,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
+            ) {
+                Text(stringResource(R.string.permission_banner_action))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PermissionBottomSheet(
+    onDismiss: () -> Unit,
+    viewModel: TripsViewModel
+) {
+    val context = LocalContext.current
+    val permissionStatus by viewModel.permissionsStatus.collectAsState()
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        viewModel.checkPermissions(context)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = stringResource(R.string.permission_status_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            permissionStatus.forEach { status ->
+                PermissionRow(
+                    status = status,
+                    onEnable = {
+                        when (val req = status.requirement) {
+                            PermissionRequirement.BatteryOptimization -> {
+                                openAppSettings(context)
+                            }
+                            else -> {
+                                if (req.permission != null) {
+                                    permissionLauncher.launch(req.permission)
+                                }
+                            }
+                        }
+                    }
+                )
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) onDismiss()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.button_done))
+            }
+        }
+    }
+}
+
+@Composable
+fun PermissionRow(
+    status: PermissionStatus,
+    onEnable: () -> Unit
+) {
+    val requirement = status.requirement
+    ListItem(
+        headlineContent = {
+            Text(
+                text = stringResource(requirement.titleRes),
+                fontWeight = FontWeight.SemiBold,
+                color = if (status.isGranted) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) 
+                        else MaterialTheme.colorScheme.onSurface
+            )
+        },
+        supportingContent = {
+            Text(
+                text = stringResource(requirement.descriptionRes),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (status.isGranted) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        leadingContent = {
+            Icon(
+                imageVector = requirement.icon,
+                contentDescription = null,
+                tint = if (status.isGranted) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(24.dp)
+            )
+        },
+        trailingContent = {
+            if (status.isGranted) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = stringResource(R.string.permission_granted_cd),
+                    tint = Color(0xFF4CAF50).copy(alpha = 0.6f)
+                )
+            } else {
+                TextButton(onClick = onEnable) {
+                    Text(stringResource(R.string.permission_enable))
+                }
+            }
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
 }

@@ -72,6 +72,17 @@
     <string name="battery_optimization_warning">Le suivi peut être interrompu. Appuyez pour corriger.</string>
     <string name="warning">Avertissement</string>
 
+    <string name="permission_banner_title">Autorisations de suivi incomplètes</string>
+    <string name="permission_banner_desc">Certaines fonctionnalités sont désactivées car des autorisations requises sont manquantes.</string>
+    <string name="permission_banner_action">Vérifier &amp; Corriger</string>
+    <string name="permission_precise_location_desc">Requis pour suivre avec précision la distance et l\'itinéraire de votre trajet.</string>
+    <string name="permission_background_location_desc">Requis pour détecter automatiquement les trajets lorsque l\'application est en arrière-plan.</string>
+    <string name="permission_bluetooth_desc">Requis pour démarrer automatiquement le suivi lors de la connexion au Bluetooth de votre voiture.</string>
+    <string name="permission_notifications_desc">Requis pour vous avertir lorsqu\'un trajet est prêt à être examiné.</string>
+    <string name="permission_battery_optimization_title">Optimisation de la batterie</string>
+    <string name="permission_battery_optimization_desc">Désactivez les optimisations pour garantir que le suivi n\'est pas arrêté par le système.</string>
+    <string name="permission_enable">Activer</string>
+
     <!-- General -->
     <string name="button_save">Enregistrer</string>
     <string name="button_cancel">Annuler</string>

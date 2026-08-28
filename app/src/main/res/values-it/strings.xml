@@ -72,6 +72,17 @@
     <string name="battery_optimization_warning">Il tracciamento potrebbe essere interrotto. Tocca per risolvere.</string>
     <string name="warning">Avvertimento</string>
 
+    <string name="permission_banner_title">Autorizzazioni di monitoraggio incomplete</string>
+    <string name="permission_banner_desc">Alcune funzionalità sono disabilitate perché mancano le autorizzazioni richieste.</string>
+    <string name="permission_banner_action">Controlla &amp; Correggi</string>
+    <string name="permission_precise_location_desc">Richiesto per monitorare con precisione la distanza e il percorso del viaggio.</string>
+    <string name="permission_background_location_desc">Richiesto per rilevare automaticamente i viaggi mentre l\'app è in background.</string>
+    <string name="permission_bluetooth_desc">Richiesto per avviare automaticamente il monitoraggio quando connesso al Bluetooth dell\'auto.</string>
+    <string name="permission_notifications_desc">Richiesto per avvisarti quando un viaggio monitorato è pronto per la revisione.</string>
+    <string name="permission_battery_optimization_title">Ottimizzazione della batteria</string>
+    <string name="permission_battery_optimization_desc">Disabilita le ottimizzazioni per garantire che il monitoraggio non venga interrotto dal sistema.</string>
+    <string name="permission_enable">Abilita</string>
+
     <!-- General -->
     <string name="button_save">Salva</string>
     <string name="button_cancel">Annulla</string>

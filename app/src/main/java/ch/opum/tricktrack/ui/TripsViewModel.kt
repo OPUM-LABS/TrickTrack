@@ -1,6 +1,5 @@
 package ch.opum.tricktrack.ui
 
-import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -18,7 +17,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
-import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.ScheduleSettings
@@ -31,7 +29,9 @@ import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.data.repository.DistanceRepository
 import ch.opum.tricktrack.data.repository.FavouritesRepository
 import ch.opum.tricktrack.logging.AppLogger
-import ch.opum.tricktrack.ui.settings.PermissionItem
+import ch.opum.tricktrack.ui.settings.PermissionHealthState
+import ch.opum.tricktrack.ui.settings.PermissionRequirement
+import ch.opum.tricktrack.ui.settings.PermissionStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -355,11 +355,17 @@ class TripsViewModel(
             initialValue = true
         )
 
-    private val _permissionsStatus = MutableStateFlow<List<PermissionItem>>(emptyList())
-    val permissionsStatus: StateFlow<List<PermissionItem>> = _permissionsStatus.asStateFlow()
+    private val _permissionsStatus = MutableStateFlow<List<PermissionStatus>>(emptyList())
+    val permissionsStatus: StateFlow<List<PermissionStatus>> = _permissionsStatus.asStateFlow()
 
-    val isAllPermissionsGranted: StateFlow<Boolean> = _permissionsStatus.map { permissions ->
-        permissions.all { it.isGranted }
+    val permissionHealth: StateFlow<PermissionHealthState> = _permissionsStatus.map { statuses ->
+        val missing = statuses.filter { !it.isGranted }
+        if (missing.isEmpty()) PermissionHealthState.AllGranted
+        else PermissionHealthState.Missing(missing)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PermissionHealthState.AllGranted)
+
+    val isAllPermissionsGranted: StateFlow<Boolean> = permissionHealth.map { 
+        it is PermissionHealthState.AllGranted 
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val expenseTrackingEnabled: StateFlow<Boolean> =
@@ -610,54 +616,40 @@ class TripsViewModel(
     }
 
     fun checkPermissions(context: Context) {
-        val permissions = mutableListOf(
-            PermissionItem(
-                context.getString(R.string.permission_precise_location),
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            )
+        val requirements = mutableListOf<PermissionRequirement>(
+            PermissionRequirement.PreciseLocation
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            permissions.add(
-                PermissionItem(
-                    context.getString(R.string.permission_background_location),
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        "android.permission.ACCESS_BACKGROUND_LOCATION"
-                    ) == PackageManager.PERMISSION_GRANTED
-                )
-            )
+            requirements.add(PermissionRequirement.BackgroundLocation)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissions.add(
-                PermissionItem(
-                    context.getString(R.string.permission_bluetooth),
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) == PackageManager.PERMISSION_GRANTED
-                )
-            )
+            requirements.add(PermissionRequirement.Bluetooth)
         }
 
-        // Add Notification Permission Check for API 33+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(
-                PermissionItem(
-                    context.getString(R.string.permission_notifications),
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.POST_NOTIFICATIONS
-                    ) == PackageManager.PERMISSION_GRANTED
-                )
-            )
+            requirements.add(PermissionRequirement.Notifications)
+        }
+        
+        requirements.add(PermissionRequirement.BatteryOptimization)
+
+        val statuses = requirements.map { req ->
+            val isGranted = when (req) {
+                PermissionRequirement.BatteryOptimization -> {
+                    val powerManager = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                    powerManager.isIgnoringBatteryOptimizations(context.packageName)
+                }
+                else -> {
+                    req.permission?.let {
+                        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+                    } ?: true
+                }
+            }
+            PermissionStatus(req, isGranted)
         }
 
-        _permissionsStatus.value = permissions
+        _permissionsStatus.value = statuses
     }
 
     fun startTracking(trigger: TripTrigger) {

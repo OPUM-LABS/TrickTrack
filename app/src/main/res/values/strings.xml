@@ -71,6 +71,17 @@
     <string name="battery_optimization_warning">Tracking may be interrupted. Tap to fix.</string>
     <string name="warning">Warning</string>
 
+    <string name="permission_banner_title">Tracking Permissions Incomplete</string>
+    <string name="permission_banner_desc">Some features are disabled because required permissions are missing.</string>
+    <string name="permission_banner_action">Review &amp; Fix</string>
+    <string name="permission_precise_location_desc">Required to accurately track your trip distance and route.</string>
+    <string name="permission_background_location_desc">Required to detect trips automatically while the app is in the background.</string>
+    <string name="permission_bluetooth_desc">Required to automatically start tracking when connected to your car\'s Bluetooth.</string>
+    <string name="permission_notifications_desc">Required to notify you when a tracked trip is ready for review.</string>
+    <string name="permission_battery_optimization_title">Battery Optimization</string>
+    <string name="permission_battery_optimization_desc">Disable optimizations to ensure tracking isn\'t killed by the system.</string>
+    <string name="permission_enable">Enable</string>
+
     <!-- General -->
     <string name="button_save">Save</string>
     <string name="button_cancel">Cancel</string>
