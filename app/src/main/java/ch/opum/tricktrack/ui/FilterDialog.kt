@@ -14,8 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
@@ -27,14 +31,15 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.rememberDateRangePickerState
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Clear
@@ -43,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +57,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import ch.opum.tricktrack.R
@@ -60,6 +67,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import androidx.compose.ui.platform.LocalLocale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,146 +86,164 @@ fun FilterDialog(
     var showRangePicker by remember { mutableStateOf(false) }
     var vehicleExpanded by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.filter_trips_title)) },
-        text = {
-            Column {
-                ClearableTextField( // Using ClearableTextField
-                    value = keyword,
-                    onValueChange = { keyword = it },
-                    label = { Text(stringResource(R.string.filter_keyword_label)) },
-                    modifier = Modifier.fillMaxWidth()
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = stringResource(R.string.filter_trips_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ClearableTextField( // Using ClearableTextField
+                value = keyword,
+                onValueChange = { keyword = it },
+                label = { Text(stringResource(R.string.filter_keyword_label)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(stringResource(R.string.filter_trip_type_label), style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth()) {
+                val cornerRadius = 50.dp
+
+                // "All" Button
+                TripTypeButton(
+                    text = stringResource(R.string.filter_trip_type_all),
+                    isSelected = selectedType == null,
+                    onClick = { selectedType = null },
+                    shape = RoundedCornerShape(
+                        topStart = cornerRadius,
+                        bottomStart = cornerRadius
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(if (selectedType == null) Modifier.zIndex(1f) else Modifier)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
 
-                Text(stringResource(R.string.filter_trip_type_label), style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    val cornerRadius = 50.dp
+                // "Business" Button
+                TripTypeButton(
+                    text = stringResource(R.string.trip_type_business),
+                    isSelected = selectedType == TripType.BUSINESS,
+                    onClick = { selectedType = TripType.BUSINESS },
+                    shape = RectangleShape,
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(if (selectedType == TripType.BUSINESS) Modifier.zIndex(1f) else Modifier)
+                )
 
-                    // "All" Button
-                    TripTypeButton(
-                        text = stringResource(R.string.filter_trip_type_all),
-                        isSelected = selectedType == null,
-                        onClick = { selectedType = null },
-                        shape = RoundedCornerShape(
-                            topStart = cornerRadius,
-                            bottomStart = cornerRadius
-                        ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(if (selectedType == null) Modifier.zIndex(1f) else Modifier)
-                    )
-
-                    // "Business" Button
-                    TripTypeButton(
-                        text = stringResource(R.string.trip_type_business),
-                        isSelected = selectedType == TripType.BUSINESS,
-                        onClick = { selectedType = TripType.BUSINESS },
-                        shape = RectangleShape,
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(if (selectedType == TripType.BUSINESS) Modifier.zIndex(1f) else Modifier)
-                    )
-
-                    // "Personal" Button
-                    TripTypeButton(
-                        text = stringResource(R.string.trip_type_personal),
-                        isSelected = selectedType == TripType.PERSONAL,
-                        onClick = { selectedType = TripType.PERSONAL },
-                        shape = RoundedCornerShape(topEnd = cornerRadius, bottomEnd = cornerRadius),
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(if (selectedType == TripType.PERSONAL) Modifier.zIndex(1f) else Modifier)
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                ExposedDropdownMenuBox(
-                    expanded = vehicleExpanded,
-                    onExpandedChange = { vehicleExpanded = it }
-                ) {
-                    val context = LocalContext.current
-                    val displayText = if (selectedVehicleIds.isEmpty()) {
-                        stringResource(R.string.filter_trip_type_all)
-                    } else if (selectedVehicleIds.size == 1) {
-                        allVehicles.find { it.id == selectedVehicleIds.first() }?.licensePlate ?: ""
-                    } else {
-                        stringResource(R.string.vehicles_selected_count, selectedVehicleIds.size)
-                    }
-
-                    OutlinedTextField(
-                        value = displayText,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
-                        trailingIcon = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (selectedVehicleIds.isNotEmpty()) {
-                                    IconButton(onClick = { selectedVehicleIds = emptySet() }) {
-                                        Icon(Icons.Default.Clear, contentDescription = null)
-                                    }
-                                }
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
-                            }
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.DirectionsCar, contentDescription = null)
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = vehicleExpanded,
-                        onDismissRequest = { vehicleExpanded = false }
-                    ) {
-                        allVehicles.forEach { vehicle ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Checkbox(
-                                            checked = selectedVehicleIds.contains(vehicle.id),
-                                            onCheckedChange = null
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
-                                        if (itemIconResId != 0) {
-                                            Icon(
-                                                painter = painterResource(id = itemIconResId),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(24.dp),
-                                                tint = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                        }
-                                        Text(vehicle.licensePlate)
-                                    }
-                                },
-                                onClick = {
-                                    selectedVehicleIds = if (selectedVehicleIds.contains(vehicle.id)) {
-                                        selectedVehicleIds - vehicle.id
-                                    } else {
-                                        selectedVehicleIds + vehicle.id
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                DateRangeSelectionField(
-                    startDate = startDate,
-                    endDate = endDate,
-                    onClick = { showRangePicker = true }
+                // "Personal" Button
+                TripTypeButton(
+                    text = stringResource(R.string.trip_type_personal),
+                    isSelected = selectedType == TripType.PERSONAL,
+                    onClick = { selectedType = TripType.PERSONAL },
+                    shape = RoundedCornerShape(topEnd = cornerRadius, bottomEnd = cornerRadius),
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(if (selectedType == TripType.PERSONAL) Modifier.zIndex(1f) else Modifier)
                 )
             }
-        },
-        confirmButton = {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = vehicleExpanded,
+                onExpandedChange = { vehicleExpanded = it }
+            ) {
+                val context = LocalContext.current
+                val displayText = if (selectedVehicleIds.isEmpty()) {
+                    stringResource(R.string.filter_trip_type_all)
+                } else if (selectedVehicleIds.size == 1) {
+                    allVehicles.find { it.id == selectedVehicleIds.first() }?.licensePlate ?: ""
+                } else {
+                    stringResource(R.string.vehicles_selected_count, selectedVehicleIds.size)
+                }
+
+                OutlinedTextField(
+                    value = displayText,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (selectedVehicleIds.isNotEmpty()) {
+                                IconButton(onClick = { selectedVehicleIds = emptySet() }) {
+                                    Icon(Icons.Default.Clear, contentDescription = null)
+                                }
+                            }
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
+                        }
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.DirectionsCar, contentDescription = null)
+                    },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                )
+                ExposedDropdownMenu(
+                    expanded = vehicleExpanded,
+                    onDismissRequest = { vehicleExpanded = false }
+                ) {
+                    allVehicles.forEach { vehicle ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = selectedVehicleIds.contains(vehicle.id),
+                                        onCheckedChange = null
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                                    if (itemIconResId != 0) {
+                                        Icon(
+                                            painter = painterResource(id = itemIconResId),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                    }
+                                    Text(vehicle.licensePlate)
+                                }
+                            },
+                            onClick = {
+                                selectedVehicleIds = if (selectedVehicleIds.contains(vehicle.id)) {
+                                    selectedVehicleIds - vehicle.id
+                                } else {
+                                    selectedVehicleIds + vehicle.id
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DateRangeSelectionField(
+                startDate = startDate,
+                endDate = endDate,
+                onClick = { showRangePicker = true }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -246,20 +272,23 @@ fun FilterDialog(
                             calendar.timeInMillis
                         }
 
-                        onApplyFilter(
-                            FilterState(
-                                keyword = keyword,
-                                type = selectedType ?: TripType.ALL,
-                                startDate = startDate,
-                                endDate = endOfDay,
-                                vehicleIds = selectedVehicleIds
-                            )
+                        val newState = FilterState(
+                            keyword = keyword,
+                            type = selectedType ?: TripType.ALL,
+                            startDate = startDate,
+                            endDate = endOfDay,
+                            vehicleIds = selectedVehicleIds
                         )
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                onApplyFilter(newState)
+                            }
+                        }
                     })
                 }
             }
         }
-    )
+    }
 
     if (showRangePicker) {
         val today = Calendar.getInstance().apply {

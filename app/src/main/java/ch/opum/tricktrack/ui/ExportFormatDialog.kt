@@ -1,42 +1,23 @@
 package ch.opum.tricktrack.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material.icons.filled.ListAlt // Changed from Tune
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.ui.settings.ExportConfigDialog
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +45,9 @@ fun ExportFormatDialog(
 
     var showConfigDialog by remember { mutableStateOf(false) }
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
     if (showConfigDialog) {
         ExportConfigDialog(
             viewModel = viewModel,
@@ -71,27 +55,40 @@ fun ExportFormatDialog(
         )
     }
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = {
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.export_trips_title))
+                Text(
+                    text = stringResource(R.string.export_trips_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
                 IconButton(onClick = { showConfigDialog = true }) {
                     Icon(
-                        Icons.Default.ListAlt, // Changed icon here
+                        Icons.Default.ListAlt,
                         contentDescription = stringResource(R.string.settings_export_fields_configure_cd)
                     )
                 }
             }
-        },
-        text = {
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Driver Dropdown with Checkbox
@@ -109,14 +106,15 @@ fun ExportFormatDialog(
                         onExpandedChange = { if (includeDriver) driverExpanded = !driverExpanded },
                         modifier = Modifier.weight(1f)
                     ) {
-                        TextField(
+                        OutlinedTextField(
                             value = viewModel.selectedDriver?.name ?: "",
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(stringResource(R.string.export_column_driver)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = driverExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            enabled = includeDriver && hasDrivers
+                            enabled = includeDriver && hasDrivers,
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
                         ExposedDropdownMenu(
                             expanded = driverExpanded,
@@ -150,14 +148,15 @@ fun ExportFormatDialog(
                         onExpandedChange = { if (includeCompany) companyExpanded = !companyExpanded },
                         modifier = Modifier.weight(1f)
                     ) {
-                        TextField(
+                        OutlinedTextField(
                             value = viewModel.selectedCompany?.name ?: "",
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(stringResource(R.string.export_column_company)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = companyExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            enabled = includeCompany && hasCompanies
+                            enabled = includeCompany && hasCompanies,
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
                         ExposedDropdownMenu(
                             expanded = companyExpanded,
@@ -191,14 +190,15 @@ fun ExportFormatDialog(
                         onExpandedChange = { if (includeVehicle) vehicleExpanded = !vehicleExpanded },
                         modifier = Modifier.weight(1f)
                     ) {
-                        TextField(
+                        OutlinedTextField(
                             value = viewModel.selectedVehicle?.licensePlate ?: "",
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(stringResource(R.string.export_column_vehicle)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            enabled = includeVehicle && hasVehicles
+                            enabled = includeVehicle && hasVehicles,
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
                         ExposedDropdownMenu(
                             expanded = vehicleExpanded,
@@ -224,7 +224,9 @@ fun ExportFormatDialog(
                     icon = Icons.Default.Article,
                     onClick = {
                         onExportCsvClicked()
-                        onDismiss()
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) onDismiss()
+                        }
                     }
                 )
                 ExportButton(
@@ -232,17 +234,23 @@ fun ExportFormatDialog(
                     icon = Icons.Default.PictureAsPdf,
                     onClick = {
                         onExportPdfClicked()
-                        onDismiss()
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) onDismiss()
+                        }
                     }
                 )
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                DialogDeclineButton(onClick = onDismiss)
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -253,14 +261,16 @@ private fun ExportButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(vertical = 4.dp)
         ) {
             Icon(icon, contentDescription = null)
-            Text(text)
+            Text(text, style = MaterialTheme.typography.labelLarge)
         }
     }
 }

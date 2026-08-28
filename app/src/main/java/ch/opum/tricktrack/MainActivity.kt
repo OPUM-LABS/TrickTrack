@@ -55,6 +55,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -75,6 +76,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
@@ -88,6 +90,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -1045,15 +1048,31 @@ fun EditTripDialog(
         )
     }
 
-    AlertDialog(
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = {
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(if (isEditMode) stringResource(R.string.edit_trip_title) else stringResource(R.string.add_manual_trip_title))
+                Text(
+                    text = if (isEditMode) stringResource(R.string.edit_trip_title) else stringResource(R.string.add_manual_trip_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
                 if (isEditMode) {
                     IconButton(onClick = onDelete) {
                         Icon(
@@ -1064,409 +1083,415 @@ fun EditTripDialog(
                     }
                 }
             }
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                val dateFormat = remember { SimpleDateFormat("EEE, d MMM", Locale.getDefault()) }
-                Box {
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            val dateFormat = remember { SimpleDateFormat("EEE, d MMM", Locale.getDefault()) }
+            Box {
+                OutlinedTextField(
+                    value = dateFormat.format(selectedStartDate.value.time),
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.date_label)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable { showDatePicker.value = true }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.weight(1f)) {
                     OutlinedTextField(
-                        value = dateFormat.format(selectedStartDate.value.time),
+                        value = timeFormatter.format(selectedStartDate.value.time),
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.date_label)) },
+                        label = { Text(stringResource(R.string.start_time_label)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Box(
                         modifier = Modifier
                             .matchParentSize()
-                            .clickable { showDatePicker.value = true }
+                            .clickable { showStartTimePicker.value = true }
                     )
                 }
-                Row(Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        OutlinedTextField(
-                            value = timeFormatter.format(selectedStartDate.value.time),
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.start_time_label)) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clickable { showStartTimePicker.value = true }
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(modifier = Modifier.weight(1f)) {
-                        OutlinedTextField(
-                            value = timeFormatter.format(selectedEndDate.value.time),
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.end_time_label)) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clickable { showEndTimePicker.value = true }
-                        )
-                    }
-                }
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    ClearableTextField( // Using ClearableTextField
-                        value = startText,
-                        onValueChange = {
-                            startText = it
-                            favouritesViewModel.searchAddress(it) // Pass String directly
-                            activeDropdown = "start"
-                        },
-                        label = { Text(stringResource(R.string.start_address_label)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { coordinates ->
-                                startTextFieldSize = coordinates.size.toSize()
-                            }
-                    )
-                    DropdownMenu(
-                        expanded = addressSuggestions.isNotEmpty() && activeDropdown == "start",
-                        onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
-                        properties = PopupProperties(focusable = false),
-                        offset = DpOffset(x = 0.dp, y = 4.dp),
-                        modifier = Modifier
-                            .width(with(LocalDensity.current) { startTextFieldSize.width.toDp() })
-                            .requiredSizeIn(maxHeight = 200.dp)
-                    ) {
-                        addressSuggestions.forEach { suggestion ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        if (suggestion.isFavorite) {
-                                            Icon(
-                                                Icons.Default.Star,
-                                                contentDescription = stringResource(R.string.place_favorite_cd),
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                        }
-                                        Column {
-                                            Text(
-                                                suggestion.title,
-                                                fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
-                                            )
-                                            if (suggestion.subtitle.isNotEmpty()) {
-                                                Text(
-                                                    suggestion.subtitle,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                            }
-                                        }
-                                    }
-                                },
-                                onClick = {
-                                    startText = suggestion.fullAddress // Assign String directly
-                                    startLat = suggestion.latitude
-                                    startLon = suggestion.longitude
-                                    favouritesViewModel.clearAddressSuggestions()
-                                    activeDropdown = null
-                                }
-                            )
-                        }
-                    }
-                }
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    ClearableTextField( // Using ClearableTextField
-                        value = endText,
-                        onValueChange = {
-                            endText = it
-                            favouritesViewModel.searchAddress(it) // Pass String directly
-                            activeDropdown = "end"
-                        },
-                        label = { Text(stringResource(R.string.end_address_label)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { coordinates ->
-                                endTextFieldSize = coordinates.size.toSize()
-                            }
-                    )
-                    DropdownMenu(
-                        expanded = addressSuggestions.isNotEmpty() && activeDropdown == "end",
-                        onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
-                        properties = PopupProperties(focusable = false),
-                        offset = DpOffset(x = 0.dp, y = 4.dp),
-                        modifier = Modifier
-                            .width(with(LocalDensity.current) { endTextFieldSize.width.toDp() })
-                            .requiredSizeIn(maxHeight = 200.dp)
-                    ) {
-                        addressSuggestions.forEach { suggestion ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        if (suggestion.isFavorite) {
-                                            Icon(
-                                                Icons.Default.Star,
-                                                contentDescription = stringResource(R.string.place_favorite_cd),
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                        }
-                                        Column {
-                                            Text(
-                                                suggestion.title,
-                                                fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
-                                            )
-                                            if (suggestion.subtitle.isNotEmpty()) {
-                                                Text(
-                                                    suggestion.subtitle,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                            }
-                                        }
-                                    }
-                                },
-                                onClick = {
-                                    endText = suggestion.fullAddress // Assign String directly
-                                    endLat = suggestion.latitude
-                                    endLon = suggestion.longitude
-                                    favouritesViewModel.clearAddressSuggestions()
-                                    activeDropdown = null
-                                }
-                            )
-                        }
-                    }
-                }
-                if (isOdometerModeEnabled) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(modifier = Modifier.weight(1f)) {
                     OutlinedTextField(
-                        value = odometerText,
-                        onValueChange = { 
-                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
-                                odometerText = it 
+                        value = timeFormatter.format(selectedEndDate.value.time),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.end_time_label)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { showEndTimePicker.value = true }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(modifier = Modifier.fillMaxWidth()) {
+                ClearableTextField( // Using ClearableTextField
+                    value = startText,
+                    onValueChange = {
+                        startText = it
+                        favouritesViewModel.searchAddress(it) // Pass String directly
+                        activeDropdown = "start"
+                    },
+                    label = { Text(stringResource(R.string.start_address_label)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            startTextFieldSize = coordinates.size.toSize()
+                        }
+                )
+                DropdownMenu(
+                    expanded = addressSuggestions.isNotEmpty() && activeDropdown == "start",
+                    onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
+                    properties = PopupProperties(focusable = false),
+                    offset = DpOffset(x = 0.dp, y = 4.dp),
+                    modifier = Modifier
+                        .width(with(LocalDensity.current) { startTextFieldSize.width.toDp() })
+                        .requiredSizeIn(maxHeight = 200.dp)
+                ) {
+                    addressSuggestions.forEach { suggestion ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (suggestion.isFavorite) {
+                                        Icon(
+                                            Icons.Default.Star,
+                                            contentDescription = stringResource(R.string.place_favorite_cd),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                    }
+                                    Column {
+                                        Text(
+                                            suggestion.title,
+                                            fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                        if (suggestion.subtitle.isNotEmpty()) {
+                                            Text(
+                                                suggestion.subtitle,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            onClick = {
+                                startText = suggestion.fullAddress // Assign String directly
+                                startLat = suggestion.latitude
+                                startLon = suggestion.longitude
+                                favouritesViewModel.clearAddressSuggestions()
+                                activeDropdown = null
                             }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(modifier = Modifier.fillMaxWidth()) {
+                ClearableTextField( // Using ClearableTextField
+                    value = endText,
+                    onValueChange = {
+                        endText = it
+                        favouritesViewModel.searchAddress(it) // Pass String directly
+                        activeDropdown = "end"
+                    },
+                    label = { Text(stringResource(R.string.end_address_label)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            endTextFieldSize = coordinates.size.toSize()
+                        }
+                )
+                DropdownMenu(
+                    expanded = addressSuggestions.isNotEmpty() && activeDropdown == "end",
+                    onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
+                    properties = PopupProperties(focusable = false),
+                    offset = DpOffset(x = 0.dp, y = 4.dp),
+                    modifier = Modifier
+                        .width(with(LocalDensity.current) { endTextFieldSize.width.toDp() })
+                        .requiredSizeIn(maxHeight = 200.dp)
+                ) {
+                    addressSuggestions.forEach { suggestion ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (suggestion.isFavorite) {
+                                        Icon(
+                                            Icons.Default.Star,
+                                            contentDescription = stringResource(R.string.place_favorite_cd),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                    }
+                                    Column {
+                                        Text(
+                                            suggestion.title,
+                                            fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                        if (suggestion.subtitle.isNotEmpty()) {
+                                            Text(
+                                                suggestion.subtitle,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            onClick = {
+                                endText = suggestion.fullAddress // Assign String directly
+                                endLat = suggestion.latitude
+                                endLon = suggestion.longitude
+                                favouritesViewModel.clearAddressSuggestions()
+                                activeDropdown = null
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            if (isOdometerModeEnabled) {
+                OutlinedTextField(
+                    value = odometerText,
+                    onValueChange = { 
+                        if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                            odometerText = it 
+                        }
+                    },
+                    label = { Text(stringResource(R.string.end_odometer_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = ThousandsSeparatorTransformation(),
+                    suffix = { Text("km") },
+                    trailingIcon = {
+                        if (odometerText.isNotEmpty()) {
+                            IconButton(onClick = { odometerText = "" }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.clear_text)
+                                )
+                            }
+                        }
+                    }
+                )
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ClearableTextField(
+                        value = distanceText,
+                        onValueChange = {
+                            val sanitizedText =
+                                it.replace(',', '.').filter { char -> char == '.' || char.isDigit() }
+                            val dotCount = sanitizedText.count { char -> char == '.' }
+                            if (dotCount <= 1) {
+                                distanceText = sanitizedText
+                            }
+                            isError = false
                         },
-                        label = { Text(stringResource(R.string.end_odometer_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        visualTransformation = ThousandsSeparatorTransformation(),
-                        suffix = { Text("km") },
-                        trailingIcon = {
-                            if (odometerText.isNotEmpty()) {
-                                IconButton(onClick = { odometerText = "" }) {
+                        label = { Text(stringResource(R.string.distance_km_label)) },
+                        placeholder = { Text("0.0") },
+                        isError = isError,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (tripsViewModel.isCalculating) {
+                        CircularProgressIndicator(modifier = Modifier.padding(start = 8.dp))
+                    } else {
+                        IconButton(onClick = { tripsViewModel.calculateDistance(startText, endText) }) {
+                            Icon(Icons.Default.Calculate, contentDescription = "Calculate distance")
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
+            val icons = listOf(Icons.Default.Work, Icons.Default.Person)
+
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                tripTypes.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = tripTypes.size
+                        ),
+                        onClick = { tripType = if (index == 0) "Business" else "Personal" },
+                        selected = (if (index == 0) "Business" else "Personal") == tripType,
+                        icon = {
+                            Icon(
+                                imageVector = icons[index],
+                                contentDescription = label,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                        }
+                    ) {
+                        Text(label)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = vehicleExpanded,
+                onExpandedChange = { vehicleExpanded = it }
+            ) {
+                val context = LocalContext.current
+                OutlinedTextField(
+                    value = selectedVehicle?.licensePlate ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (selectedVehicle != null) {
+                                IconButton(onClick = { selectedVehicle = null }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = stringResource(R.string.clear_text)
                                     )
                                 }
                             }
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
                         }
-                    )
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        ClearableTextField(
-                            value = distanceText,
-                            onValueChange = {
-                                val sanitizedText =
-                                    it.replace(',', '.').filter { char -> char == '.' || char.isDigit() }
-                                val dotCount = sanitizedText.count { char -> char == '.' }
-                                if (dotCount <= 1) {
-                                    distanceText = sanitizedText
-                                }
-                                isError = false
-                            },
-                            label = { Text(stringResource(R.string.distance_km_label)) },
-                            placeholder = { Text("0.0") },
-                            isError = isError,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f)
-                        )
-                        if (tripsViewModel.isCalculating) {
-                            CircularProgressIndicator(modifier = Modifier.padding(start = 8.dp))
-                        } else {
-                            IconButton(onClick = { tripsViewModel.calculateDistance(startText, endText) }) {
-                                Icon(Icons.Default.Calculate, contentDescription = "Calculate distance")
-                            }
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
-                val icons = listOf(Icons.Default.Work, Icons.Default.Person)
-
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    tripTypes.forEachIndexed { index, label ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = tripTypes.size
-                            ),
-                            onClick = { tripType = if (index == 0) "Business" else "Personal" },
-                            selected = (if (index == 0) "Business" else "Personal") == tripType,
-                            icon = {
-                                Icon(
-                                    imageVector = icons[index],
-                                    contentDescription = label,
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                            }
-                        ) {
-                            Text(label)
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                ExposedDropdownMenuBox(
-                    expanded = vehicleExpanded,
-                    onExpandedChange = { vehicleExpanded = it }
-                ) {
-                    val context = LocalContext.current
-                    OutlinedTextField(
-                        value = selectedVehicle?.licensePlate ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
-                        trailingIcon = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (selectedVehicle != null) {
-                                    IconButton(onClick = { selectedVehicle = null }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Clear,
-                                            contentDescription = stringResource(R.string.clear_text)
-                                        )
-                                    }
-                                }
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
-                            }
-                        },
-                        leadingIcon = {
-                            val iconResId = selectedVehicle?.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
-                            if (iconResId != 0) {
-                                Icon(
-                                    painter = painterResource(id = iconResId),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            } else {
-                                Icon(Icons.Default.DirectionsCar, contentDescription = null)
-                            }
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = vehicleExpanded,
-                        onDismissRequest = { vehicleExpanded = false }
-                    ) {
-                        allVehicles.forEach { vehicle ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
-                                        if (itemIconResId != 0) {
-                                            Icon(
-                                                painter = painterResource(id = itemIconResId),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(24.dp),
-                                                tint = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                        }
-                                        Text(vehicle.licensePlate)
-                                    }
-                                },
-                                onClick = {
-                                    selectedVehicle = vehicle
-                                    vehicleExpanded = false
-                                }
+                    },
+                    leadingIcon = {
+                        val iconResId = selectedVehicle?.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                        if (iconResId != 0) {
+                            Icon(
+                                painter = painterResource(id = iconResId),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
+                        } else {
+                            Icon(Icons.Default.DirectionsCar, contentDescription = null)
+                        }
+                    },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                )
+                ExposedDropdownMenu(
+                    expanded = vehicleExpanded,
+                    onDismissRequest = { vehicleExpanded = false }
+                ) {
+                    allVehicles.forEach { vehicle ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                                    if (itemIconResId != 0) {
+                                        Icon(
+                                            painter = painterResource(id = itemIconResId),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                    }
+                                    Text(vehicle.licensePlate)
+                                }
+                            },
+                            onClick = {
+                                selectedVehicle = vehicle
+                                vehicleExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            ClearableTextField( // Using ClearableTextField
+                value = description,
+                onValueChange = { description = it },
+                label = { Text(stringResource(R.string.description_optional_label)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DialogDeclineButton(onClick = onDismiss)
+                Spacer(modifier = Modifier.width(12.dp))
+                DialogAcceptButton(onClick = {
+                    if (selectedEndDate.value.before(selectedStartDate.value)) {
+                        Toast.makeText(
+                            context,
+                            endTimeBeforeStartTimeToast,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@DialogAcceptButton
+                    }
+                    val updatedDistance = if (isOdometerModeEnabled) {
+                        val endOdo = odometerText.toDoubleOrNull() ?: 0.0
+                        if (selectedVehicle != null) {
+                            // For editing existing trips, we might want a different logic for start odometer
+                            // but plan says recalculate distance relative to baseline
+                            (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                        } else {
+                            trip?.distance ?: 0.0
+                        }
+                    } else {
+                        distanceText.toDoubleOrNull()
+                    }
+
+                    if (updatedDistance == null) {
+                        isError = true
+                    } else {
+                        val tripToSave = trip?.copy(
+                            startLoc = startText, // Pass String directly
+                            endLoc = endText, // Pass String directly
+                            type = tripType,
+                            description = description,
+                            distance = updatedDistance,
+                            date = selectedStartDate.value.time,
+                            endDate = selectedEndDate.value.timeInMillis,
+                            startLat = startLat,
+                            startLon = startLon,
+                            endLat = endLat,
+                            endLon = endLon,
+                            vehicleId = selectedVehicle?.id,
+                            endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
+                        ) ?: Trip(
+                            startLoc = startText, // Pass String directly
+                            endLoc = endText, // Pass String directly
+                            distance = updatedDistance,
+                            type = tripType,
+                            description = description,
+                            date = selectedStartDate.value.time,
+                            endDate = selectedEndDate.value.timeInMillis,
+                            startLat = startLat,
+                            startLon = startLon,
+                            endLat = endLat,
+                            endLon = endLon,
+                            isConfirmed = true, // Default for manual add/edit
+                            vehicleId = selectedVehicle?.id,
+                            endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
+                        )
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                onSave(tripToSave)
+                            }
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                ClearableTextField( // Using ClearableTextField
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text(stringResource(R.string.description_optional_label)) },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                })
             }
-        },
-        confirmButton = {
-            DialogAcceptButton(onClick = {
-                if (selectedEndDate.value.before(selectedStartDate.value)) {
-                    Toast.makeText(
-                        context,
-                        endTimeBeforeStartTimeToast,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@DialogAcceptButton
-                }
-                val updatedDistance = if (isOdometerModeEnabled) {
-                    val endOdo = odometerText.toDoubleOrNull() ?: 0.0
-                    if (selectedVehicle != null) {
-                        // For editing existing trips, we might want a different logic for start odometer
-                        // but plan says recalculate distance relative to baseline
-                        (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
-                    } else {
-                        trip?.distance ?: 0.0
-                    }
-                } else {
-                    distanceText.toDoubleOrNull()
-                }
-
-                if (updatedDistance == null) {
-                    isError = true
-                } else {
-                    val tripToSave = trip?.copy(
-                        startLoc = startText, // Pass String directly
-                        endLoc = endText, // Pass String directly
-                        type = tripType,
-                        description = description,
-                        distance = updatedDistance,
-                        date = selectedStartDate.value.time,
-                        endDate = selectedEndDate.value.timeInMillis,
-                        startLat = startLat,
-                        startLon = startLon,
-                        endLat = endLat,
-                        endLon = endLon,
-                        vehicleId = selectedVehicle?.id,
-                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
-                    ) ?: Trip(
-                        startLoc = startText, // Pass String directly
-                        endLoc = endText, // Pass String directly
-                        distance = updatedDistance,
-                        type = tripType,
-                        description = description,
-                        date = selectedStartDate.value.time,
-                        endDate = selectedEndDate.value.timeInMillis,
-                        startLat = startLat,
-                        startLon = startLon,
-                        endLat = endLat,
-                        endLon = endLon,
-                        isConfirmed = true, // Default for manual add/edit
-                        vehicleId = selectedVehicle?.id,
-                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
-                    )
-                    onSave(tripToSave)
-                }
-            })
-        },
-        dismissButton = {
-            DialogDeclineButton(onClick = onDismiss)
-        },
-        modifier = Modifier.padding(bottom = 48.dp),
-        shape = MaterialTheme.shapes.large,
-        tonalElevation = 8.dp,
-    )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1497,225 +1522,250 @@ fun TripSummaryDialog(
     }
     var vehicleExpanded by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.trip_summary_title)) },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                if (isOdometerModeEnabled) {
-                    OutlinedTextField(
-                        value = odometerText,
-                        onValueChange = {
-                            if (it.length <= 8 && it.all { char -> char.isDigit() }) {
-                                odometerText = it
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = stringResource(R.string.trip_summary_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (isOdometerModeEnabled) {
+                OutlinedTextField(
+                    value = odometerText,
+                    onValueChange = {
+                        if (it.length <= 8 && it.all { char -> char.isDigit() }) {
+                            odometerText = it
+                        }
+                    },
+                    label = { Text(stringResource(R.string.end_odometer_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = ThousandsSeparatorTransformation(),
+                    suffix = { Text("km") },
+                    trailingIcon = {
+                        if (odometerText.isNotEmpty()) {
+                            IconButton(onClick = { odometerText = "" }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.clear_text)
+                                )
                             }
-                        },
-                        label = { Text(stringResource(R.string.end_odometer_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        visualTransformation = ThousandsSeparatorTransformation(),
-                        suffix = { Text("km") },
-                        trailingIcon = {
-                            if (odometerText.isNotEmpty()) {
-                                IconButton(onClick = { odometerText = "" }) {
+                        }
+                    }
+                )
+                if (selectedVehicle != null) {
+                    val endOdo = odometerText.toDoubleOrNull() ?: 0.0
+                    val calcDistance =
+                        (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                    Text(
+                        text = "Calculated: %.2f km".format(calcDistance),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            } else {
+                Text(
+                    text = stringResource(R.string.total_distance_label, distance / 1000.0),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            ClearableTextField( // Using ClearableTextField
+                value = start,
+                onValueChange = { start = it },
+                label = { Text(stringResource(R.string.start_address_label)) })
+            Spacer(modifier = Modifier.height(8.dp))
+            ClearableTextField( // Using ClearableTextField
+                value = end,
+                onValueChange = { end = it },
+                label = { Text(stringResource(R.string.end_address_label)) })
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = vehicleExpanded,
+                onExpandedChange = { vehicleExpanded = it }
+            ) {
+                val context = LocalContext.current
+                OutlinedTextField(
+                    value = selectedVehicle?.licensePlate ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (selectedVehicle != null) {
+                                IconButton(onClick = { selectedVehicle = null }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = stringResource(R.string.clear_text)
                                     )
                                 }
                             }
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
                         }
-                    )
-                    if (selectedVehicle != null) {
-                        val endOdo = odometerText.toDoubleOrNull() ?: 0.0
-                        val calcDistance =
-                            (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
-                        Text(
-                            text = "Calculated: %.2f km".format(calcDistance),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 4.dp)
+                    },
+                    leadingIcon = {
+                        val iconResId = selectedVehicle?.brand?.let {
+                            CarBrandHelper.getBrandIconResId(
+                                context,
+                                it
+                            )
+                        } ?: 0
+                        if (iconResId != 0) {
+                            Icon(
+                                painter = painterResource(id = iconResId),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        } else {
+                            Icon(Icons.Default.DirectionsCar, contentDescription = null)
+                        }
+                    },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                )
+                ExposedDropdownMenu(
+                    expanded = vehicleExpanded,
+                    onDismissRequest = { vehicleExpanded = false }
+                ) {
+                    allVehicles.forEach { vehicle ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val itemIconResId = vehicle.brand?.let {
+                                        CarBrandHelper.getBrandIconResId(
+                                            context,
+                                            it
+                                        )
+                                    } ?: 0
+                                    if (itemIconResId != 0) {
+                                        Icon(
+                                            painter = painterResource(id = itemIconResId),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                    }
+                                    Text(vehicle.licensePlate)
+                                }
+                            },
+                            onClick = {
+                                selectedVehicle = vehicle
+                                vehicleExpanded = false
+                            }
                         )
                     }
-                } else {
-                    Text(
-                        stringResource(R.string.total_distance_label, distance / 1000.0)
-                    )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                ClearableTextField( // Using ClearableTextField
-                    value = start,
-                    onValueChange = { start = it },
-                    label = { Text(stringResource(R.string.start_address_label)) })
-                ClearableTextField( // Using ClearableTextField
-                    value = end,
-                    onValueChange = { end = it },
-                    label = { Text(stringResource(R.string.end_address_label)) })
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            val tripTypes = listOf(
+                stringResource(R.string.trip_type_business),
+                stringResource(R.string.trip_type_personal)
+            )
+            val icons = listOf(Icons.Default.Work, Icons.Default.Person)
 
-                ExposedDropdownMenuBox(
-                    expanded = vehicleExpanded,
-                    onExpandedChange = { vehicleExpanded = it }
-                ) {
-                    val context = LocalContext.current
-                    OutlinedTextField(
-                        value = selectedVehicle?.licensePlate ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.favourites_tab_vehicles)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
-                        trailingIcon = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (selectedVehicle != null) {
-                                    IconButton(onClick = { selectedVehicle = null }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Clear,
-                                            contentDescription = stringResource(R.string.clear_text)
-                                        )
-                                    }
-                                }
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded)
-                            }
-                        },
-                        leadingIcon = {
-                            val iconResId = selectedVehicle?.brand?.let {
-                                CarBrandHelper.getBrandIconResId(
-                                    context,
-                                    it
-                                )
-                            } ?: 0
-                            if (iconResId != 0) {
-                                Icon(
-                                    painter = painterResource(id = iconResId),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            } else {
-                                Icon(Icons.Default.DirectionsCar, contentDescription = null)
-                            }
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = vehicleExpanded,
-                        onDismissRequest = { vehicleExpanded = false }
-                    ) {
-                        allVehicles.forEach { vehicle ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        val itemIconResId = vehicle.brand?.let {
-                                            CarBrandHelper.getBrandIconResId(
-                                                context,
-                                                it
-                                            )
-                                        } ?: 0
-                                        if (itemIconResId != 0) {
-                                            Icon(
-                                                painter = painterResource(id = itemIconResId),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(24.dp),
-                                                tint = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                        }
-                                        Text(vehicle.licensePlate)
-                                    }
-                                },
-                                onClick = {
-                                    selectedVehicle = vehicle
-                                    vehicleExpanded = false
-                                }
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                tripTypes.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = tripTypes.size
+                        ),
+                        onClick = { tripType = if (index == 0) "Business" else "Personal" },
+                        selected = (if (index == 0) "Business" else "Personal") == tripType,
+                        icon = {
+                            Icon(
+                                imageVector = icons[index],
+                                contentDescription = label,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
                             )
                         }
+                    ) {
+                        Text(label)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                val tripTypes = listOf(
-                    stringResource(R.string.trip_type_business),
-                    stringResource(R.string.trip_type_personal)
-                )
-                val icons = listOf(Icons.Default.Work, Icons.Default.Person)
-
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    tripTypes.forEachIndexed { index, label ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = tripTypes.size
-                            ),
-                            onClick = { tripType = if (index == 0) "Business" else "Personal" },
-                            selected = (if (index == 0) "Business" else "Personal") == tripType,
-                            icon = {
-                                Icon(
-                                    imageVector = icons[index],
-                                    contentDescription = label,
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                            }
-                        ) {
-                            Text(label)
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                ClearableTextField( // Using ClearableTextField
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text(stringResource(R.string.description_optional_label)) },
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
-        },
-        confirmButton = {
-            DialogAcceptButton(onClick = {
-                val updatedDistance = if (isOdometerModeEnabled) {
-                    val endOdo = odometerText.toDoubleOrNull() ?: 0.0
-                    if (selectedVehicle != null) {
-                        (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+            Spacer(modifier = Modifier.height(8.dp))
+            ClearableTextField( // Using ClearableTextField
+                value = description,
+                onValueChange = { description = it },
+                label = { Text(stringResource(R.string.description_optional_label)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DialogDeclineButton(onClick = onDismiss)
+                Spacer(modifier = Modifier.width(12.dp))
+                DialogAcceptButton(onClick = {
+                    val updatedDistance = if (isOdometerModeEnabled) {
+                        val endOdo = odometerText.toDoubleOrNull() ?: 0.0
+                        if (selectedVehicle != null) {
+                            (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                        } else {
+                            distance / 1000.0
+                        }
                     } else {
                         distance / 1000.0
                     }
-                } else {
-                    distance / 1000.0
-                }
 
-                val tripToSave = trip?.copy(
-                    startLoc = start,
-                    endLoc = end,
-                    type = tripType,
-                    description = description,
-                    distance = updatedDistance,
-                    vehicleId = selectedVehicle?.id,
-                    endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
-                ) ?: Trip(
-                    startLoc = start,
-                    endLoc = end,
-                    distance = updatedDistance,
-                    type = tripType,
-                    description = description,
-                    date = Date(),
-                    endDate = Date().time,
-                    isConfirmed = true,
-                    vehicleId = selectedVehicle?.id,
-                    endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
-                )
-                onSave(tripToSave)
-            })
-        },
-        dismissButton = {
-            DialogDeclineButton(onClick = onDismiss)
+                    val tripToSave = trip?.copy(
+                        startLoc = start,
+                        endLoc = end,
+                        type = tripType,
+                        description = description,
+                        distance = updatedDistance,
+                        vehicleId = selectedVehicle?.id,
+                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
+                    ) ?: Trip(
+                        startLoc = start,
+                        endLoc = end,
+                        distance = updatedDistance,
+                        type = tripType,
+                        description = description,
+                        date = Date(),
+                        endDate = Date().time,
+                        isConfirmed = true,
+                        vehicleId = selectedVehicle?.id,
+                        endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
+                    )
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            onSave(tripToSave)
+                        }
+                    }
+                })
+            }
         }
-    )
+    }
 }
 
 @Composable
