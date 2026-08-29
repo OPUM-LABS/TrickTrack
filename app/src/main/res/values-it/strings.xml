@@ -89,6 +89,8 @@
     <string name="button_ok">OK</string>
     <string name="button_done">Fatto</string>
     <string name="button_close">Chiudi</string>
+    <string name="button_accept">Accetta</string>
+    <string name="button_decline">Rifiuta</string>
     <string name="unknown_device">Dispositivo sconosciuto</string>
 
     <!-- New strings for SettingsScreen.kt -->

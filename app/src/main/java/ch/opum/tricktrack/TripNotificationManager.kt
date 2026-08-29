@@ -86,6 +86,26 @@ object TripNotificationManager {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true) // Automatically removes the notification when the user taps it
 
+        // Add Accept and Decline actions
+        val acceptIntent = Intent(context, NotificationReceiver::class.java).apply {
+            action = NotificationReceiver.ACTION_ACCEPT_TRIP
+            putExtra("trip_id", trip.id)
+        }
+        val acceptPendingIntent = PendingIntent.getBroadcast(
+            context, trip.id.toInt() + 100, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val declineIntent = Intent(context, NotificationReceiver::class.java).apply {
+            action = NotificationReceiver.ACTION_DECLINE_TRIP
+            putExtra("trip_id", trip.id)
+        }
+        val declinePendingIntent = PendingIntent.getBroadcast(
+            context, trip.id.toInt() + 200, declineIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        builder.addAction(0, context.getString(R.string.button_accept), acceptPendingIntent)
+        builder.addAction(0, context.getString(R.string.button_decline), declinePendingIntent)
+
         with(NotificationManagerCompat.from(context)) {
             val notificationId = trip.id.toInt()
             AppLogger.log("TripNotificationManager", "Showing notification for trip ID: ${trip.id} as notification ID: $notificationId")

@@ -62,6 +62,15 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".NotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="ch.opum.tricktrack.ACTION_ACCEPT_TRIP" />
+                <action android:name="ch.opum.tricktrack.ACTION_DECLINE_TRIP" />
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
