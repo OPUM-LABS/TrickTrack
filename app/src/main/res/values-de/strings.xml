@@ -301,4 +301,18 @@
     <string name="notification_still_driving_text">GPS-Signal verloren. Fahren Sie noch?</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
+
+    <!-- Settings Summaries -->
+    <string name="settings_tap_to_change"> • Zum Ändern tippen</string>
+    <string name="settings_tap_to_edit"> • Zum Ändern tippen</string>
+    <string name="settings_tap_to_configure">Deaktiviert • Zum Konfigurieren tippen</string>
+    <string name="settings_no_devices_selected">Keine Geräte ausgewählt</string>
+    <string name="settings_device_configured_one">1 Gerät konfiguriert</string>
+    <string name="settings_devices_configured_many">%d Geräte konfiguriert</string>
+    <string name="settings_wakes_up_every_meters">Wacht alle %d Meter auf</string>
+    <string name="settings_schedule_no_active_days">Keine aktiven Tage</string>
+    <string name="settings_schedule_daily">Täglich, %s</string>
+    <string name="settings_schedule_mon_fri">Mo–Fr, %s</string>
+    <string name="settings_schedule_days_count">%1$d Tage, %2$s</string>
+    <string name="settings_schedule_days_active">%d Tage aktiv</string>
 </resources>

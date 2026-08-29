@@ -17,6 +17,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
+import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripNotificationManager
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DriverEntity
@@ -290,7 +291,7 @@ class TripsViewModel(
 
     val scheduleSummary: StateFlow<String> = scheduleSettings.map { settings ->
         val enabledDays = settings.dailySchedules.filter { it.value.isEnabled }
-        if (enabledDays.isEmpty()) return@map "No active days"
+        if (enabledDays.isEmpty()) return@map getApplication<Application>().getString(R.string.settings_schedule_no_active_days)
 
         val first = enabledDays.values.first()
         val allSame = enabledDays.values.all {
@@ -307,14 +308,14 @@ class TripsViewModel(
 
         if (allSame) {
             when {
-                enabledDays.size == 7 -> "Daily, $timeRange"
+                enabledDays.size == 7 -> getApplication<Application>().getString(R.string.settings_schedule_daily, timeRange)
                 enabledDays.size == 5 &&
                         enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
-                        enabledDays.containsKey(java.time.DayOfWeek.FRIDAY) -> "Mon–Fri, $timeRange"
-                else -> "${enabledDays.size} days, $timeRange"
+                        enabledDays.containsKey(java.time.DayOfWeek.FRIDAY) -> getApplication<Application>().getString(R.string.settings_schedule_mon_fri, timeRange)
+                else -> getApplication<Application>().getString(R.string.settings_schedule_days_count, enabledDays.size, timeRange)
             }
         } else {
-            "${enabledDays.size} days active"
+            getApplication<Application>().getString(R.string.settings_schedule_days_active, enabledDays.size)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
@@ -329,9 +330,10 @@ class TripsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val bluetoothSummary: StateFlow<String> = userPreferencesRepository.selectedBluetoothDevices.map { devices ->
-        if (devices.isEmpty()) "No devices selected"
-        else if (devices.size == 1) "1 device configured"
-        else "${devices.size} devices configured"
+        val context = getApplication<Application>()
+        if (devices.isEmpty()) context.getString(R.string.settings_no_devices_selected)
+        else if (devices.size == 1) context.getString(R.string.settings_device_configured_one)
+        else context.getString(R.string.settings_devices_configured_many, devices.size)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
 
@@ -446,7 +448,7 @@ class TripsViewModel(
         )
 
     val distanceMonitoringSummary: StateFlow<String> = distanceMonitoringRadius.map { radius ->
-        "Wakes up every $radius meters"
+        getApplication<Application>().getString(R.string.settings_wakes_up_every_meters, radius)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     private val scheduleTicker = flow {

@@ -302,4 +302,18 @@
     <string name="notification_still_driving_text">Segnale GPS perso. Stai ancora guidando?</string>
     <string name="yes">Sì</string>
     <string name="no">No</string>
+
+    <!-- Settings Summaries -->
+    <string name="settings_tap_to_change"> • Tocca per cambiare</string>
+    <string name="settings_tap_to_edit"> • Tocca per modificare</string>
+    <string name="settings_tap_to_configure">Disabilitato • Tocca per configurare</string>
+    <string name="settings_no_devices_selected">Nessun dispositivo selezionato</string>
+    <string name="settings_device_configured_one">1 dispositivo configurato</string>
+    <string name="settings_devices_configured_many">%d dispositivi configurati</string>
+    <string name="settings_wakes_up_every_meters">Si sveglia ogni %d metri</string>
+    <string name="settings_schedule_no_active_days">Nessun giorno attivo</string>
+    <string name="settings_schedule_daily">Giornaliero, %s</string>
+    <string name="settings_schedule_mon_fri">Lun–Ven, %s</string>
+    <string name="settings_schedule_days_count">%1$d giorni, %2$s</string>
+    <string name="settings_schedule_days_active">%d giorni attivi</string>
 </resources>

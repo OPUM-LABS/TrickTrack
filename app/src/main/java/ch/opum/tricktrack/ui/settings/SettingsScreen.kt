@@ -647,7 +647,7 @@ fun SettingsScreen(
                                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             )
                             Text(
-                                text = if (isBluetoothTriggerEnabled) "$bluetoothSummary • Tap to change" 
+                                text = if (isBluetoothTriggerEnabled) bluetoothSummary + stringResource(R.string.settings_tap_to_change)
                                        else stringResource(R.string.settings_bluetooth_trigger_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (isBluetoothTriggerEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
@@ -750,7 +750,7 @@ fun SettingsScreen(
                                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             )
                             Text(
-                                text = if (isDistanceMonitoringEnabled) "$distanceMonitoringSummary • Tap to change" 
+                                text = if (isDistanceMonitoringEnabled) distanceMonitoringSummary + stringResource(R.string.settings_tap_to_change)
                                        else stringResource(R.string.settings_distance_monitoring_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (isDistanceMonitoringEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
@@ -815,7 +815,8 @@ fun SettingsScreen(
                                 }
                             }
                             Text(
-                                text = if (isScheduleEnabled) "$scheduleSummary • Tap to edit" else "Disabled • Tap to configure",
+                                text = if (isScheduleEnabled) scheduleSummary + stringResource(R.string.settings_tap_to_edit) 
+                                       else stringResource(R.string.settings_tap_to_configure),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (isScheduleEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
                                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)

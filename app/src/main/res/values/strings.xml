@@ -303,4 +303,18 @@
     <string name="notification_still_driving_text">GPS signal lost. Are you still driving?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+
+    <!-- Settings Summaries -->
+    <string name="settings_tap_to_change"> • Tap to change</string>
+    <string name="settings_tap_to_edit"> • Tap to edit</string>
+    <string name="settings_tap_to_configure">Disabled • Tap to configure</string>
+    <string name="settings_no_devices_selected">No devices selected</string>
+    <string name="settings_device_configured_one">1 device configured</string>
+    <string name="settings_devices_configured_many">%d devices configured</string>
+    <string name="settings_wakes_up_every_meters">Wakes up every %d meters</string>
+    <string name="settings_schedule_no_active_days">No active days</string>
+    <string name="settings_schedule_daily">Daily, %s</string>
+    <string name="settings_schedule_mon_fri">Mon–Fri, %s</string>
+    <string name="settings_schedule_days_count">%1$d days, %2$s</string>
+    <string name="settings_schedule_days_active">%d days active</string>
 </resources>
