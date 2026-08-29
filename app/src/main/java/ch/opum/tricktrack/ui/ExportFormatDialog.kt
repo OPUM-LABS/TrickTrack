@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -79,7 +79,7 @@ fun ExportFormatDialog(
                 )
                 IconButton(onClick = { showConfigDialog = true }) {
                     Icon(
-                        Icons.Default.ListAlt,
+                        Icons.AutoMirrored.Filled.ListAlt,
                         contentDescription = stringResource(R.string.settings_export_fields_configure_cd)
                     )
                 }
@@ -112,7 +112,7 @@ fun ExportFormatDialog(
                             readOnly = true,
                             label = { Text(stringResource(R.string.export_column_driver)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = driverExpanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                             enabled = includeDriver && hasDrivers,
                             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
@@ -154,7 +154,7 @@ fun ExportFormatDialog(
                             readOnly = true,
                             label = { Text(stringResource(R.string.export_column_company)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = companyExpanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                             enabled = includeCompany && hasCompanies,
                             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
@@ -196,7 +196,7 @@ fun ExportFormatDialog(
                             readOnly = true,
                             label = { Text(stringResource(R.string.export_column_vehicle)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                             enabled = includeVehicle && hasVehicles,
                             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
@@ -221,7 +221,7 @@ fun ExportFormatDialog(
 
                 ExportButton(
                     text = stringResource(R.string.export_as_csv),
-                    icon = Icons.Default.Article,
+                    icon = Icons.AutoMirrored.Filled.Article,
                     onClick = {
                         onExportCsvClicked()
                         scope.launch { sheetState.hide() }.invokeOnCompletion {

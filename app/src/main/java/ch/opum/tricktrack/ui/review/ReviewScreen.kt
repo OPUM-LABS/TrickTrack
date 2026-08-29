@@ -24,7 +24,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -73,7 +72,11 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(stringResource(R.string.review_no_trips), style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
+            Text(
+                stringResource(R.string.review_no_trips), 
+                style = MaterialTheme.typography.bodyLarge, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     } else {
         val allVehicles by viewModel.allVehicles.collectAsState()

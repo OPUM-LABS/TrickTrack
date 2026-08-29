@@ -47,7 +47,7 @@ data class SimpleItem(
     val title: String, 
     val subtitle: String? = null, 
     val brand: String? = null, 
-    val odometer: Double = 0.0
+    val odometer: Double = 0.0,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,18 +91,21 @@ fun PlacesListScreen(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {
-                dialogTitle = when (selectedTabIndex) {
-                    0 -> { onAddPlace(); "" }
-                    1 -> addDriverTitle
-                    2 -> addCompanyTitle
-                    3 -> addVehicleTitle
-                    else -> ""
-                }
-                if (selectedTabIndex != 0) {
-                    showAddDialog = true
-                }
-            }) {
+                IconButton(onClick = {
+                    dialogTitle = when (selectedTabIndex) {
+                        0 -> {
+                            onAddPlace()
+                            ""
+                        }
+                        1 -> addDriverTitle
+                        2 -> addCompanyTitle
+                        3 -> addVehicleTitle
+                        else -> ""
+                    }
+                    if (selectedTabIndex != 0) {
+                        showAddDialog = true
+                    }
+                }) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.favourites_add_item))
             }
         }
@@ -134,7 +137,7 @@ fun PlacesListScreen(
             )
         }
 
-        if (showEditDialog && itemToEdit != null) {
+                if (showEditDialog && (itemToEdit != null)) {
             EditSimpleItemBottomSheet(
                 item = itemToEdit!!,
                 title = stringResource(R.string.favourites_edit_item),
@@ -192,8 +195,8 @@ fun PlacesListScreen(
                 val groupedPlaces by viewModel.groupedPlaces.collectAsState()
                 SavedPlaceList(
                     groupedFavorites = groupedPlaces,
-                    onEditPlace = {
-                        placeToEdit = it
+                    onEditPlace = { place ->
+                        placeToEdit = place
                         showEditDialog = true
                     }
                 )
@@ -254,8 +257,8 @@ fun BrandSelectionField(
     val localContext = LocalContext.current
 
     LaunchedEffect(initialBrand) {
-        if (initialBrand != null) {
-            viewModel.updateBrandQuery(initialBrand)
+        initialBrand?.let {
+            viewModel.updateBrandQuery(it)
         }
     }
 
@@ -632,7 +635,11 @@ fun GenericGroupedList(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(stringResource(R.string.favourites_no_items), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(R.string.favourites_no_items), 
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     } else {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -644,12 +651,13 @@ fun GenericGroupedList(
                     stickyHeader {
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surfaceVariant
+                            color = MaterialTheme.colorScheme.surface
                         ) {
                             Text(
                                 text = header.toString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
@@ -783,13 +791,13 @@ fun SavedPlaceList(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = "No saved Favourites",
                     modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     stringResource(R.string.favourites_no_items),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                 )
             }
         }
@@ -803,12 +811,13 @@ fun SavedPlaceList(
                     stickyHeader {
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surfaceVariant
+                            color = MaterialTheme.colorScheme.surface
                         ) {
                             Text(
                                 text = header.toString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
@@ -851,7 +860,7 @@ fun AlphabetSidebar(
             val isEnabled = groupedKeys.contains(letter)
             Text(
                 text = letter.toString(),
-                color = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                color = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier
                     .clickable(enabled = isEnabled) { onLetterClick(letter) }

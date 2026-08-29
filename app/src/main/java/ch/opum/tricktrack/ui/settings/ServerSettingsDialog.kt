@@ -49,7 +49,7 @@ fun ServerSettingsDialog(
     var isPhotonValid by remember { mutableStateOf(false) }
 
     val errorColor = MaterialTheme.colorScheme.error
-    val successColor = Color(0xFF2E7D32) // Darker green for accessibility
+    val successColor = MaterialTheme.colorScheme.primary
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

@@ -496,7 +496,11 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.labelSmall
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                Text(stringResource(R.string.about_made_with_love), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                Text(
+                    stringResource(R.string.about_made_with_love), 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
@@ -556,11 +560,17 @@ fun SettingsScreen(
                     ) {
                         val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.settings_odometer_mode_title))
                             Text(
-                                stringResource(R.string.settings_odometer_mode_description),
+                                text = stringResource(R.string.settings_odometer_mode_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isOdometerModeEnabled) MaterialTheme.colorScheme.onSurface 
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_odometer_mode_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isOdometerModeEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             )
                         }
                         Switch(
@@ -576,11 +586,17 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.settings_automatic_tracking_title))
                             Text(
-                                stringResource(R.string.settings_automatic_tracking_description),
+                                text = stringResource(R.string.settings_automatic_tracking_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isAutoTrackingEnabled) MaterialTheme.colorScheme.onSurface 
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_automatic_tracking_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isAutoTrackingEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             )
                         }
                         Switch(
@@ -622,6 +638,7 @@ fun SettingsScreen(
                         ) {
                             Text(
                                 text = stringResource(R.string.settings_bluetooth_trigger_title),
+                                style = MaterialTheme.typography.bodyLarge,
                                 color = if (isBluetoothTriggerEnabled) MaterialTheme.colorScheme.onSurface 
                                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             )
@@ -724,6 +741,7 @@ fun SettingsScreen(
                         ) {
                             Text(
                                 text = stringResource(R.string.settings_distance_monitoring_title),
+                                style = MaterialTheme.typography.bodyLarge,
                                 color = if (isDistanceMonitoringEnabled) MaterialTheme.colorScheme.onSurface 
                                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             )
@@ -761,13 +779,18 @@ fun SettingsScreen(
                                 .clickable { showScheduleDialog = true }
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(stringResource(R.string.settings_enable_schedule_title))
+                                Text(
+                                    text = stringResource(R.string.settings_enable_schedule_title),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (isScheduleEnabled) MaterialTheme.colorScheme.onSurface 
+                                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                )
                                 if (isScheduleEnabled) {
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Surface(
                                         shape = RoundedCornerShape(4.dp),
                                         color = if (isScheduleActive)
-                                            Color(0xFF4CAF50).copy(alpha = 0.1f)
+                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                                         else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
                                     ) {
                                         Text(
@@ -780,7 +803,7 @@ fun SettingsScreen(
                                             ),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = if (isScheduleActive)
-                                                Color(0xFF2E7D32)
+                                                MaterialTheme.colorScheme.onPrimaryContainer
                                             else MaterialTheme.colorScheme.onErrorContainer,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -790,7 +813,8 @@ fun SettingsScreen(
                             Text(
                                 text = if (isScheduleEnabled) "$scheduleSummary • Tap to edit" else "Disabled • Tap to configure",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isScheduleEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             )
                         }
                         Switch(
@@ -907,11 +931,17 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.settings_smart_location_snapping_title))
                             Text(
-                                stringResource(R.string.settings_smart_location_snapping_description),
+                                text = stringResource(R.string.settings_smart_location_snapping_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isSmartLocationEnabled) MaterialTheme.colorScheme.onSurface 
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_smart_location_snapping_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isSmartLocationEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             )
                         }
                         Switch(
@@ -956,7 +986,13 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.settings_calculate_expenses_title), modifier = Modifier.weight(1f))
+                        Text(
+                            text = stringResource(R.string.settings_calculate_expenses_title), 
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (expenseTrackingEnabled) MaterialTheme.colorScheme.onSurface 
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        )
                         Switch(
                             checked = expenseTrackingEnabled,
                             onCheckedChange = { viewModel.setExpenseTracking(it) }
@@ -1127,17 +1163,17 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = stringResource(R.string.settings_permissions_all_granted_cd),
-                            tint = Color.Green
+                            tint = Color(0xFF4CAF50)
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 Icons.Default.Cancel,
                                 contentDescription = stringResource(R.string.settings_permissions_action_needed_cd),
-                                tint = Color.Red
+                                tint = Color(0xFFB00020)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.settings_permissions_action_needed_text), color = Color.Red)
+                            Text(stringResource(R.string.settings_permissions_action_needed_text), color = Color(0xFFB00020))
                         }
                     }
                 }
@@ -1590,8 +1626,8 @@ fun PermissionWarningBanner(onAction: () -> Unit) {
             Button(
                 onClick = onAction,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
+                    containerColor = Color(0xFFB00020),
+                    contentColor = Color.White
                 )
             ) {
                 Text(stringResource(R.string.permission_banner_action))
@@ -1700,7 +1736,7 @@ fun PermissionRow(
             Icon(
                 imageVector = requirement.icon,
                 contentDescription = null,
-                tint = if (status.isGranted) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
+                tint = if (status.isGranted) Color(0xFF4CAF50) else Color(0xFFB00020),
                 modifier = Modifier.size(24.dp)
             )
         },
@@ -1713,7 +1749,7 @@ fun PermissionRow(
                 )
             } else {
                 TextButton(onClick = onEnable) {
-                    Text(stringResource(R.string.permission_enable))
+                    Text(stringResource(R.string.permission_enable), color = Color(0xFFB00020))
                 }
             }
         },

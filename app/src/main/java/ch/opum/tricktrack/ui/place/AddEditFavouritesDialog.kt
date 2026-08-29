@@ -34,7 +34,7 @@ fun AddEditPlaceDialog(
     onDismiss: () -> Unit,
     onSave: (String, String, Double, Double) -> Unit,
     onDelete: () -> Unit,
-    favouritesViewModel: FavouritesViewModel
+    favouritesViewModel: FavouritesViewModel,
 ) {
     var name by remember(place) { mutableStateOf(place?.name ?: "") }
     var addressText by remember(place) { mutableStateOf(place?.address ?: "") }
@@ -102,9 +102,8 @@ fun AddEditPlaceDialog(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- Name Field with Autocomplete ---
             Box(modifier = Modifier.fillMaxWidth()) {
-                ClearableTextField( // Using ClearableTextField
+                ClearableTextField(
                     value = name,
                     onValueChange = {
                         name = it
@@ -172,7 +171,7 @@ fun AddEditPlaceDialog(
                             }
                         }
                     },
-                    enabled = name.isNotBlank() && addressText.isNotBlank() && selectedLatitude != null
+                    enabled = (name.isNotBlank() && addressText.isNotBlank() && (selectedLatitude != null))
                 )
             }
         }
@@ -217,7 +216,8 @@ private fun SuggestionDropdown(
                             if (suggestion.subtitle.isNotEmpty()) {
                                 Text(
                                     suggestion.subtitle,
-                                    style = MaterialTheme.typography.bodySmall
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }

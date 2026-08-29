@@ -37,7 +37,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoMode
 import androidx.compose.material.icons.filled.Bluetooth
@@ -532,12 +531,12 @@ fun MainScreen(
                             if (screen is Screen.Review && unconfirmedTrips.isNotEmpty()) {
                                 BadgedBox(
                                     badge = {
-                                        Badge(
-                                            containerColor = Color.Red,
-                                            contentColor = Color.White
-                                        ) {
-                                            Text("${unconfirmedTrips.size}")
-                                        }
+        Badge(
+            containerColor = Color(0xFFB00020),
+            contentColor = Color.White
+        ) {
+            Text(unconfirmedTrips.size.toString())
+        }
                                     }
                                 ) {
                                     Icon(screen.icon, contentDescription = stringResource(screen.title))
