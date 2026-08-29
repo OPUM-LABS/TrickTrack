@@ -56,6 +56,7 @@ class UserPreferencesRepository(private val context: Context) {
         val IS_ODOMETER_MODE_ENABLED = booleanPreferencesKey("is_odometer_mode_enabled")
         val IS_DISTANCE_MONITORING_ENABLED = booleanPreferencesKey("is_distance_monitoring_enabled")
         val DISTANCE_MONITORING_RADIUS = intPreferencesKey("distance_monitoring_radius")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -269,6 +270,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setDistanceMonitoringRadius(radius: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DISTANCE_MONITORING_RADIUS] = radius
+        }
+    }
+
+    val themeMode: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.THEME_MODE] ?: "SYSTEM"
+        }
+
+    suspend fun setThemeMode(mode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.THEME_MODE] = mode
         }
     }
 

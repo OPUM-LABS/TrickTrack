@@ -6,6 +6,10 @@
     <!-- Settings Screen -->
     <string name="settings_diagnostics_title">Diagnostics</string>
     <string name="settings_diagnostics_description">Vérifiez les autorisations et l\'état du système.</string>
+    <string name="settings_appearance_title">Apparence</string>
+    <string name="settings_theme_system">Système</string>
+    <string name="settings_theme_light">Clair</string>
+    <string name="settings_theme_dark">Sombre</string>
     <string name="settings_permissions_check_title">Vérification des autorisations</string>
     <string name="settings_permissions_all_granted_cd">Toutes accordées</string>
     <string name="settings_permissions_action_needed_cd">Action requise</string>

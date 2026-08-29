@@ -177,7 +177,14 @@ class MainActivity : ComponentActivity() {
         _currentIntent.value = intent // Set initial intent
 
         setContent {
-            TrickTrackTheme {
+            val tripsViewModel: TripsViewModel = viewModel(factory = ViewModelFactory(
+                getApplication(),
+                (application as TripApplication).repository,
+                (application as TripApplication).userPreferencesRepository
+            ))
+            val themeMode by tripsViewModel.themeMode.collectAsState()
+
+            TrickTrackTheme(themeMode = themeMode) {
                 val context = LocalContext.current
                 val notificationPermissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestPermission()

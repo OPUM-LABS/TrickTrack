@@ -451,6 +451,13 @@ class TripsViewModel(
         getApplication<Application>().getString(R.string.settings_wakes_up_every_meters, radius)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
+    val themeMode: StateFlow<String> = userPreferencesRepository.themeMode
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "SYSTEM"
+        )
+
     private val scheduleTicker = flow {
         while (true) {
             emit(Unit)
@@ -1019,6 +1026,12 @@ class TripsViewModel(
         viewModelScope.launch {
             userPreferencesRepository.setDistanceMonitoringRadius(radius)
             applyScheduleChanges()
+        }
+    }
+
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setThemeMode(mode)
         }
     }
 }

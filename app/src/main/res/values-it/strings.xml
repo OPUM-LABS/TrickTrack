@@ -6,6 +6,10 @@
     <!-- Settings Screen -->
     <string name="settings_diagnostics_title">Diagnostica</string>
     <string name="settings_diagnostics_description">Controlla le autorizzazioni e lo stato di integrità del sistema.</string>
+    <string name="settings_appearance_title">Aspetto</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Chiaro</string>
+    <string name="settings_theme_dark">Scuro</string>
     <string name="settings_permissions_check_title">Controllo autorizzazioni</string>
     <string name="settings_permissions_all_granted_cd">Tutte concesse</string>
     <string name="settings_permissions_action_needed_cd">Azione richiesta</string>

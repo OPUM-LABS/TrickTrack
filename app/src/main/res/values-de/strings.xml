@@ -5,6 +5,10 @@
     <!-- Settings Screen -->
     <string name="settings_diagnostics_title">Diagnose</string>
     <string name="settings_diagnostics_description">Überprüfen Sie Berechtigungen und Systemzustand.</string>
+    <string name="settings_appearance_title">Erscheinungsbild</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Hell</string>
+    <string name="settings_theme_dark">Dunkel</string>
     <string name="settings_permissions_check_title">Berechtigungsprüfung</string>
     <string name="settings_permissions_all_granted_cd">Alle gewährt</string>
     <string name="settings_permissions_action_needed_cd">Aktion erforderlich</string>

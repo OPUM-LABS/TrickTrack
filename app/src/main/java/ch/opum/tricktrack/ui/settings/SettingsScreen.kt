@@ -541,6 +541,41 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
+        val themeMode by viewModel.themeMode.collectAsState()
+
+        ExpandableSettingsGroup(
+            title = stringResource(R.string.settings_appearance_title),
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    val themeOptions = listOf(
+                        stringResource(R.string.settings_theme_system) to "SYSTEM",
+                        stringResource(R.string.settings_theme_light) to "LIGHT",
+                        stringResource(R.string.settings_theme_dark) to "DARK"
+                    )
+
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        themeOptions.forEachIndexed { index, (label, mode) ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = themeOptions.size
+                                ),
+                                onClick = { viewModel.setThemeMode(mode) },
+                                selected = themeMode == mode
+                            ) {
+                                Text(label)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         val permissionHealth by viewModel.permissionHealth.collectAsState()
         if (permissionHealth is PermissionHealthState.Missing) {
             PermissionWarningBanner(onAction = { showPermissionSheet = true })
