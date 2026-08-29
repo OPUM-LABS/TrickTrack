@@ -1618,7 +1618,7 @@ fun TripItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Notes,
+                            imageVector = Icons.Outlined.Info,
                             contentDescription = stringResource(R.string.description_cd),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)

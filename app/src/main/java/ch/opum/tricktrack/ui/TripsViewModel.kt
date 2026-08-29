@@ -741,7 +741,7 @@ class TripsViewModel(
         }
     }
 
-    fun approveTrip(trip: Trip, finalType: TripType, endOdometer: Double? = null) {
+    fun approveTrip(trip: Trip, finalType: TripType, endOdometer: Double? = null, description: String? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             val typeString = when (finalType) {
                 TripType.BUSINESS -> "Business"
@@ -749,7 +749,7 @@ class TripsViewModel(
                 TripType.ALL -> trip.type // Fallback
             }
             
-            var updatedTrip = trip.copy(type = typeString, isConfirmed = true)
+            var updatedTrip = trip.copy(type = typeString, isConfirmed = true, description = description)
             
             if (endOdometer != null && trip.vehicleId != null) {
                 val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)

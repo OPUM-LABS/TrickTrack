@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
@@ -18,12 +19,14 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -94,11 +97,12 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                         tripWithVehicle = tripWithVehicle,
                         allVehicles = allVehicles,
                         isOdometerModeEnabled = isOdometerModeEnabled,
-                        onApprove = { finalType, selectedVehicle, endOdometer ->
+                        onApprove = { finalType, selectedVehicle, endOdometer, description ->
                             viewModel.approveTrip(
                                 trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
                                 finalType = finalType,
-                                endOdometer = endOdometer
+                                endOdometer = endOdometer,
+                                description = description
                             )
                         },
                         onDiscard = { showDeleteDialog = tripWithVehicle },
@@ -148,7 +152,7 @@ fun ReviewTripCard(
     tripWithVehicle: TripWithVehicle,
     allVehicles: List<VehicleEntity>,
     isOdometerModeEnabled: Boolean,
-    onApprove: (TripType, VehicleEntity?, Double?) -> Unit,
+    onApprove: (TripType, VehicleEntity?, Double?, String?) -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -159,6 +163,7 @@ fun ReviewTripCard(
     var odometerText by remember(tripWithVehicle) { 
         mutableStateOf(trip.endOdometer?.toLong()?.toString() ?: "") 
     }
+    var note by remember { mutableStateOf("") }
     val odometerValue = odometerText.toDoubleOrNull() ?: 0.0
     val isOdometerError = isOdometerModeEnabled && selectedVehicle != null && odometerValue <= selectedVehicle!!.currentOdometer
 
@@ -403,37 +408,79 @@ fun ReviewTripCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 16.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.End,
+                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FilledIconButton(
-                    onClick = onDiscard,
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.Close,
-                        contentDescription = stringResource(R.string.review_discard_button),
-                        tint = MaterialTheme.colorScheme.onErrorContainer
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        modifier = Modifier.weight(1f).height(36.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (note.isEmpty()) {
+                                Text(
+                                    text = "Note...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            }
+                            BasicTextField(
+                                value = note,
+                                onValueChange = { note = it },
+                                textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                                modifier = Modifier.fillMaxWidth(),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
+                            )
+                        }
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-                FilledIconButton(
-                    onClick = { onApprove(selectedType, selectedVehicle, odometerText.toDoubleOrNull()) },
-                    enabled = !isOdometerError,
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = stringResource(R.string.review_approve_trip),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    FilledIconButton(
+                        onClick = onDiscard,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = stringResource(R.string.review_discard_button),
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    FilledIconButton(
+                        onClick = { onApprove(selectedType, selectedVehicle, odometerText.toDoubleOrNull(), note) },
+                        enabled = !isOdometerError,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = stringResource(R.string.review_approve_trip),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
             }
         }
