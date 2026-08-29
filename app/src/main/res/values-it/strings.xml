@@ -293,4 +293,11 @@
     <string name="permission_dialog_title_background_location">Localizzazione in background</string>
     <string name="permission_dialog_message_background_location">Per abilitare il tracciamento automatico, concedi l\'autorizzazione alla localizzazione “Consenti sempre” nelle impostazioni.</string>
     <string name="permission_dialog_title_bluetooth">Autorizzazione Bluetooth</string>
+    <string name="settings_distance_monitoring_title">Sensibilità al movimento (sperimentale)</string>
+    <string name="settings_distance_monitoring_description">Controlla la velocità solo se il dispositivo si sposta oltre una certa distanza. Risparmia batteria quando sei fermo.</string>
+    <string name="settings_distance_monitoring_radius_label">RAGGIO DI RISVEGLIO (METRI)</string>
+    <string name="notification_still_driving_title">Stai ancora guidando?</string>
+    <string name="notification_still_driving_text">Segnale GPS perso. Stai ancora guidando?</string>
+    <string name="yes">Sì</string>
+    <string name="no">No</string>
 </resources>

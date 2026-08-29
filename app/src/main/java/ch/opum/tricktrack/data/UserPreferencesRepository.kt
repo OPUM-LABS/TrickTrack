@@ -54,6 +54,8 @@ class UserPreferencesRepository(private val context: Context) {
         val DEFAULT_COMPANY_ID = intPreferencesKey("default_company_id")
         val DEFAULT_VEHICLE_ID = intPreferencesKey("default_vehicle_id")
         val IS_ODOMETER_MODE_ENABLED = booleanPreferencesKey("is_odometer_mode_enabled")
+        val IS_DISTANCE_MONITORING_ENABLED = booleanPreferencesKey("is_distance_monitoring_enabled")
+        val DISTANCE_MONITORING_RADIUS = intPreferencesKey("distance_monitoring_radius")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -239,12 +241,34 @@ class UserPreferencesRepository(private val context: Context) {
 
     val minSpeed: Flow<Int> = context.dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.MIN_SPEED_KMH] ?: 15
+            preferences[PreferencesKeys.MIN_SPEED_KMH] ?: 10
         }
 
     suspend fun setMinSpeed(speed: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.MIN_SPEED_KMH] = speed
+        }
+    }
+
+    val isDistanceMonitoringEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.IS_DISTANCE_MONITORING_ENABLED] ?: false
+        }
+
+    suspend fun setDistanceMonitoringEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_DISTANCE_MONITORING_ENABLED] = enabled
+        }
+    }
+
+    val distanceMonitoringRadius: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.DISTANCE_MONITORING_RADIUS] ?: 50
+        }
+
+    suspend fun setDistanceMonitoringRadius(radius: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DISTANCE_MONITORING_RADIUS] = radius
         }
     }
 

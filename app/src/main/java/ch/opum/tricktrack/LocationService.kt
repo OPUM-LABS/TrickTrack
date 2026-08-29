@@ -54,6 +54,8 @@ class LocationService : Service() {
     private var potentialTripStartLocation: Location? = null
     private var isStartingTrip = false
     private lateinit var notificationManager: NotificationManager
+    private var lastLocationTime: Long = 0
+    private var lastReportedSpeed: Double = 0.0
 
 
     override fun onCreate() {
@@ -116,6 +118,16 @@ class LocationService : Service() {
             ACTION_STOP_MONITORING -> { // Explicit stop monitoring command
                 applicationScope.launch {
                     stopMonitoring() // This stops the service entirely
+                }
+            }
+            ACTION_STILL_DRIVING_YES -> {
+                applicationScope.launch {
+                    restartStillnessTimer()
+                }
+            }
+            ACTION_STILL_DRIVING_NO -> {
+                applicationScope.launch {
+                    stopAutoTripAndSaveForReview()
                 }
             }
         }
@@ -211,7 +223,7 @@ class LocationService : Service() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun startMonitoring() {
+    private suspend fun startMonitoring() {
         if (isMonitoring) {
             AppLogger.log("LocationService", "Monitoring already active.")
             return
@@ -235,8 +247,14 @@ class LocationService : Service() {
             startForeground(1, notification)
         }
 
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
-            .build()
+        val isDistanceMonitoringEnabled = userPreferencesRepository.isDistanceMonitoringEnabled.first()
+        val radius = userPreferencesRepository.distanceMonitoringRadius.first()
+        
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000).apply {
+            if (isDistanceMonitoringEnabled) {
+                setMinUpdateDistanceMeters(radius.toFloat())
+            }
+        }.build()
 
         fusedLocationClient.removeLocationUpdates(locationCallback)
         fusedLocationClient.requestLocationUpdates(
@@ -344,6 +362,7 @@ class LocationService : Service() {
         )
 
         val previousLocation = _lastLocation.value
+        lastLocationTime = System.currentTimeMillis()
 
         if (_startLocation.value == null) {
             _startLocation.value = location
@@ -364,6 +383,11 @@ class LocationService : Service() {
         _lastLocation.value = location
         updateNotification(_distance.value)
 
+        // Priority: If Bluetooth is tracking, we don't need stillness detection (logic of automatic tracking)
+        if (_currentTripTrigger.value == TripTrigger.BLUETOOTH) {
+            return
+        }
+
         if (_currentTripTrigger.value != TripTrigger.AUTOMATIC) {
             if (_currentTripTrigger.value == TripTrigger.MANUAL) {
                 AppLogger.log("LocationService", "Ignoring stillness because trip is Manual.")
@@ -382,8 +406,18 @@ class LocationService : Service() {
                     stillnessTimer = object : CountDownTimer(stillnessTimerValue, 1000) {
                         override fun onTick(millisUntilFinished: Long) {}
                         override fun onFinish() {
-                            AppLogger.log("LocationService", "Stillness timer finished, stopping auto trip.")
-                            stopAutoTripAndSaveForReview()
+                            applicationScope.launch {
+                                val minSpeedValueFlow = userPreferencesRepository.minSpeed.first()
+                                val timeSinceLastLoc = System.currentTimeMillis() - lastLocationTime
+                                
+                                if (timeSinceLastLoc >= stillnessTimerValue && lastReportedSpeed > minSpeedValueFlow) {
+                                    AppLogger.log("LocationService", "Stillness timer finished but signal might be lost. Asking user.")
+                                    showStillDrivingNotification()
+                                } else {
+                                    AppLogger.log("LocationService", "Stillness timer finished, stopping auto trip.")
+                                    stopAutoTripAndSaveForReview()
+                                }
+                            }
                         }
                     }.start()
                     AppLogger.log("LocationService", "Stillness timer started.")
@@ -398,6 +432,7 @@ class LocationService : Service() {
                         val distanceMeters = location.distanceTo(previousLocation)
                         // Manually calculate speed in km/h
                         val calculatedSpeedKmh = (distanceMeters / timeDeltaSeconds) * 3.6
+                        lastReportedSpeed = calculatedSpeedKmh
 
                         AppLogger.log("LocationService", "Stillness check. Calculated Speed: %.2f km/h. TimeDelta: %.2fs. DistDelta: %.2fm.".format(calculatedSpeedKmh, timeDeltaSeconds, distanceMeters))
 
@@ -577,6 +612,50 @@ class LocationService : Service() {
         AppLogger.log("LocationService", "Service destroyed.")
     }
 
+    private fun showStillDrivingNotification() {
+        val yesIntent = Intent(this, LocationService::class.java).apply { action = ACTION_STILL_DRIVING_YES }
+        val noIntent = Intent(this, LocationService::class.java).apply { action = ACTION_STILL_DRIVING_NO }
+        
+        val yesPendingIntent = PendingIntent.getService(this, 10, yesIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val noPendingIntent = PendingIntent.getService(this, 11, noIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val notification = NotificationCompat.Builder(this, "tracking_channel")
+            .setContentTitle(getString(R.string.notification_still_driving_title))
+            .setContentText(getString(R.string.notification_still_driving_text))
+            .setSmallIcon(R.drawable.tricktrack_logo)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .addAction(0, getString(R.string.yes), yesPendingIntent)
+            .addAction(0, getString(R.string.no), noPendingIntent)
+            .setAutoCancel(true)
+            .build()
+        
+        notificationManager.notify(2, notification)
+    }
+
+    private suspend fun restartStillnessTimer() {
+        notificationManager.cancel(2)
+        val stillnessTimerValue = userPreferencesRepository.stillnessTimer.first() * 1000L
+        withContext(Dispatchers.Main) {
+            stillnessTimer?.cancel()
+            stillnessTimer = object : CountDownTimer(stillnessTimerValue, 1000) {
+                override fun onTick(millisUntilFinished: Long) {}
+                override fun onFinish() {
+                    applicationScope.launch {
+                        val minSpeedValueFlow = userPreferencesRepository.minSpeed.first()
+                        val timeSinceLastLoc = System.currentTimeMillis() - lastLocationTime
+                        
+                        if (timeSinceLastLoc >= stillnessTimerValue && lastReportedSpeed > minSpeedValueFlow) {
+                            showStillDrivingNotification()
+                        } else {
+                            stopAutoTripAndSaveForReview()
+                        }
+                    }
+                }
+            }.start()
+        }
+    }
+
     private fun createNotificationChannels() {
         val trackingName = "Trip Tracking"
         val trackingDesc = "Active trip tracking updates"
@@ -607,6 +686,8 @@ class LocationService : Service() {
         const val ACTION_STOP_MONITORING = "ACTION_STOP_MONITORING"
         const val ACTION_BLUETOOTH_CONNECTED = "ACTION_BLUETOOTH_CONNECTED"
         const val ACTION_BLUETOOTH_DISCONNECTED = "ACTION_BLUETOOTH_DISCONNECTED"
+        const val ACTION_STILL_DRIVING_YES = "ACTION_STILL_DRIVING_YES"
+        const val ACTION_STILL_DRIVING_NO = "ACTION_STILL_DRIVING_NO"
 
         private val _distance = MutableStateFlow(0.0)
         val distance = _distance.asStateFlow()

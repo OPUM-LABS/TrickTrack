@@ -429,6 +429,24 @@ class TripsViewModel(
             initialValue = false
         )
 
+    val isDistanceMonitoringEnabled: StateFlow<Boolean> = userPreferencesRepository.isDistanceMonitoringEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    val distanceMonitoringRadius: StateFlow<Int> = userPreferencesRepository.distanceMonitoringRadius
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 50
+        )
+
+    val distanceMonitoringSummary: StateFlow<String> = distanceMonitoringRadius.map { radius ->
+        "Wakes up every $radius meters"
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     private val scheduleTicker = flow {
         while (true) {
             emit(Unit)
@@ -973,6 +991,20 @@ class TripsViewModel(
     fun setOdometerModeEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setOdometerModeEnabled(enabled)
+        }
+    }
+
+    fun setDistanceMonitoringEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDistanceMonitoringEnabled(enabled)
+            applyScheduleChanges()
+        }
+    }
+
+    fun setDistanceMonitoringRadius(radius: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDistanceMonitoringRadius(radius)
+            applyScheduleChanges()
         }
     }
 }

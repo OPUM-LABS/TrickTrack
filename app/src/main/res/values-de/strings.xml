@@ -292,4 +292,11 @@
     <string name="permission_dialog_title_background_location">Hintergrundstandort</string>
     <string name="permission_dialog_message_background_location">Um die automatische Verfolgung zu aktivieren, erteilen Sie bitte in den Einstellungen die Standortberechtigung „Immer zulassen“.</string>
     <string name="permission_dialog_title_bluetooth">Bluetooth-Berechtigung</string>
+    <string name="settings_distance_monitoring_title">Bewegungsempfindlichkeit (Experimentell)</string>
+    <string name="settings_distance_monitoring_description">Prüfen Sie die Geschwindigkeit nur, wenn sich das Gerät mehr als eine bestimmte Entfernung bewegt. Spart Akku im Stillstand.</string>
+    <string name="settings_distance_monitoring_radius_label">WAKE-UP RADIUS (METER)</string>
+    <string name="notification_still_driving_title">Fahren Sie noch?</string>
+    <string name="notification_still_driving_text">GPS-Signal verloren. Fahren Sie noch?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
 </resources>

@@ -59,6 +59,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -321,6 +322,8 @@ fun SettingsScreen(
     val isSmartLocationEnabled by viewModel.isSmartLocationEnabled.collectAsState()
     val smartLocationRadius by viewModel.smartLocationRadius.collectAsState()
     val isScheduleEnabled by viewModel.isScheduleEnabled.collectAsState()
+    val isDistanceMonitoringEnabled by viewModel.isDistanceMonitoringEnabled.collectAsState()
+    val distanceMonitoringSummary by viewModel.distanceMonitoringSummary.collectAsState()
     val stillnessTimer by viewModel.stillnessTimer.collectAsState()
     val minSpeed by viewModel.minSpeed.collectAsState()
     var pairedDevices by remember { mutableStateOf<Set<BluetoothDevice>>(emptySet()) }
@@ -641,6 +644,100 @@ fun SettingsScreen(
                                     viewModel.setBluetoothTriggerEnabled(false)
                                 }
                             }
+                        )
+                    }
+                }
+            }
+
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        var showDistanceDialog by remember { mutableStateOf(false) }
+
+                        if (showDistanceDialog) {
+                            val distanceMonitoringRadius by viewModel.distanceMonitoringRadius.collectAsState()
+                            var tempRadius by remember(distanceMonitoringRadius) { 
+                                mutableStateOf(distanceMonitoringRadius.toString()) 
+                            }
+                            val dSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                            
+                            ModalBottomSheet(
+                                onDismissRequest = { showDistanceDialog = false },
+                                sheetState = dSheetState,
+                                dragHandle = { BottomSheetDefaults.DragHandle() }
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp)
+                                        .padding(bottom = 32.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.settings_distance_monitoring_title),
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = stringResource(R.string.settings_distance_monitoring_description),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    OutlinedTextField(
+                                        value = tempRadius,
+                                        onValueChange = { newValue: String -> if (newValue.all { char: Char -> char.isDigit() }) tempRadius = newValue },
+                                        label = { Text(stringResource(R.string.settings_distance_monitoring_radius_label)) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        suffix = { Text("m") }
+                                    )
+                                    Spacer(modifier = Modifier.height(32.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        DialogDeclineButton(onClick = { showDistanceDialog = false })
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        DialogAcceptButton(onClick = {
+                                            viewModel.setDistanceMonitoringRadius(tempRadius.toIntOrNull() ?: 50)
+                                            scope.launch { dSheetState.hide() }.invokeOnCompletion {
+                                                if (!dSheetState.isVisible) showDistanceDialog = false
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(enabled = isDistanceMonitoringEnabled) { showDistanceDialog = true }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_distance_monitoring_title),
+                                color = if (isDistanceMonitoringEnabled) MaterialTheme.colorScheme.onSurface 
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                            Text(
+                                text = if (isDistanceMonitoringEnabled) "$distanceMonitoringSummary • Tap to change" 
+                                       else stringResource(R.string.settings_distance_monitoring_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isDistanceMonitoringEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            )
+                        }
+                        Switch(
+                            checked = isDistanceMonitoringEnabled,
+                            onCheckedChange = { viewModel.setDistanceMonitoringEnabled(it) }
                         )
                     }
                 }
