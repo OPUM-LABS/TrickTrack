@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -625,9 +626,12 @@ fun TripScreen(
     val expenseRatePerKm by tripsViewModel.expenseRatePerKm.collectAsState()
     val expenseCurrency by tripsViewModel.expenseCurrency.collectAsState()
     val totalExpense by tripsViewModel.totalExpense.collectAsState()
-    LocalContext.current
+    val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    var isAllCollapsed by remember { mutableStateOf(value = false) }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize()
     ) {
         item {
@@ -786,8 +790,10 @@ fun TripScreen(
             }
         }
 
+        var expandedIndex = if (isFilterActive) 2 else 1
         groupedTrips.forEach { group ->
-            stickyHeader {
+            val headerIndexInExpandedList = expandedIndex
+            stickyHeader(key = group.date) {
                 val dailyTotalCost = if (expenseTrackingEnabled) {
                     group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
                 } else {
@@ -797,11 +803,21 @@ fun TripScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background)
+                        .clickable {
+                            if (isAllCollapsed) {
+                                isAllCollapsed = false
+                                scope.launch {
+                                    listState.scrollToItem(headerIndexInExpandedList)
+                                }
+                            } else {
+                                isAllCollapsed = true
+                            }
+                        }
                         .padding(vertical = 16.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Left side: Date
-                    val dateFormat = SimpleDateFormat("EEE, d MMM", LocalLocale.current.platformLocale)
+                    val dateFormat = SimpleDateFormat("EEE, d MMM yy", LocalLocale.current.platformLocale)
                     Text(
                         text = dateFormat.format(Date(group.date)),
                         style = MaterialTheme.typography.titleMedium,
@@ -830,15 +846,19 @@ fun TripScreen(
                     }
                 }
             }
-            items(group.trips) { tripWithVehicle ->
-                TripItem(
-                    tripWithVehicle = tripWithVehicle,
-                    onClick = { onTripClick(tripWithVehicle.trip) },
-                    expenseTrackingEnabled = expenseTrackingEnabled,
-                    expenseRatePerKm = expenseRatePerKm,
-                    expenseCurrency = expenseCurrency
-                )
+            
+            if (!isAllCollapsed) {
+                items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
+                    TripItem(
+                        tripWithVehicle = tripWithVehicle,
+                        onClick = { onTripClick(tripWithVehicle.trip) },
+                        expenseTrackingEnabled = expenseTrackingEnabled,
+                        expenseRatePerKm = expenseRatePerKm,
+                        expenseCurrency = expenseCurrency
+                    )
+                }
             }
+            expandedIndex += 1 + group.trips.size
         }
     }
 }
@@ -1055,7 +1075,7 @@ fun EditTripDialog(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val dateFormat = remember { SimpleDateFormat("EEE, d MMM", Locale.getDefault()) }
+            val dateFormat = remember { SimpleDateFormat("EEE, d MMM yy", Locale.getDefault()) }
             Box {
                 OutlinedTextField(
                     value = dateFormat.format(selectedStartDate.value.time),

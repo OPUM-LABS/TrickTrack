@@ -121,7 +121,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
 
 @Composable
 fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double, isOdometerModeEnabled: Boolean) {
-    val dateFormatter = remember { SimpleDateFormat("EEE, d MMM", Locale.getDefault()) }
+    val dateFormatter = remember { SimpleDateFormat("EEE, d MMM yy", Locale.getDefault()) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
