@@ -43,5 +43,7 @@ data class Trip(
     @SerializedName(value = "vehicleId", alternate = ["o"])
     val vehicleId: Int? = null,
     @SerializedName(value = "endOdometer", alternate = ["p"])
-    val endOdometer: Double? = null
+    val endOdometer: Double? = null,
+    @SerializedName(value = "trigger", alternate = ["q"])
+    val trigger: String? = null
 )

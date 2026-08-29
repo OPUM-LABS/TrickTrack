@@ -585,8 +585,9 @@ class LocationService : Service() {
                 date = tripStartDate ?: Date(),
                 endDate = System.currentTimeMillis(),
                 isConfirmed = isConfirmed,
-                isAutomatic = _currentTripTrigger.value == TripTrigger.AUTOMATIC,
-                vehicleId = defaultVehicleId
+                isAutomatic = _currentTripTrigger.value != TripTrigger.MANUAL,
+                vehicleId = defaultVehicleId,
+                trigger = _currentTripTrigger.value.name
             )
             val newId = repository.insert(trip)
             AppLogger.log("LocationService", "Trip saved with ID: $newId. Trigger: ${_currentTripTrigger.value}, Confirmed: $isConfirmed")

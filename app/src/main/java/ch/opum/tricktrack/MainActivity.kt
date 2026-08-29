@@ -40,11 +40,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoMode
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
@@ -1512,6 +1514,24 @@ fun TripItem(
                             Spacer(modifier = Modifier.width(8.dp))
                             LicensePlateBadge(it)
                         }
+                        
+                        if (!trip.isAutomatic) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Manual Trip",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        } else if (trip.trigger == "BLUETOOTH") {
+                             Spacer(modifier = Modifier.width(8.dp))
+                             Icon(
+                                imageVector = Icons.Default.Bluetooth,
+                                contentDescription = "Bluetooth Triggered",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1611,17 +1631,6 @@ fun TripItem(
                         )
                     }
                 }
-            }
-            if (trip.isAutomatic) {
-                Icon(
-                    imageVector = Icons.Default.AutoMode,
-                    contentDescription = stringResource(R.string.automatic_trip_cd),
-                    tint = Color(0xFFE1AD01),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                        .size(20.dp)
-                )
             }
         }
     }
