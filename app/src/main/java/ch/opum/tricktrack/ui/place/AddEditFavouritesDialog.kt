@@ -70,7 +70,9 @@ fun AddEditPlaceDialog(
             onDismiss()
         },
         sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() }
+        dragHandle = {
+            BottomSheetDefaults.DragHandle()
+        },
     ) {
         Column(
             modifier = Modifier

@@ -53,7 +53,7 @@ data class SimpleItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlacesListScreen(
-    onAddPlace: () -> Unit
+    onAddPlace: () -> Unit,
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as TripApplication
@@ -77,7 +77,7 @@ fun PlacesListScreen(
     val addCompanyTitle = stringResource(R.string.favourites_add_company_title)
     val addVehicleTitle = stringResource(R.string.favourites_add_vehicle_title)
 
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(value = false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var itemToEdit by remember { mutableStateOf<SimpleItem?>(null) }
     var placeToEdit by remember { mutableStateOf<SavedPlace?>(null) }
@@ -91,7 +91,8 @@ fun PlacesListScreen(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-                IconButton(onClick = {
+                IconButton(
+                onClick = {
                     dialogTitle = when (selectedTabIndex) {
                         0 -> {
                             onAddPlace()
@@ -168,7 +169,7 @@ fun PlacesListScreen(
             )
         }
 
-        if (showEditDialog && placeToEdit != null) {
+        if ((showEditDialog) && (placeToEdit != null)) {
             AddEditPlaceDialog(
                 place = placeToEdit,
                 onDismiss = {
@@ -198,7 +199,7 @@ fun PlacesListScreen(
                     onEditPlace = { place ->
                         placeToEdit = place
                         showEditDialog = true
-                    }
+                    },
                 )
             }
             1 -> {

@@ -80,21 +80,22 @@ class LocationService : Service() {
 
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (_isTracking.value && _currentTripTrigger.value == TripTrigger.MANUAL && intent?.action == ACTION_BLUETOOTH_CONNECTED) {
+        if (_isTracking.value && (_currentTripTrigger.value == TripTrigger.MANUAL) && (intent?.action == ACTION_BLUETOOTH_CONNECTED)) {
             AppLogger.log("LocationService", "Ignoring Bluetooth connection because a manual trip is in progress.")
             return START_STICKY
         }
 
         val trigger = intent?.let { IntentCompat.getSerializableExtra(it, "trigger", TripTrigger::class.java) }
 
-        if (trigger != null) {
-            _currentTripTrigger.value = trigger
+        trigger?.let {
+            _currentTripTrigger.value = it
         }
 
         when (intent?.action) {
             ACTION_START_MONITORING, // Initial start or schedule change
             ACTION_BLUETOOTH_CONNECTED,
-            ACTION_BLUETOOTH_DISCONNECTED -> {
+            ACTION_BLUETOOTH_DISCONNECTED,
+            -> {
                 applicationScope.launch {
                     evaluateTrackingState()
                 }
@@ -699,7 +700,7 @@ class LocationService : Service() {
         private val _lastLocation = MutableStateFlow<Location?>(null)
 
         private val _isTracking =
-            MutableStateFlow(false)
+            MutableStateFlow(value = false)
         val isTracking = _isTracking.asStateFlow()
 
         private val _currentTripTrigger = MutableStateFlow(TripTrigger.MANUAL)

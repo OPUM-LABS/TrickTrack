@@ -71,13 +71,13 @@ data class FilterState(
     val keyword: String = "",
     val startDate: Long? = null, // Timestamp for start of day
     val endDate: Long? = null,    // Timestamp for end of day
-    val vehicleIds: Set<Int> = emptySet()
+    val vehicleIds: Set<Int> = emptySet(),
 )
 
 data class TripGroup(
     val date: Long,
     val trips: List<TripWithVehicle>,
-    val totalDistance: Double
+    val totalDistance: Double,
 )
 
 class TripsViewModel(
@@ -89,7 +89,7 @@ class TripsViewModel(
 ) : AndroidViewModel(application) {
 
     private val distanceRepository = DistanceRepository(application)
-    var isCalculating by mutableStateOf(false)
+    var isCalculating by mutableStateOf(value = false)
     var distanceInput by mutableStateOf("")
 
     private val _filterState = MutableStateFlow(FilterState())
@@ -100,7 +100,7 @@ class TripsViewModel(
     )
 
     val isFilterActive: StateFlow<Boolean> = _filterState.map {
-        it.type != TripType.ALL || it.keyword.isNotEmpty() || it.startDate != null || it.endDate != null || it.vehicleIds.isNotEmpty()
+        (it.type != TripType.ALL) || it.keyword.isNotEmpty() || (it.startDate != null) || (it.endDate != null) || it.vehicleIds.isNotEmpty()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val confirmedTrips = combine(repository.confirmedTrips, _filterState) { allTrips, filter ->
@@ -153,13 +153,14 @@ class TripsViewModel(
         userPreferencesRepository.isSmartLocationEnabled,
         userPreferencesRepository.smartLocationRadius
     ) { trips, isSmartLocationEnabled, smartLocationRadius ->
+        val savedPlaces = repository.getSavedPlacesList()
         trips.map { item ->
             val trip = item.trip
             val smartStart = geocoderHelper.getSmartAddress(
                 originalAddress = trip.startLoc,
                 lat = trip.startLat,
                 lng = trip.startLon,
-                favorites = repository.getSavedPlacesList(),
+                favorites = savedPlaces,
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
@@ -168,7 +169,7 @@ class TripsViewModel(
                 originalAddress = trip.endLoc,
                 lat = trip.endLat,
                 lng = trip.endLon,
-                favorites = repository.getSavedPlacesList(),
+                favorites = savedPlaces,
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
@@ -176,19 +177,20 @@ class TripsViewModel(
         }.groupBy {
             // Normalize date to the start of the day
             val cal = Calendar.getInstance()
-            cal.time = it.trip.date
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            cal.timeInMillis
+            cal.apply {
+                time = it.trip.date
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
         }.map { (date, tripsOnDate) ->
             TripGroup(
                 date = date,
                 trips = tripsOnDate,
                 totalDistance = tripsOnDate.sumOf { it.trip.distance }
             )
-        }.sortedByDescending { it.date }
+        }.sortedByDescending { it.date }.toList()
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -207,13 +209,14 @@ class TripsViewModel(
         userPreferencesRepository.isSmartLocationEnabled,
         userPreferencesRepository.smartLocationRadius
     ) { trips, isSmartLocationEnabled, smartLocationRadius ->
+        val savedPlaces = repository.getSavedPlacesList()
         trips.map { item ->
             val trip = item.trip
             val smartStart = geocoderHelper.getSmartAddress(
                 originalAddress = trip.startLoc,
                 lat = trip.startLat,
                 lng = trip.startLon,
-                favorites = repository.getSavedPlacesList(),
+                favorites = savedPlaces,
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
@@ -222,7 +225,7 @@ class TripsViewModel(
                 originalAddress = trip.endLoc,
                 lat = trip.endLat,
                 lng = trip.endLon,
-                favorites = repository.getSavedPlacesList(),
+                favorites = savedPlaces,
                 isEnabled = isSmartLocationEnabled,
                 radius = smartLocationRadius
             )
@@ -230,12 +233,13 @@ class TripsViewModel(
         }.groupBy {
             // Normalize date to the start of the day
             val cal = Calendar.getInstance()
-            cal.time = it.trip.date
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            cal.timeInMillis
+            cal.apply {
+                time = it.trip.date
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
         }.map { (date, tripsOnDate) ->
             TripGroup(
                 date = date,
@@ -302,15 +306,12 @@ class TripsViewModel(
         }"
 
         if (allSame) {
-            if (enabledDays.size == 7) {
-                "Daily, $timeRange"
-            } else if (enabledDays.size == 5 &&
-                enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
-                enabledDays.containsKey(java.time.DayOfWeek.FRIDAY)
-            ) {
-                "Mon–Fri, $timeRange"
-            } else {
-                "${enabledDays.size} days, $timeRange"
+            when {
+                enabledDays.size == 7 -> "Daily, $timeRange"
+                enabledDays.size == 5 &&
+                        enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
+                        enabledDays.containsKey(java.time.DayOfWeek.FRIDAY) -> "Mon–Fri, $timeRange"
+                else -> "${enabledDays.size} days, $timeRange"
             }
         } else {
             "${enabledDays.size} days active"
@@ -463,7 +464,7 @@ class TripsViewModel(
         if (!enabled) return@combine true
         
         val now = Calendar.getInstance()
-        val dayOfWeek = when (now.get(Calendar.DAY_OF_WEEK)) {
+    val dayOfWeek = when (now[Calendar.DAY_OF_WEEK]) {
             Calendar.MONDAY -> java.time.DayOfWeek.MONDAY
             Calendar.TUESDAY -> java.time.DayOfWeek.TUESDAY
             Calendar.WEDNESDAY -> java.time.DayOfWeek.WEDNESDAY
@@ -477,7 +478,7 @@ class TripsViewModel(
         val daySchedule = settings.dailySchedules[dayOfWeek] ?: return@combine true
         if (!daySchedule.isEnabled) return@combine false
         
-        val currentTime = LocalTime.of(now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
+        val currentTime = LocalTime.of(now[Calendar.HOUR_OF_DAY], now[Calendar.MINUTE])
         val startTime = LocalTime.of(daySchedule.startHour, daySchedule.startMinute)
         val endTime = LocalTime.of(daySchedule.endHour, daySchedule.endMinute)
         
@@ -606,9 +607,9 @@ class TripsViewModel(
                         val end = endAddresses[0]
                         val distance = distanceRepository.getDrivingDistance(start.latitude, start.longitude, end.latitude, end.longitude)
                         withContext(Dispatchers.Main) {
-                            if (distance != null) {
-                                distanceInput = distance.toString()
-                            }
+                            distance?.let {
+                            distanceInput = it.toString()
+                        }
                         }
                     }
                 } catch (e: Exception) {
@@ -692,8 +693,7 @@ class TripsViewModel(
     fun saveOrUpdateTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
             if (trip.endOdometer != null && trip.vehicleId != null) {
-                val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
-                if (vehicle != null) {
+                favouritesRepository.getVehicleById(trip.vehicleId)?.let { vehicle ->
                     favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = trip.endOdometer))
                 }
             }
@@ -703,7 +703,7 @@ class TripsViewModel(
                 repository.updateTrip(trip)
             }
             if (trip.isConfirmed) {
-                TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
+                TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
             }
         }
         _distance.value = 0.0 // Reset distance after adding trip
@@ -712,14 +712,13 @@ class TripsViewModel(
     fun updateTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
             if (trip.endOdometer != null && trip.vehicleId != null) {
-                val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
-                if (vehicle != null) {
+                favouritesRepository.getVehicleById(trip.vehicleId)?.let { vehicle ->
                     favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = trip.endOdometer))
                 }
             }
             repository.updateTrip(trip)
             if (trip.isConfirmed) {
-                TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
+                TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
             }
         }
     }
@@ -772,7 +771,7 @@ class TripsViewModel(
     fun discardTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteTrip(trip)
-            TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
+            TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
         }
     }
 

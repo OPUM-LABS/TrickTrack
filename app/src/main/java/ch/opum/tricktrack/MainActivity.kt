@@ -38,7 +38,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoMode
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Clear
@@ -154,7 +153,6 @@ import ch.opum.tricktrack.ui.theme.TrickTrackTheme
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -284,12 +282,11 @@ fun MainScreen(
     }
 
     // States and Launchers for TripScreen's FAB and related dialogs, moved to MainScreen
-    val distance by tripsViewModel.distance.collectAsState(initial = 0.0)
     var selectedTripToEdit by remember { mutableStateOf<Trip?>(null) }
-    var showBackgroundLocationDialog by remember { mutableStateOf(false) }
+    var showBackgroundLocationDialog by remember { mutableStateOf(value = false) }
 
     // State for PlacesListScreen dialog
-    var showAddEditPlaceDialog by remember { mutableStateOf(false) }
+    var showAddEditPlaceDialog by remember { mutableStateOf(value = false) }
     var selectedPlaceToEdit by remember { mutableStateOf<SavedPlace?>(null) }
 
     // State for Settings dialogs
@@ -307,7 +304,7 @@ fun MainScreen(
     }
 
     val foregroundLocationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
     ) { permissions ->
         if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
             tripsViewModel.startTracking(TripTrigger.MANUAL)
@@ -344,7 +341,9 @@ fun MainScreen(
                 }
                 showBackgroundLocationDialog = false
             },
-            onDismiss = { showBackgroundLocationDialog = false }
+            onDismiss = {
+                showBackgroundLocationDialog = false
+            },
         )
     }
 
@@ -887,8 +886,8 @@ fun EditTripDialog(
 
     // When in edit mode, initialize with the trip's distance
     LaunchedEffect(trip) {
-        if (trip != null) {
-            distanceText = trip.distance.toString()
+        trip?.let {
+            distanceText = it.distance.toString()
         }
     }
 
@@ -940,18 +939,12 @@ fun EditTripDialog(
                 Button(onClick = {
                     datePickerState.selectedDateMillis?.let {
                         val newCal = Calendar.getInstance().apply { timeInMillis = it }
-                        selectedStartDate.value.set(Calendar.YEAR, newCal.get(Calendar.YEAR))
-                        selectedStartDate.value.set(Calendar.MONTH, newCal.get(Calendar.MONTH))
-                        selectedStartDate.value.set(
-                            Calendar.DAY_OF_MONTH,
-                            newCal.get(Calendar.DAY_OF_MONTH)
-                        )
-                        selectedEndDate.value.set(Calendar.YEAR, newCal.get(Calendar.YEAR))
-                        selectedEndDate.value.set(Calendar.MONTH, newCal.get(Calendar.MONTH))
-                        selectedEndDate.value.set(
-                            Calendar.DAY_OF_MONTH,
-                            newCal.get(Calendar.DAY_OF_MONTH)
-                        )
+                        selectedStartDate.value.apply {
+                            timeInMillis = newCal.timeInMillis
+                        }
+                        selectedEndDate.value.apply {
+                            timeInMillis = newCal.timeInMillis
+                        }
                     }
                     showDatePicker.value = false
                 }) {
@@ -970,16 +963,16 @@ fun EditTripDialog(
 
     if (showStartTimePicker.value) {
         val timePickerState = rememberTimePickerState(
-            initialHour = selectedStartDate.value.get(Calendar.HOUR_OF_DAY),
-            initialMinute = selectedStartDate.value.get(Calendar.MINUTE)
+            initialHour = selectedStartDate.value[Calendar.HOUR_OF_DAY],
+            initialMinute = selectedStartDate.value[Calendar.MINUTE]
         )
         TimePickerDialog(
             onDismissRequest = { showStartTimePicker.value = false },
             title = stringResource(R.string.start_time_label),
             confirmButton = {
                 Button(onClick = {
-                    selectedStartDate.value.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                    selectedStartDate.value.set(Calendar.MINUTE, timePickerState.minute)
+                    selectedStartDate.value[Calendar.HOUR_OF_DAY] = timePickerState.hour
+                    selectedStartDate.value[Calendar.MINUTE] = timePickerState.minute
                     showStartTimePicker.value = false
                 }) {
                     Text(stringResource(R.string.button_ok))
@@ -998,16 +991,16 @@ fun EditTripDialog(
 
     if (showEndTimePicker.value) {
         val timePickerState = rememberTimePickerState(
-            initialHour = selectedEndDate.value.get(Calendar.HOUR_OF_DAY),
-            initialMinute = selectedEndDate.value.get(Calendar.MINUTE)
+            initialHour = selectedEndDate.value[Calendar.HOUR_OF_DAY],
+            initialMinute = selectedEndDate.value[Calendar.MINUTE]
         )
         TimePickerDialog(
             onDismissRequest = { showEndTimePicker.value = false },
             title = stringResource(R.string.end_time_label),
             confirmButton = {
                 Button(onClick = {
-                    selectedEndDate.value.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                    selectedEndDate.value.set(Calendar.MINUTE, timePickerState.minute)
+                    selectedEndDate.value[Calendar.HOUR_OF_DAY] = timePickerState.hour
+                    selectedEndDate.value[Calendar.MINUTE] = timePickerState.minute
                     showEndTimePicker.value = false
                 }) {
                     Text(stringResource(R.string.button_ok))

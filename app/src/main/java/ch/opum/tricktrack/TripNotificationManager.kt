@@ -56,7 +56,7 @@ object TripNotificationManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(
                     context,
-                    Manifest.permission.POST_NOTIFICATIONS
+                    Manifest.permission.POST_NOTIFICATIONS,
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 // The app does not have permission to post notifications.
@@ -117,7 +117,7 @@ object TripNotificationManager {
      * Cancels a specific trip review notification.
      *
      * @param context The context.
-     * @param tripId The ID of the trip whose notification should be cancelled.
+     * @param tripId The ID of the trip whose notification should be canceled.
      */
     fun cancelTripNotification(context: Context, tripId: Long) {
         val notificationId = tripId.toInt()

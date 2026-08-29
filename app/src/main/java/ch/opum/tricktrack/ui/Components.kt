@@ -96,7 +96,7 @@ fun LicensePlateBadge(vehicle: VehicleEntity, modifier: Modifier = Modifier) {
         shape = RoundedCornerShape(6.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        tonalElevation = 2.dp
+        tonalElevation = 2.dp,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -282,11 +282,13 @@ fun ConfirmationBottomSheet(
             ) {
                 DialogDeclineButton(onClick = onDismiss)
                 Spacer(modifier = Modifier.width(12.dp))
-                DialogAcceptButton(onClick = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) onConfirm()
+                DialogAcceptButton(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) onConfirm()
+                        }
                     }
-                })
+                )
             }
         }
     }

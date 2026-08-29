@@ -126,7 +126,7 @@ import java.util.Locale
 @Composable
 fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
     val context = LocalContext.current
-    var showDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(value = false) }
     var dialogTitle by remember { mutableStateOf("") }
     var dialogMessage by remember { mutableStateOf("") }
     var onPositive by remember { mutableStateOf({}) }
@@ -217,7 +217,9 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
                 onPositive()
                 showDialog = false
             },
-            onDismiss = { showDialog = false }
+            onDismiss = {
+                showDialog = false
+            },
         )
     }
 
@@ -225,13 +227,13 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
 }
 
 private fun hasForegroundLocationPermission(context: Context): Boolean {
-    return ContextCompat.checkSelfPermission(
+    return (ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+    ) == PackageManager.PERMISSION_GRANTED) || (ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.ACCESS_COARSE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
+    ) == PackageManager.PERMISSION_GRANTED)
 }
 
 private fun hasBackgroundLocationPermission(context: Context): Boolean {
@@ -406,11 +408,13 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    DialogAcceptButton(onClick = {
+                DialogAcceptButton(
+                    onClick = {
                         scope.launch { sheetState.hide() }.invokeOnCompletion {
                             if (!sheetState.isVisible) showDeviceDialog = false
                         }
-                    })
+                    }
+                )
                 }
             }
         }
@@ -1058,10 +1062,10 @@ fun SettingsScreen(
                     val exportLauncher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.CreateDocument("application/json"),
                         onResult = { uri ->
-                            if (uri != null) {
-                                settingsViewModel.createBackup(uri) // Changed from exportBackup to createBackup
-                            }
+                        uri?.let {
+                            settingsViewModel.createBackup(it) // Changed from exportBackup to createBackup
                         }
+                    }
                     )
 
                     val importLauncher = rememberLauncherForActivityResult(

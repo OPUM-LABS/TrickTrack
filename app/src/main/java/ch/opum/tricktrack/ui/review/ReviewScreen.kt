@@ -61,7 +61,9 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                 showDeleteDialog?.let { viewModel.discardTrip(it.trip) }
                 showDeleteDialog = null
             },
-            onDismiss = { showDeleteDialog = null }
+            onDismiss = {
+                showDeleteDialog = null
+            },
         )
     }
 
@@ -70,7 +72,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 stringResource(R.string.review_no_trips), 
@@ -162,13 +164,13 @@ fun ReviewTripCard(
     val trip = tripWithVehicle.trip
     var selectedType by remember { mutableStateOf(if (trip.type == "Business") TripType.BUSINESS else TripType.PERSONAL) }
     var selectedVehicle by remember(tripWithVehicle) { mutableStateOf(tripWithVehicle.vehicle) }
-    var vehicleExpanded by remember { mutableStateOf(false) }
+    var vehicleExpanded by remember { mutableStateOf(value = false) }
     var odometerText by remember(tripWithVehicle) { 
         mutableStateOf(trip.endOdometer?.toLong()?.toString() ?: "") 
     }
     var note by remember { mutableStateOf("") }
     val odometerValue = odometerText.toDoubleOrNull() ?: 0.0
-    val isOdometerError = isOdometerModeEnabled && selectedVehicle != null && odometerValue <= selectedVehicle!!.currentOdometer
+    val isOdometerError = isOdometerModeEnabled && (selectedVehicle != null) && (odometerValue <= selectedVehicle!!.currentOdometer)
 
     val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
     val icons = listOf(Icons.Default.Work, Icons.Default.Person)
@@ -295,9 +297,9 @@ fun ReviewTripCard(
                     if (isOdometerModeEnabled) {
                         OutlinedTextField(
                             value = odometerText,
-                            onValueChange = { 
-                                if (it.length <= 8 && it.all { char -> char.isDigit() }) {
-                                    odometerText = it 
+                            onValueChange = { newValue ->
+                                if ((newValue.length <= 8) && newValue.all { char -> char.isDigit() }) {
+                                    odometerText = newValue
                                 }
                             },
                             label = { Text(stringResource(R.string.end_odometer_label)) },
