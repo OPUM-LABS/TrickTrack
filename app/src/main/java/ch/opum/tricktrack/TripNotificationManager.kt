@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import ch.opum.tricktrack.data.Trip
+import ch.opum.tricktrack.logging.AppLogger
 
 object TripNotificationManager {
 
@@ -86,8 +87,22 @@ object TripNotificationManager {
             .setAutoCancel(true) // Automatically removes the notification when the user taps it
 
         with(NotificationManagerCompat.from(context)) {
-            // Use a unique ID for each notification to ensure they don't overwrite each other
-            notify(trip.id.hashCode(), builder.build())
+            val notificationId = trip.id.toInt()
+            AppLogger.log("TripNotificationManager", "Showing notification for trip ID: ${trip.id} as notification ID: $notificationId")
+            notify(notificationId, builder.build())
         }
+    }
+
+    /**
+     * Cancels a specific trip review notification.
+     *
+     * @param context The context.
+     * @param tripId The ID of the trip whose notification should be cancelled.
+     */
+    fun cancelTripNotification(context: Context, tripId: Long) {
+        val notificationId = tripId.toInt()
+        AppLogger.log("TripNotificationManager", "Cancelling notification for trip ID: $tripId as notification ID: $notificationId")
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(notificationId)
     }
 }

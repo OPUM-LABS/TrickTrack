@@ -17,6 +17,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
+import ch.opum.tricktrack.TripNotificationManager
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.ScheduleSettings
@@ -701,6 +702,9 @@ class TripsViewModel(
             } else {
                 repository.updateTrip(trip)
             }
+            if (trip.isConfirmed) {
+                TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
+            }
         }
         _distance.value = 0.0 // Reset distance after adding trip
     }
@@ -714,12 +718,16 @@ class TripsViewModel(
                 }
             }
             repository.updateTrip(trip)
+            if (trip.isConfirmed) {
+                TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
+            }
         }
     }
 
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteTrip(trip)
+            TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
         }
     }
 
@@ -727,6 +735,9 @@ class TripsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val tripsToDelete = confirmedTrips.first()
             repository.deleteTrips(tripsToDelete)
+            tripsToDelete.forEach {
+                TripNotificationManager.cancelTripNotification(getApplication<Application>(), it.trip.id)
+            }
         }
     }
 
@@ -754,12 +765,14 @@ class TripsViewModel(
             }
             
             repository.updateTrip(updatedTrip)
+            TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
         }
     }
 
     fun discardTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteTrip(trip)
+            TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
         }
     }
 
