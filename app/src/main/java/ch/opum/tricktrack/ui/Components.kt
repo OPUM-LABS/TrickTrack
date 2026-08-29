@@ -130,8 +130,11 @@ fun ClearableTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     trailingIcon: @Composable (() -> Unit)? = null,
-    placeholder: @Composable (() -> Unit)? = null, // Added placeholder parameter
-    isError: Boolean = false // Added isError parameter
+    placeholder: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
+    suffix: @Composable (() -> Unit)? = null,
+    prefix: @Composable (() -> Unit)? = null,
+    singleLine: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
@@ -152,8 +155,11 @@ fun ClearableTextField(
                 trailingIcon?.invoke()
             }
         },
-        placeholder = placeholder, // Pass placeholder to OutlinedTextField
-        isError = isError // Pass isError to OutlinedTextField
+        placeholder = placeholder,
+        isError = isError,
+        suffix = suffix,
+        prefix = prefix,
+        singleLine = singleLine
     )
 }
 

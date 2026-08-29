@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -907,7 +908,7 @@ fun EditTripDialog(
     // When in edit mode, initialize with the trip's distance
     LaunchedEffect(trip) {
         trip?.let {
-            distanceText = it.distance.toString()
+            distanceText = "%.2f".format(it.distance)
         }
     }
 
@@ -1274,7 +1275,10 @@ fun EditTripDialog(
                     }
                 )
             } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     ClearableTextField(
                         value = distanceText,
                         onValueChange = {
@@ -1290,13 +1294,26 @@ fun EditTripDialog(
                         placeholder = { Text("0.0") },
                         isError = isError,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        suffix = { Text("km") }
                     )
                     if (tripsViewModel.isCalculating) {
-                        CircularProgressIndicator(modifier = Modifier.padding(start = 8.dp))
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     } else {
-                        IconButton(onClick = { tripsViewModel.calculateDistance(startText, endText) }) {
-                            Icon(Icons.Default.Calculate, contentDescription = "Calculate distance")
+                        FilledTonalButton(
+                            onClick = { tripsViewModel.calculateDistance(startText, endText) },
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Calculate,
+                                contentDescription = stringResource(R.string.calculate_distance_button),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                stringResource(R.string.calculate_distance_button),
+                                style = MaterialTheme.typography.labelLarge
+                            )
                         }
                     }
                 }
@@ -1404,7 +1421,8 @@ fun EditTripDialog(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text(stringResource(R.string.description_optional_label)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = false
             )
 
             Spacer(modifier = Modifier.height(32.dp))

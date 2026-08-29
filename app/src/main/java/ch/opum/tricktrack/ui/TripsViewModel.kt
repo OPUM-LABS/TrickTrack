@@ -610,8 +610,8 @@ class TripsViewModel(
                         val distance = distanceRepository.getDrivingDistance(start.latitude, start.longitude, end.latitude, end.longitude)
                         withContext(Dispatchers.Main) {
                             distance?.let {
-                            distanceInput = it.toString()
-                        }
+                                distanceInput = "%.2f".format(it)
+                            }
                         }
                     }
                 } catch (e: Exception) {

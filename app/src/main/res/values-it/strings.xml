@@ -181,11 +181,12 @@
     <string name="end_time_label">Ora di fine</string>
     <string name="start_address_label">Indirizzo di partenza</string>
     <string name="end_address_label">Indirizzo di arrivo</string>
-    <string name="distance_km_label">Distanza (km)</string>
+    <string name="distance_km_label">Distanza</string>
     <string name="description_optional_label">Descrizione (opzionale)</string>
     <string name="delete_trip_cd">Elimina viaggio</string>
     <string name="button_add">Aggiungi</string>
     <string name="end_time_before_start_time_toast">L\'ora di fine non può essere precedente all\'ora di inizio.</string>
+    <string name="calculate_distance_button">Calcola</string>
     <string name="delete_filtered_trips_title">Eliminare i viaggi filtrati?</string>
     <string name="delete_filtered_trips_confirmation">Sei sicuro di voler eliminare tutti i viaggi che corrispondono al filtro corrente? Questa azione non può essere annullata.</string>
 
