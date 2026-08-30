@@ -107,6 +107,7 @@ import kotlinx.coroutines.launch
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.DaySchedule
+import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.permission.TrackingMode
 import ch.opum.tricktrack.ui.ClearableTextField
@@ -972,6 +973,55 @@ fun SettingsScreen(
                                 }
                             ) {
                                 Text(label)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_distance_unit_title),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val distanceUnit by viewModel.distanceUnit.collectAsState()
+                    val unitOptions = listOf(
+                        DistanceUnit.KM to stringResource(R.string.settings_unit_km),
+                        DistanceUnit.MILES to stringResource(R.string.settings_unit_miles),
+                        DistanceUnit.NAUTICAL_MILES to stringResource(R.string.settings_unit_nautical)
+                    )
+
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        unitOptions.forEachIndexed { index, (unit, _) ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = unitOptions.size
+                                ),
+                                onClick = { viewModel.setDistanceUnit(unit) },
+                                selected = distanceUnit == unit,
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = MaterialTheme.colorScheme.primary,
+                                    inactiveContainerColor = Color.Transparent,
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outline
+                                )
+                            ) {
+                                Text(
+                                    text = when(unit) {
+                                        DistanceUnit.KM -> "km"
+                                        DistanceUnit.MILES -> "mi"
+                                        DistanceUnit.NAUTICAL_MILES -> "NM"
+                                    },
+                                    style = MaterialTheme.typography.labelMedium
+                                )
                             }
                         }
                     }

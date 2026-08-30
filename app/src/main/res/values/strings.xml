@@ -43,6 +43,10 @@
     <string name="settings_backup_restore_description">Manage your data backups.</string>
     <string name="settings_tracking_defaults_title">Tracking defaults</string>
     <string name="settings_tracking_defaults_description">Configure default values for trips.</string>
+    <string name="settings_distance_unit_title">Distance Unit</string>
+    <string name="settings_unit_km">Kilometers (km)</string>
+    <string name="settings_unit_miles">Miles (mi)</string>
+    <string name="settings_unit_nautical">Nautical Miles (NM) ⚓</string>
     <string name="settings_backup_button">Backup</string>
     <string name="settings_restore_button">Restore</string>
     <string name="settings_logs_title">Logs</string>
@@ -138,7 +142,7 @@
     <string name="review_discard_trip_message">Are you sure you want to discard this trip? This cannot be undone.</string>
     <string name="review_discard_button">Discard</string>
     <string name="review_no_trips">No trips to review!</string>
-    <string name="review_trip_count_and_distance">%1$d Trips • %2$.2f km</string>
+    <string name="review_trip_count_and_distance">%1$d Trips • %2$s</string>
     <string name="review_approve_trip">Approve Trip</string>
 
     <!-- Add/Edit Place Dialog -->
@@ -190,23 +194,23 @@
     <!-- Trip Screen -->
     <string name="expenses_label">Expenses: %1$.2f %2$s</string>
     <string name="start_trip_button">Start</string>
-    <string name="stop_trip_button">Stop • %.2f km</string>
+    <string name="stop_trip_button">Stop • %1$s</string>
     <string name="remove_filter_cd">Remove filter</string>
     <string name="from_date_label">From: %s</string>
     <string name="to_date_label">To: %s</string>
-    <string name="trip_count_and_distance_label">%1$d Trips • %2$.2f km</string>
+    <string name="trip_count_and_distance_label">%1$d Trips • %2$s</string>
     <string name="daily_total_cost_label">• %1$.2f %2$s</string>
     <string name="trip_distance_label">%.2f km</string>
     <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Description</string>
-    <string name="filtered_distance_label">Distance: %.1f km</string>
+    <string name="filtered_distance_label">Distance: %1$s</string>
     <string name="filtered_trips_label">Trips: %d</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Trip Review Updates</string>
     <string name="notification_channel_description">Notifications for trips that are ready for review.</string>
     <string name="notification_title">Track ready for review</string>
-    <string name="notification_content_text">%1$s ➔ %2$s (%3$.2f km)</string>
+    <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
     <string name="background_location_required_title">Background Location Required</string>
     <string name="background_location_required_text">To detect when you start driving automatically, this app needs location access \'All the time\'. Please select \'Allow all the time\' on the next screen.</string>
     <string name="open_settings">Open Settings</string>
@@ -219,7 +223,7 @@
     <string name="clear_logs_cd">Clear Logs</string>
     <string name="waiting_for_movement">Waiting for movement…</string>
     <string name="stop">Stop</string>
-    <string name="tracking_is_running">Tracking is running: %.2f km</string>
+    <string name="tracking_is_running">Tracking is running: %1$s</string>
     <string name="export_trips_title">Export Trips</string>
     <string name="export_as_csv">Export as CSV</string>
     <string name="export_as_pdf">Export as PDF</string>

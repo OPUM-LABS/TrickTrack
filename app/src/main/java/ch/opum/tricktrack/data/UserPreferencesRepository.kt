@@ -20,6 +20,10 @@ import java.util.Calendar
 import java.util.Currency
 import java.util.Locale
 
+enum class DistanceUnit {
+    KM, MILES, NAUTICAL_MILES
+}
+
 // At the top level of your file, declare the DataStore
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
@@ -57,6 +61,7 @@ class UserPreferencesRepository(private val context: Context) {
         val IS_DISTANCE_MONITORING_ENABLED = booleanPreferencesKey("is_distance_monitoring_enabled")
         val DISTANCE_MONITORING_RADIUS = intPreferencesKey("distance_monitoring_radius")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -281,6 +286,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setThemeMode(mode: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.THEME_MODE] = mode
+        }
+    }
+
+    val distanceUnit: Flow<DistanceUnit> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.DISTANCE_UNIT]?.let { DistanceUnit.valueOf(it) } ?: DistanceUnit.KM
+        }
+
+    suspend fun setDistanceUnit(unit: DistanceUnit) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DISTANCE_UNIT] = unit.name
         }
     }
 

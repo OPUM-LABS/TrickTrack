@@ -14,7 +14,9 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
 import androidx.core.graphics.withTranslation
 import ch.opum.tricktrack.R
+import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.TripWithVehicle
+import ch.opum.tricktrack.util.DistanceFormatter
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -37,6 +39,7 @@ class PdfGenerator {
     private var dateRange: String = ""
     private var totalPages = 0
     private lateinit var context: Context
+    private var distanceUnit: DistanceUnit = DistanceUnit.KM
 
     fun generateTripReport(
         context: Context,
@@ -47,10 +50,12 @@ class PdfGenerator {
         expenseCurrency: String,
         driverName: String?,
         companyName: String?,
-        vehicleName: String?
+        vehicleName: String?,
+        distanceUnit: DistanceUnit
     ): File? {
         if (tripsWithVehicle.isEmpty()) return null
         this.context = context
+        this.distanceUnit = distanceUnit
 
         // First pass: Calculate total pages
         totalPages = calculateTotalPages(tripsWithVehicle, columns, isExpenseEnabled)
@@ -324,7 +329,7 @@ class PdfGenerator {
         summaryY += lineSpacing
 
         canvas?.drawText(context.getString(R.string.pdf_total_distance), leftTextMargin, summaryY, labelPaint)
-        canvas?.drawText("%.2f km".format(totalDistance), valueTextMargin, summaryY, valuePaint)
+        canvas?.drawText(DistanceFormatter.format(totalDistance, distanceUnit), valueTextMargin, summaryY, valuePaint)
 
         if (isExpenseEnabled) {
             summaryY += lineSpacing
@@ -428,7 +433,7 @@ class PdfGenerator {
                 "START_LOCATION" -> trip.startLoc.replace(", ", "\n")
                 "END_LOCATION" -> trip.endLoc.replace(", ", "\n")
                 "TYPE" -> trip.type
-                "DISTANCE" -> "%.2f km".format(trip.distance)
+                "DISTANCE" -> DistanceFormatter.formatShort(trip.distance, distanceUnit)
                 "EXPENSES" -> if (isExpenseEnabled) "%.2f %s".format(trip.distance * expenseRate, expenseCurrency) else ""
                 else -> ""
             }

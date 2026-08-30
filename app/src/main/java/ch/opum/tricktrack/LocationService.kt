@@ -18,8 +18,10 @@ import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import ch.opum.tricktrack.data.Trip
+import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.TripTrigger
+import ch.opum.tricktrack.util.DistanceFormatter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -56,6 +58,7 @@ class LocationService : Service() {
     private lateinit var notificationManager: NotificationManager
     private var lastLocationTime: Long = 0
     private var lastReportedSpeed: Double = 0.0
+    private var currentDistanceUnit: DistanceUnit = DistanceUnit.KM
 
 
     override fun onCreate() {
@@ -64,6 +67,16 @@ class LocationService : Service() {
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannels()
         TripNotificationManager.createNotificationChannel(this)
+        
+        applicationScope.launch {
+            userPreferencesRepository.distanceUnit.collect { unit ->
+                currentDistanceUnit = unit
+                if (_isTracking.value) {
+                    updateNotification(_distance.value)
+                }
+            }
+        }
+
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { location ->
@@ -461,7 +474,8 @@ class LocationService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificationText = getString(R.string.tracking_is_running, distance / 1000.0)
+        val formattedDistance = DistanceFormatter.format(distance / 1000.0, currentDistanceUnit)
+        val notificationText = getString(R.string.tracking_is_running, formattedDistance)
 
         return NotificationCompat.Builder(this, "tracking_channel")
             .setContentTitle(getString(R.string.app_name))
@@ -595,7 +609,7 @@ class LocationService : Service() {
 
             if (!isConfirmed) {
                 val tripWithId = trip.copy(id = newId)
-                TripNotificationManager.sendTripReviewNotification(applicationContext, tripWithId)
+                TripNotificationManager.sendTripReviewNotification(applicationContext, tripWithId, currentDistanceUnit)
             }
         } else {
             AppLogger.log(

@@ -41,6 +41,8 @@ import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.LicensePlateBadge
+import ch.opum.tricktrack.data.DistanceUnit
+import ch.opum.tricktrack.util.DistanceFormatter
 import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import java.text.SimpleDateFormat
@@ -84,6 +86,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
     } else {
         val allVehicles by viewModel.allVehicles.collectAsState()
         val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
+        val distanceUnit by viewModel.distanceUnit.collectAsState()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
@@ -95,7 +98,8 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                         date = group.date,
                         tripCount = group.trips.size,
                         totalDistance = group.totalDistance,
-                        isOdometerModeEnabled = isOdometerModeEnabled
+                        isOdometerModeEnabled = isOdometerModeEnabled,
+                        distanceUnit = distanceUnit
                     )
                 }
                 items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
@@ -103,6 +107,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                         tripWithVehicle = tripWithVehicle,
                         allVehicles = allVehicles,
                         isOdometerModeEnabled = isOdometerModeEnabled,
+                        distanceUnit = distanceUnit,
                         onApprove = { finalType, selectedVehicle, endOdometer, description ->
                             viewModel.approveTrip(
                                 trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
@@ -121,7 +126,13 @@ fun ReviewScreen(viewModel: TripsViewModel) {
 }
 
 @Composable
-fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double, isOdometerModeEnabled: Boolean) {
+fun ReviewListHeader(
+    date: Long,
+    tripCount: Int,
+    totalDistance: Double,
+    isOdometerModeEnabled: Boolean,
+    distanceUnit: DistanceUnit
+) {
     val dateFormatter = remember { SimpleDateFormat("EEE, d MMM yy", Locale.getDefault()) }
     Row(
         modifier = Modifier
@@ -136,12 +147,13 @@ fun ReviewListHeader(date: Long, tripCount: Int, totalDistance: Double, isOdomet
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.weight(1f))
+        val formattedDistance = DistanceFormatter.formatShort(totalDistance, distanceUnit)
         val distanceText = if (isOdometerModeEnabled) {
             // In odometer mode, total distance might be slightly different if user hasn't entered all yet
             // But we display what we have.
-            stringResource(R.string.review_trip_count_and_distance, tripCount, totalDistance)
+            stringResource(R.string.review_trip_count_and_distance, tripCount, formattedDistance)
         } else {
-            stringResource(R.string.review_trip_count_and_distance, tripCount, totalDistance)
+            stringResource(R.string.review_trip_count_and_distance, tripCount, formattedDistance)
         }
         Text(
             text = distanceText,
@@ -158,6 +170,7 @@ fun ReviewTripCard(
     tripWithVehicle: TripWithVehicle,
     allVehicles: List<VehicleEntity>,
     isOdometerModeEnabled: Boolean,
+    distanceUnit: DistanceUnit,
     onApprove: (TripType, VehicleEntity?, Double?, String?) -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier
@@ -166,8 +179,13 @@ fun ReviewTripCard(
     var selectedType by remember { mutableStateOf(if (trip.type == "Business") TripType.BUSINESS else TripType.PERSONAL) }
     var selectedVehicle by remember(tripWithVehicle) { mutableStateOf(tripWithVehicle.vehicle) }
     var vehicleExpanded by remember { mutableStateOf(value = false) }
-    var odometerText by remember(tripWithVehicle) { 
-        mutableStateOf(trip.endOdometer?.toLong()?.toString() ?: "") 
+    var odometerText by remember(tripWithVehicle, distanceUnit) { 
+        mutableStateOf(
+            trip.endOdometer?.let {
+                val converted = DistanceFormatter.convert(it, distanceUnit)
+                "%.0f".format(converted)
+            } ?: ""
+        ) 
     }
     var note by remember { mutableStateOf("") }
     val odometerValue = odometerText.toDoubleOrNull() ?: 0.0
@@ -308,13 +326,13 @@ fun ReviewTripCard(
                             isError = isOdometerError,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             visualTransformation = ThousandsSeparatorTransformation(),
-                            suffix = { Text("km") },
+                            suffix = { Text(DistanceFormatter.getUnitSuffix(distanceUnit)) },
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodySmall
                         )
                     } else {
                         Text(
-                            text = "%.2f km".format(trip.distance),
+                            text = DistanceFormatter.format(trip.distance, distanceUnit),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -323,8 +341,9 @@ fun ReviewTripCard(
 
                 if (isOdometerModeEnabled && (selectedVehicle != null)) {
                     val calcDistance = (odometerValue - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                    val formattedCalc = DistanceFormatter.format(calcDistance, distanceUnit)
                     Text(
-                        text = "Calculated: %.2f km".format(calcDistance),
+                        text = "Calculated: $formattedCalc",
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isOdometerError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.align(Alignment.End).padding(top = 4.dp)

@@ -16,6 +16,7 @@ import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.data.place.SavedPlaceDao
 import ch.opum.tricktrack.ui.LocationSuggestion
+import ch.opum.tricktrack.util.DistanceFormatter
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -81,6 +82,9 @@ class FavouritesViewModel(
 
     val selectedVehicleId: StateFlow<Int> = userPreferencesRepository.defaultVehicleId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), -1)
+
+    val distanceUnit: StateFlow<ch.opum.tricktrack.data.DistanceUnit> = userPreferencesRepository.distanceUnit
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ch.opum.tricktrack.data.DistanceUnit.KM)
 
     init {
         driversList.onEach { drivers ->
@@ -378,13 +382,22 @@ class FavouritesViewModel(
 
     fun addVehicle(licensePlate: String, carModel: String?, brand: String?, odometer: Double) {
         viewModelScope.launch {
-            vehicleDao.insert(VehicleEntity(licensePlate = licensePlate, carModel = carModel, brand = brand, currentOdometer = odometer))
+            val unit = distanceUnit.first()
+            val odometerKm = DistanceFormatter.toKm(odometer, unit)
+            vehicleDao.insert(VehicleEntity(licensePlate = licensePlate, carModel = carModel, brand = brand, currentOdometer = odometerKm))
         }
     }
 
     fun updateVehicle(vehicle: VehicleEntity) {
         viewModelScope.launch {
-            vehicleDao.update(vehicle)
+            // Check if we need to convert anything here? 
+            // In the UI, currentOdometer is set from the SimpleItem which was in active unit
+            // So we need to convert it back to KM.
+            val unit = distanceUnit.first()
+            val convertedVehicle = vehicle.copy(
+                currentOdometer = DistanceFormatter.toKm(vehicle.currentOdometer, unit)
+            )
+            vehicleDao.update(convertedVehicle)
         }
     }
 

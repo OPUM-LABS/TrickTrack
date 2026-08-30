@@ -43,6 +43,10 @@
     <string name="settings_backup_restore_description">Verwalten Sie Ihre Datensicherungen.</string>
     <string name="settings_tracking_defaults_title">Tracking-Standardeinstellungen</string>
     <string name="settings_tracking_defaults_description">Standardwerte für Fahrten konfigurieren.</string>
+    <string name="settings_distance_unit_title">Distanzeinheit</string>
+    <string name="settings_unit_km">Kilometer (km)</string>
+    <string name="settings_unit_miles">Meilen (mi)</string>
+    <string name="settings_unit_nautical">Seemeilen (NM) ⚓</string>
     <string name="settings_backup_button">Sichern</string>
     <string name="settings_restore_button">Wiederherstellen</string>
     <string name="settings_logs_title">Protokolle</string>
@@ -135,7 +139,7 @@
     <string name="review_discard_trip_message">Sind Sie sicher, dass Sie diese Fahrt verwerfen möchten? Dies kann nicht rückgängig gemacht werden.</string>
     <string name="review_discard_button">Verwerfen</string>
     <string name="review_no_trips">Keine Fahrten zum Überprüfen!</string>
-    <string name="review_trip_count_and_distance">%1$d Fahrten • %2$.2f km</string>
+    <string name="review_trip_count_and_distance">%1$d Fahrten • %2$s</string>
     <string name="review_approve_trip">Fahrt genehmigen</string>
 
     <!-- Add/Edit Place Dialog -->
@@ -182,23 +186,23 @@
     <!-- Trip Screen -->
     <string name="expenses_label">Ausgaben: %1$.2f %2$s</string>
     <string name="start_trip_button">Start</string>
-    <string name="stop_trip_button">Stopp • %.2f km</string>
+    <string name="stop_trip_button">Stopp • %1$s</string>
     <string name="remove_filter_cd">Filter entfernen</string>
     <string name="from_date_label">Von: %s</string>
     <string name="to_date_label">Bis: %s</string>
-    <string name="trip_count_and_distance_label">%1$d Fahrten • %2$.2f km</string>
+    <string name="trip_count_and_distance_label">%1$d Fahrten • %2$s</string>
     <string name="daily_total_cost_label">• %1$.2f %2$s</string>
     <string name="trip_distance_label">%.2f km</string>
     <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Beschreibung</string>
-    <string name="filtered_distance_label">Distanz: %.1f km</string>
+    <string name="filtered_distance_label">Distanz: %1$s</string>
     <string name="filtered_trips_label">Fahrten: %d</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Fahrtüberprüfungs-Updates</string>
     <string name="notification_channel_description">Benachrichtigungen für Fahrten, die zur Überprüfung bereit sind.</string>
     <string name="notification_title">Fahrt zur Überprüfung bereit</string>
-    <string name="notification_content_text">%1$s ➔ %2$s (%3$.2f km)</string>
+    <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
     <string name="background_location_required_title">Hintergrund-Standortberechtigung erforderlich</string>
     <string name="background_location_required_text">Um automatisch zu erkennen, wann Sie losfahren, benötigt diese App den Standortzugriff \'Immer zulassen\'. Bitte wählen Sie auf dem nächsten Bildschirm \'Immer zulassen\'.</string>
     <string name="open_settings">Einstellungen öffnen</string>
@@ -211,7 +215,7 @@
     <string name="clear_logs_cd">Protokolle löschen</string>
     <string name="waiting_for_movement">Warte auf Bewegung…</string>
     <string name="stop">Stopp</string>
-    <string name="tracking_is_running">Tracking läuft: %.2f km</string>
+    <string name="tracking_is_running">Tracking läuft: %1$s</string>
     <string name="export_trips_title">Fahrten exportieren</string>
     <string name="export_as_csv">Als CSV exportieren</string>
     <string name="export_as_pdf">Als PDF exportieren</string>

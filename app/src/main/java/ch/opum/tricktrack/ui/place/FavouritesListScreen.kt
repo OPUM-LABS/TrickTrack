@@ -21,7 +21,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,8 +37,6 @@ import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import ch.opum.tricktrack.ui.ViewModelFactory
 import kotlinx.coroutines.launch
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
 
 // Data class for the generic list
 data class SimpleItem(
@@ -212,7 +209,8 @@ fun PlacesListScreen(
                         showEditDialog = true
                     },
                     selectedId = selectedId,
-                    onSelect = { id -> viewModel.setDefaultDriver(id) }
+                    onSelect = { id -> viewModel.setDefaultDriver(id) },
+                    viewModel = viewModel
                 )
             }
             2 -> {
@@ -225,7 +223,8 @@ fun PlacesListScreen(
                         showEditDialog = true
                     },
                     selectedId = selectedId,
-                    onSelect = { id -> viewModel.setDefaultCompany(id) }
+                    onSelect = { id -> viewModel.setDefaultCompany(id) },
+                    viewModel = viewModel
                 )
             }
             3 -> {
@@ -238,7 +237,8 @@ fun PlacesListScreen(
                         showEditDialog = true
                     },
                     selectedId = selectedId,
-                    onSelect = { id -> viewModel.setDefaultVehicle(id) }
+                    onSelect = { id -> viewModel.setDefaultVehicle(id) },
+                    viewModel = viewModel
                 )
             }
         }
@@ -373,6 +373,8 @@ fun AddSimpleItemBottomSheet(
     var brand by remember { mutableStateOf("") }
     var odometer by remember { mutableStateOf("") }
 
+    val distanceUnit by viewModel?.distanceUnit?.collectAsState() ?: remember { mutableStateOf(ch.opum.tricktrack.data.DistanceUnit.KM) }
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
@@ -434,7 +436,7 @@ fun AddSimpleItemBottomSheet(
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandsSeparatorTransformation(),
-                    suffix = { Text("km") },
+                    suffix = { Text(ch.opum.tricktrack.util.DistanceFormatter.getUnitSuffix(distanceUnit)) },
                     trailingIcon = {
                         if (odometer.isNotEmpty()) {
                             IconButton(onClick = { odometer = "" }) {
@@ -495,6 +497,8 @@ fun EditSimpleItemBottomSheet(
     var subtitle by remember(item) { mutableStateOf(item.subtitle ?: "") }
     var brand by remember { mutableStateOf(item.brand ?: "") }
     var odometer by remember(item) { mutableStateOf(if (item.odometer > 0) item.odometer.toLong().toString() else "") }
+
+    val distanceUnit by viewModel?.distanceUnit?.collectAsState() ?: remember { mutableStateOf(ch.opum.tricktrack.data.DistanceUnit.KM) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -565,7 +569,7 @@ fun EditSimpleItemBottomSheet(
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandsSeparatorTransformation(),
-                    suffix = { Text("km") },
+                    suffix = { Text(ch.opum.tricktrack.util.DistanceFormatter.getUnitSuffix(distanceUnit)) },
                     trailingIcon = {
                         if (odometer.isNotEmpty()) {
                             IconButton(onClick = { odometer = "" }) {
@@ -618,10 +622,13 @@ fun GenericGroupedList(
     groupedItems: Map<Char, List<SimpleItem>>,
     onEdit: (SimpleItem) -> Unit,
     selectedId: Int?,
-    onSelect: (Int) -> Unit
+    onSelect: (Int) -> Unit,
+    viewModel: FavouritesViewModel? = null
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val distanceUnit by viewModel?.distanceUnit?.collectAsState() ?: remember { mutableStateOf(ch.opum.tricktrack.data.DistanceUnit.KM) }
+
     val groupIndexes = groupedItems.mapValues { entry ->
         var index = 0
         for ((key, value) in groupedItems) {
@@ -668,7 +675,8 @@ fun GenericGroupedList(
                             item = item,
                             onEdit = { onEdit(item) },
                             isSelected = item.id == selectedId,
-                            onSelect = { onSelect(item.id) }
+                            onSelect = { onSelect(item.id) },
+                            distanceUnit = distanceUnit
                         )
                     }
                 }
@@ -694,7 +702,8 @@ fun SimpleListItem(
     item: SimpleItem,
     onEdit: () -> Unit,
     isSelected: Boolean,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    distanceUnit: ch.opum.tricktrack.data.DistanceUnit
 ) {
     Row(
         modifier = Modifier
@@ -737,16 +746,8 @@ fun SimpleListItem(
                     )
                 }
                 if (item.odometer > 0) {
-                    val locale = LocalLocale.current.platformLocale
-                    val symbols = DecimalFormatSymbols.getInstance(locale)
-                    val df = DecimalFormat("#,###", symbols)
-                    val formattedOdometer = try {
-                        df.format(item.odometer.toLong())
-                    } catch (_: Exception) {
-                        item.odometer.toLong().toString()
-                    }
                     Text(
-                        text = "$formattedOdometer km",
+                        text = ch.opum.tricktrack.util.DistanceFormatter.format(item.odometer, distanceUnit),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )

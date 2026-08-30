@@ -44,6 +44,10 @@
     <string name="settings_backup_restore_description">Gérez vos sauvegardes de données.</string>
     <string name="settings_tracking_defaults_title">Réglages par défaut</string>
     <string name="settings_tracking_defaults_description">Configurer les valeurs par défaut pour les trajets.</string>
+    <string name="settings_distance_unit_title">Unité de distance</string>
+    <string name="settings_unit_km">Kilomètres (km)</string>
+    <string name="settings_unit_miles">Miles (mi)</string>
+    <string name="settings_unit_nautical">Milles nautiques (NM) ⚓</string>
     <string name="settings_backup_button">Sauvegarder</string>
     <string name="settings_restore_button">Restaurer</string>
     <string name="settings_logs_title">Journaux</string>
@@ -183,7 +187,7 @@
     <!-- Trip Screen -->
     <string name="expenses_label">Dépenses : %1$.2f %2$s</string>
     <string name="start_trip_button">Démarrer</string>
-    <string name="stop_trip_button">Arrêter • %.2f km</string>
+    <string name="stop_trip_button">Arrêter • %1$s</string>
     <string name="remove_filter_cd">Supprimer le filtre</string>
     <string name="from_date_label">De : %s</string>
     <string name="to_date_label">À : %s</string>
@@ -192,14 +196,14 @@
     <string name="trip_distance_label">%.2f km</string>
     <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Description</string>
-    <string name="filtered_distance_label">Distance : %.1f km</string>
+    <string name="filtered_distance_label">Distance : %1$s</string>
     <string name="filtered_trips_label">Trajets : %d</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Mises à jour de la révision des trajets</string>
     <string name="notification_channel_description">Notifications pour les trajets prêts à être révisés.</string>
     <string name="notification_title">Trajet prêt pour révision</string>
-    <string name="notification_content_text">%1$s ➔ %2$s (%3$.2f km)</string>
+    <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
     <string name="background_location_required_title">Localisation en arrière-plan requise</string>
     <string name="background_location_required_text">Pour détecter automatiquement lorsque vous commencez à conduire, cette application a besoin de l\'accès à la localisation \'Toujours\'. Veuillez sélectionner \'Toujours autoriser\' sur l\'écran suivant.</string>
     <string name="open_settings">Ouvrir les paramètres</string>
@@ -212,7 +216,7 @@
     <string name="clear_logs_cd">Effacer les journaux</string>
     <string name="waiting_for_movement">En attente de mouvement…</string>
     <string name="stop">Stop</string>
-    <string name="tracking_is_running">Le suivi est en cours: %.2f km</string>
+    <string name="tracking_is_running">Le suivi est en cours : %1$s</string>
     <string name="export_trips_title">Exporter les trajets</string>
     <string name="export_as_csv">Exporter en CSV</string>
     <string name="export_as_pdf">Exporter en PDF</string>

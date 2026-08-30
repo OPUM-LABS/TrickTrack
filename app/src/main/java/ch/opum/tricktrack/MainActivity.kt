@@ -153,6 +153,7 @@ import ch.opum.tricktrack.ui.review.ReviewScreen
 import ch.opum.tricktrack.ui.settings.SettingsScreen
 import ch.opum.tricktrack.ui.theme.TrickTrackTheme
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
+import ch.opum.tricktrack.util.DistanceFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -639,6 +640,7 @@ fun TripScreen(
     val expenseRatePerKm by tripsViewModel.expenseRatePerKm.collectAsState()
     val expenseCurrency by tripsViewModel.expenseCurrency.collectAsState()
     val totalExpense by tripsViewModel.totalExpense.collectAsState()
+    val distanceUnit by tripsViewModel.distanceUnit.collectAsState()
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     var isAllCollapsed by remember { mutableStateOf(value = false) }
@@ -699,13 +701,14 @@ fun TripScreen(
                     },
                     colors = buttonColors
                 ) {
+                    val formattedLiveDistance = DistanceFormatter.formatShort(distance / 1000.0, distanceUnit)
                     Icon(
                         imageVector = if (isTracking) Icons.Default.Stop else Icons.Default.DirectionsCar,
-                        contentDescription = if (isTracking) stringResource(R.string.stop_trip_button, distance / 1000.0) else stringResource(R.string.start_trip_button)
+                        contentDescription = if (isTracking) stringResource(R.string.stop_trip_button, formattedLiveDistance) else stringResource(R.string.start_trip_button)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        if (isTracking) stringResource(R.string.stop_trip_button, distance / 1000.0)
+                        if (isTracking) stringResource(R.string.stop_trip_button, formattedLiveDistance)
                         else stringResource(R.string.start_trip_button)
                     )
                 }
@@ -849,8 +852,9 @@ fun TripScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.End // Explicitly align to end
                     ) {
+                        val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
                         Text(
-                            text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, group.totalDistance),
+                            text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -872,7 +876,8 @@ fun TripScreen(
                         onClick = { onTripClick(tripWithVehicle.trip) },
                         expenseTrackingEnabled = expenseTrackingEnabled,
                         expenseRatePerKm = expenseRatePerKm,
-                        expenseCurrency = expenseCurrency
+                        expenseCurrency = expenseCurrency,
+                        distanceUnit = distanceUnit
                     )
                 }
             }
@@ -908,8 +913,15 @@ fun EditTripDialog(
     var isError by remember { mutableStateOf(false) }
 
     val isOdometerModeEnabled by tripsViewModel.isOdometerModeEnabled.collectAsState()
-    var odometerText by remember(trip) {
-        mutableStateOf(trip?.endOdometer?.toLong()?.toString() ?: "")
+    val distanceUnit by tripsViewModel.distanceUnit.collectAsState()
+
+    var odometerText by remember(trip, distanceUnit) {
+        mutableStateOf(
+            value = trip?.endOdometer?.let {
+                val converted = DistanceFormatter.convert(it, distanceUnit)
+                "%.0f".format(converted) // Odometer usually doesn't show decimals in input
+            } ?: ""
+        )
     }
 
     val allVehicles by tripsViewModel.allVehicles.collectAsState()
@@ -924,9 +936,10 @@ fun EditTripDialog(
     // Use the ViewModel's distanceInput for the text field
     var distanceText by remember(tripsViewModel.distanceInput) { mutableStateOf(tripsViewModel.distanceInput) }
 
-    LaunchedEffect(trip) {
+    LaunchedEffect(trip, distanceUnit) {
         trip?.let {
-            distanceText = "%.2f".format(it.distance)
+            val converted = DistanceFormatter.convert(it.distance, distanceUnit)
+            distanceText = "%.2f".format(converted)
         }
     }
 
@@ -1280,7 +1293,7 @@ fun EditTripDialog(
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandsSeparatorTransformation(),
-                    suffix = { Text("km") },
+                    suffix = { Text(DistanceFormatter.getUnitSuffix(distanceUnit)) },
                     trailingIcon = {
                         if (odometerText.isNotEmpty()) {
                             IconButton(onClick = { odometerText = "" }) {
@@ -1313,7 +1326,7 @@ fun EditTripDialog(
                         isError = isError,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
-                        suffix = { Text("km") }
+                        suffix = { Text(DistanceFormatter.getUnitSuffix(distanceUnit)) }
                     )
                     if (tripsViewModel.isCalculating) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp))
@@ -1471,15 +1484,17 @@ fun EditTripDialog(
                     }
                     val updatedDistance = if (isOdometerModeEnabled) {
                         val endOdo = odometerText.toDoubleOrNull() ?: 0.0
+                        val endOdoKm = DistanceFormatter.toKm(endOdo, distanceUnit)
                         if (selectedVehicle != null) {
                             // For editing existing trips, we might want a different logic for start odometer
                             // but plan says recalculate distance relative to baseline
-                            (endOdo - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
+                            (endOdoKm - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
                         } else {
                             trip?.distance ?: 0.0
                         }
                     } else {
-                        distanceText.toDoubleOrNull()
+                        val inputDistance = distanceText.toDoubleOrNull()
+                        inputDistance?.let { DistanceFormatter.toKm(it, distanceUnit) }
                     }
 
                     if (updatedDistance == null) {
@@ -1498,10 +1513,14 @@ fun EditTripDialog(
                             endLat = endLat,
                             endLon = endLon,
                             vehicleId = selectedVehicle?.id,
-                            endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else trip.endOdometer
+                            endOdometer = if (isOdometerModeEnabled) {
+                                odometerText.toDoubleOrNull()?.let { DistanceFormatter.toKm(it, distanceUnit) }
+                            } else {
+                                trip.endOdometer
+                            }
                         ) ?: Trip(
-                            startLoc = startText, // Pass String directly
-                            endLoc = endText, // Pass String directly
+                            startLoc = startText,
+                            endLoc = endText,
                             distance = updatedDistance,
                             type = tripType,
                             description = description,
@@ -1513,7 +1532,11 @@ fun EditTripDialog(
                             endLon = endLon,
                             isConfirmed = true, // Default for manual add/edit
                             vehicleId = selectedVehicle?.id,
-                            endOdometer = if (isOdometerModeEnabled) odometerText.toDoubleOrNull() else null
+                            endOdometer = if (isOdometerModeEnabled) {
+                                odometerText.toDoubleOrNull()?.let { DistanceFormatter.toKm(it, distanceUnit) }
+                            } else {
+                                null
+                            }
                         )
                         scope.launch { sheetState.hide() }.invokeOnCompletion {
                             if (!sheetState.isVisible) {
@@ -1534,7 +1557,8 @@ fun TripItem(
     onClick: () -> Unit,
     expenseTrackingEnabled: Boolean,
     expenseRatePerKm: Float,
-    expenseCurrency: String
+    expenseCurrency: String,
+    distanceUnit: ch.opum.tricktrack.data.DistanceUnit
 ) {
     val trip = tripWithVehicle.trip
     Card(
@@ -1592,7 +1616,7 @@ fun TripItem(
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = stringResource(R.string.trip_distance_label, trip.distance),
+                            text = DistanceFormatter.format(trip.distance, distanceUnit),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )

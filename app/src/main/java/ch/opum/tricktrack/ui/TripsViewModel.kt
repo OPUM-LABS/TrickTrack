@@ -19,7 +19,9 @@ import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripNotificationManager
+import ch.opum.tricktrack.util.DistanceFormatter
 import ch.opum.tricktrack.data.CompanyEntity
+import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
@@ -92,6 +94,13 @@ class TripsViewModel(
     private val distanceRepository = DistanceRepository(application)
     var isCalculating by mutableStateOf(value = false)
     var distanceInput by mutableStateOf("")
+
+    val distanceUnit: StateFlow<DistanceUnit> = userPreferencesRepository.distanceUnit
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DistanceUnit.KM
+        )
 
     private val _filterState = MutableStateFlow(FilterState())
     val filterState = _filterState.stateIn(
@@ -255,13 +264,14 @@ class TripsViewModel(
     )
 
     // New StateFlow for total distance label
-    val totalDistanceLabel: StateFlow<String> = confirmedTrips.map { filteredTrips ->
+    val totalDistanceLabel: StateFlow<String> = combine(confirmedTrips, distanceUnit) { filteredTrips, unit ->
         val total = filteredTrips.sumOf { it.trip.distance }
-        getApplication<Application>().getString(R.string.filtered_distance_label, total)
+        val formatted = DistanceFormatter.formatShort(total, unit)
+        getApplication<Application>().getString(R.string.filtered_distance_label, formatted)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = getApplication<Application>().getString(R.string.filtered_distance_label, 0.0)
+        initialValue = ""
     )
 
     val tripCountLabel: StateFlow<String> = confirmedTrips.map { filteredTrips ->
@@ -622,13 +632,15 @@ class TripsViewModel(
                         geocoder.getFromLocationName(endAddress, 1)
                     }
 
-                    if (startAddresses != null && endAddresses != null && startAddresses.isNotEmpty() && endAddresses.isNotEmpty()) {
+                    if (startAddresses != null && (endAddresses != null) && startAddresses.isNotEmpty() && endAddresses.isNotEmpty()) {
                         val start = startAddresses[0]
                         val end = endAddresses[0]
                         val distance = distanceRepository.getDrivingDistance(start.latitude, start.longitude, end.latitude, end.longitude)
                         withContext(Dispatchers.Main) {
                             distance?.let {
-                                distanceInput = "%.2f".format(it)
+                                val unit = distanceUnit.value
+                                val converted = DistanceFormatter.convert(it, unit)
+                                distanceInput = "%.2f".format(converted)
                             }
                         }
                     }
@@ -771,15 +783,17 @@ class TripsViewModel(
             var updatedTrip = trip.copy(type = typeString, isConfirmed = true, description = description)
             
             if (endOdometer != null && trip.vehicleId != null) {
+                val unit = distanceUnit.first()
+                val endOdometerKm = DistanceFormatter.toKm(endOdometer, unit)
                 val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
                 if (vehicle != null) {
-                    val distance = endOdometer - vehicle.currentOdometer
+                    val distance = endOdometerKm - vehicle.currentOdometer
                     updatedTrip = updatedTrip.copy(
                         distance = if (distance > 0) distance else updatedTrip.distance,
-                        endOdometer = endOdometer
+                        endOdometer = endOdometerKm
                     )
                     // Update vehicle odometer
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = endOdometer))
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = endOdometerKm))
                 }
             }
             
@@ -888,7 +902,8 @@ class TripsViewModel(
                     expenseCurrency = currency,
                     driverName = if (includeDriver) selectedDriver?.name else null,
                     companyName = if (includeCompany) selectedCompany?.name else null,
-                    vehicleName = if (filter.vehicleIds.size == 1) selectedVehicle?.licensePlate else null
+                    vehicleName = if (filter.vehicleIds.size == 1) selectedVehicle?.licensePlate else null,
+                    distanceUnit = distanceUnit.value
                 )
             }
             pdfFile?.let {
@@ -1037,6 +1052,12 @@ class TripsViewModel(
         viewModelScope.launch {
             userPreferencesRepository.setDistanceMonitoringRadius(radius)
             applyScheduleChanges()
+        }
+    }
+
+    fun setDistanceUnit(unit: DistanceUnit) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDistanceUnit(unit)
         }
     }
 

@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.logging.AppLogger
+import ch.opum.tricktrack.util.DistanceFormatter
 
 object TripNotificationManager {
 
@@ -43,8 +44,9 @@ object TripNotificationManager {
      *
      * @param context The context.
      * @param trip The trip to be reviewed.
+     * @param distanceUnit The user's preferred distance unit.
      */
-    fun sendTripReviewNotification(context: Context, trip: Trip) {
+    fun sendTripReviewNotification(context: Context, trip: Trip, distanceUnit: ch.opum.tricktrack.data.DistanceUnit) {
         // Ensure CHANNEL_ID is initialized before use
         if (!this::CHANNEL_ID.isInitialized) {
             // This case should ideally not happen if createNotificationChannel is called first.
@@ -75,7 +77,8 @@ object TripNotificationManager {
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val contentText = context.getString(R.string.notification_content_text, trip.startLoc, trip.endLoc, trip.distance)
+        val formattedDistance = DistanceFormatter.formatShort(trip.distance, distanceUnit)
+        val contentText = context.getString(R.string.notification_content_text, trip.startLoc, trip.endLoc, formattedDistance)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.tricktrack_outline) // Using launcher foreground as a safe fallback
