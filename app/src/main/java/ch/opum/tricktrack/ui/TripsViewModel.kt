@@ -257,11 +257,19 @@ class TripsViewModel(
     // New StateFlow for total distance label
     val totalDistanceLabel: StateFlow<String> = confirmedTrips.map { filteredTrips ->
         val total = filteredTrips.sumOf { it.trip.distance }
-        "Total: %.1f km".format(total)
+        getApplication<Application>().getString(R.string.filtered_distance_label, total)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = "Total: 0.0 km"
+        initialValue = getApplication<Application>().getString(R.string.filtered_distance_label, 0.0)
+    )
+
+    val tripCountLabel: StateFlow<String> = confirmedTrips.map { filteredTrips ->
+        getApplication<Application>().getString(R.string.filtered_trips_label, filteredTrips.size)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = getApplication<Application>().getString(R.string.filtered_trips_label, 0)
     )
 
     val isTracking: StateFlow<Boolean> = LocationService.isTracking

@@ -199,6 +199,8 @@
     <string name="trip_distance_label">%.2f km</string>
     <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Description</string>
+    <string name="filtered_distance_label">Distance: %.1f km</string>
+    <string name="filtered_trips_label">Trips: %d</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Trip Review Updates</string>

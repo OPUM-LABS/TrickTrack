@@ -242,6 +242,7 @@ fun MainScreen(
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
     val totalDistanceLabel by tripsViewModel.totalDistanceLabel.collectAsState()
+    val tripCountLabel by tripsViewModel.tripCountLabel.collectAsState()
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -584,6 +585,7 @@ fun MainScreen(
                     tripsViewModel = tripsViewModel,
                     onTripClick = { trip -> selectedTripToEdit = trip },
                     totalDistanceLabel = totalDistanceLabel,
+                    tripCountLabel = tripCountLabel,
                     onStartTrip = {
                         foregroundLocationPermissionLauncher.launch(
                             arrayOf(
@@ -624,6 +626,7 @@ fun TripScreen(
     tripsViewModel: TripsViewModel,
     onTripClick: (Trip) -> Unit,
     totalDistanceLabel: String,
+    tripCountLabel: String,
     onStartTrip: () -> Unit,
     navController: androidx.navigation.NavHostController
 ) {
@@ -657,6 +660,11 @@ fun TripScreen(
                         text = totalDistanceLabel,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = tripCountLabel,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (expenseTrackingEnabled) {
                         Text(
