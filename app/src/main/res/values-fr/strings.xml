@@ -7,6 +7,7 @@
     <string name="settings_diagnostics_title">Diagnostics</string>
     <string name="settings_diagnostics_description">Vérifiez les autorisations et l\'état du système.</string>
     <string name="settings_appearance_title">Apparence</string>
+    <string name="settings_appearance_description">Changer le thème de l\'application et le style visuel.</string>
     <string name="settings_theme_system">Système</string>
     <string name="settings_theme_light">Clair</string>
     <string name="settings_theme_dark">Sombre</string>

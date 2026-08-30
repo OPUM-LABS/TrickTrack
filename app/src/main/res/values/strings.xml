@@ -6,6 +6,7 @@
     <string name="settings_diagnostics_title">Diagnostics</string>
     <string name="settings_diagnostics_description">Check permissions and system health.</string>
     <string name="settings_appearance_title">Appearance</string>
+    <string name="settings_appearance_description">Change app theme and visual style.</string>
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>

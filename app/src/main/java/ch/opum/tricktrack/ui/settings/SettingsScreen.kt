@@ -545,6 +545,7 @@ fun SettingsScreen(
 
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_appearance_title),
+            description = stringResource(R.string.settings_appearance_description),
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(

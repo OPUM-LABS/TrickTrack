@@ -7,6 +7,7 @@
     <string name="settings_diagnostics_title">Diagnostica</string>
     <string name="settings_diagnostics_description">Controlla le autorizzazioni e lo stato di integrità del sistema.</string>
     <string name="settings_appearance_title">Aspetto</string>
+    <string name="settings_appearance_description">Cambia il tema dell\'app e lo stile visivo.</string>
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_theme_light">Chiaro</string>
     <string name="settings_theme_dark">Scuro</string>
