@@ -567,7 +567,15 @@ fun SettingsScreen(
                                     count = themeOptions.size
                                 ),
                                 onClick = { viewModel.setThemeMode(mode) },
-                                selected = themeMode == mode
+                                selected = themeMode == mode,
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = MaterialTheme.colorScheme.primary,
+                                    inactiveContainerColor = Color.Transparent,
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outline
+                                )
                             ) {
                                 Text(label)
                             }
@@ -947,6 +955,14 @@ fun SettingsScreen(
                                 ),
                                 onClick = { viewModel.setDefaultTripType(index == 0) },
                                 selected = (index == 0) == defaultIsBusiness,
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = MaterialTheme.colorScheme.primary,
+                                    inactiveContainerColor = Color.Transparent,
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outline
+                                ),
                                 icon = {
                                     Icon(
                                         imageVector = icons[index],

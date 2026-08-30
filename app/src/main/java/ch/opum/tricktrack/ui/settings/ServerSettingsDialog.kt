@@ -48,8 +48,8 @@ fun ServerSettingsDialog(
     var photonTestColor by remember { mutableStateOf(Color.Unspecified) }
     var isPhotonValid by remember { mutableStateOf(false) }
 
-    val errorColor = MaterialTheme.colorScheme.error
-    val successColor = MaterialTheme.colorScheme.primary
+    val errorColor = Color(0xFFB00020)
+    val successColor = Color(0xFF4CAF50)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

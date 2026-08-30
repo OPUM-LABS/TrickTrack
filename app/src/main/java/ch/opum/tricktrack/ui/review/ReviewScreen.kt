@@ -24,6 +24,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -339,6 +340,14 @@ fun ReviewTripCard(
                             ),
                             onClick = { selectedType = if (index == 0) TripType.BUSINESS else TripType.PERSONAL },
                             selected = (index == 0) == (selectedType == TripType.BUSINESS),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                                inactiveContainerColor = Color.Transparent,
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                inactiveBorderColor = MaterialTheme.colorScheme.outline
+                            ),
                             icon = {
                                 Icon(
                                     imageVector = icons[index],

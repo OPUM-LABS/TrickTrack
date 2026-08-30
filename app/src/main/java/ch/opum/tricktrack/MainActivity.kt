@@ -1349,6 +1349,14 @@ fun EditTripDialog(
                         ),
                         onClick = { tripType = if (index == 0) "Business" else "Personal" },
                         selected = (if (index == 0) "Business" else "Personal") == tripType,
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            activeBorderColor = MaterialTheme.colorScheme.primary,
+                            inactiveContainerColor = Color.Transparent,
+                            inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            inactiveBorderColor = MaterialTheme.colorScheme.outline
+                        ),
                         icon = {
                             Icon(
                                 imageVector = icons[index],
