@@ -86,7 +86,7 @@ class TripsViewModel(
     private val repository: TripRepository,
     val userPreferencesRepository: UserPreferencesRepository,
     private val geocoderHelper: GeocoderHelper, // Inject GeocoderHelper
-    private val favouritesRepository: FavouritesRepository
+    private val favouritesRepository: FavouritesRepository,
 ) : AndroidViewModel(application) {
 
     private val distanceRepository = DistanceRepository(application)
@@ -97,12 +97,12 @@ class TripsViewModel(
     val filterState = _filterState.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = FilterState()
+        initialValue = FilterState(),
     )
 
     val isFilterActive: StateFlow<Boolean> = _filterState.map {
         (it.type != TripType.ALL) || it.keyword.isNotEmpty() || (it.startDate != null) || (it.endDate != null) || it.vehicleIds.isNotEmpty()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = false)
 
     val confirmedTrips = combine(repository.confirmedTrips, _filterState) { allTrips, filter ->
         allTrips.filter { tripWithVehicle ->
@@ -138,7 +138,7 @@ class TripsViewModel(
             val matchesVehicle = if (filter.vehicleIds.isEmpty()) {
                 true
             } else {
-                trip.vehicleId != null && filter.vehicleIds.contains(trip.vehicleId)
+                (trip.vehicleId != null) && filter.vehicleIds.contains(trip.vehicleId)
             }
 
             matchesType && matchesKeyword && matchesStartDate && matchesEndDate && matchesVehicle
@@ -146,7 +146,7 @@ class TripsViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+        initialValue = emptyList(),
     )
 
     val groupedTrips: StateFlow<List<TripGroup>> = combine(
@@ -155,7 +155,7 @@ class TripsViewModel(
         userPreferencesRepository.smartLocationRadius
     ) { trips, isSmartLocationEnabled, smartLocationRadius ->
         val savedPlaces = repository.getSavedPlacesList()
-        trips.map { item ->
+        trips.asSequence().map { item ->
             val trip = item.trip
             val smartStart = geocoderHelper.getSmartAddress(
                 originalAddress = trip.startLoc,
@@ -191,11 +191,11 @@ class TripsViewModel(
                 trips = tripsOnDate,
                 totalDistance = tripsOnDate.sumOf { it.trip.distance }
             )
-        }.sortedByDescending { it.date }.toList()
+        }.sortedByDescending { it.date }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+        initialValue = emptyList<TripGroup>(),
     )
 
     val unconfirmedTrips: StateFlow<List<TripWithVehicle>> = repository.unconfirmedTrips
@@ -251,7 +251,7 @@ class TripsViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+        initialValue = emptyList<TripGroup>(),
     )
 
     // New StateFlow for total distance label
@@ -295,8 +295,8 @@ class TripsViewModel(
 
         val first = enabledDays.values.first()
         val allSame = enabledDays.values.all {
-            it.startHour == first.startHour && it.startMinute == first.startMinute &&
-                    it.endHour == first.endHour && it.endMinute == first.endMinute
+            (it.startHour == first.startHour) && (it.startMinute == first.startMinute) &&
+                    (it.endHour == first.endHour) && (it.endMinute == first.endMinute)
         }
 
         val timeRange = "${formatTime(first.startHour, first.startMinute)}–${
@@ -307,11 +307,14 @@ class TripsViewModel(
         }"
 
         if (allSame) {
-            when {
-                enabledDays.size == 7 -> getApplication<Application>().getString(R.string.settings_schedule_daily, timeRange)
-                enabledDays.size == 5 &&
-                        enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
-                        enabledDays.containsKey(java.time.DayOfWeek.FRIDAY) -> getApplication<Application>().getString(R.string.settings_schedule_mon_fri, timeRange)
+            when (enabledDays.size) {
+                7 -> getApplication<Application>().getString(R.string.settings_schedule_daily, timeRange)
+                5 -> if (enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
+                        enabledDays.containsKey(java.time.DayOfWeek.FRIDAY)) {
+                    getApplication<Application>().getString(R.string.settings_schedule_mon_fri, timeRange)
+                } else {
+                    getApplication<Application>().getString(R.string.settings_schedule_days_count, enabledDays.size, timeRange)
+                }
                 else -> getApplication<Application>().getString(R.string.settings_schedule_days_count, enabledDays.size, timeRange)
             }
         } else {
@@ -324,7 +327,7 @@ class TripsViewModel(
     }
 
     val isAutoTrackingEnabled: StateFlow<Boolean> = userPreferencesRepository.isAutoTrackingEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = false)
 
     val isBluetoothTriggerEnabled: StateFlow<Boolean> = userPreferencesRepository.bluetoothTriggerEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -735,7 +738,7 @@ class TripsViewModel(
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteTrip(trip)
-            TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
+            TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
         }
     }
 
@@ -773,7 +776,7 @@ class TripsViewModel(
             }
             
             repository.updateTrip(updatedTrip)
-            TripNotificationManager.cancelTripNotification(getApplication<Application>(), trip.id)
+            TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
         }
     }
 

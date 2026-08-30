@@ -72,7 +72,7 @@ object TripNotificationManager {
         }
 
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
         val contentText = context.getString(R.string.notification_content_text, trip.startLoc, trip.endLoc, trip.distance)

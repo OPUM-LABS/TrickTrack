@@ -134,7 +134,7 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
 
     var currentTrackingMode by remember { mutableStateOf(TrackingMode.AUTO) }
     var onSuccessCallback by remember { mutableStateOf<(() -> Unit)?>(null) }
-    var isRequestingLocation by remember { mutableStateOf(false) }
+    var isRequestingLocation by remember { mutableStateOf(value = false) }
 
     var checkAndRequest: ((TrackingMode, () -> Unit) -> Unit)? by remember { mutableStateOf(null) }
 
@@ -229,7 +229,7 @@ fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
 private fun hasForegroundLocationPermission(context: Context): Boolean {
     return (ContextCompat.checkSelfPermission(
         context,
-        Manifest.permission.ACCESS_FINE_LOCATION
+        Manifest.permission.ACCESS_FINE_LOCATION,
     ) == PackageManager.PERMISSION_GRANTED) || (ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.ACCESS_COARSE_LOCATION
@@ -259,7 +259,7 @@ private fun hasBluetoothPermissions(context: Context): Boolean {
 }
 
 private fun needsBluetoothPermission(trackingMode: TrackingMode): Boolean {
-    return trackingMode == TrackingMode.BLUETOOTH || trackingMode == TrackingMode.BOTH
+    return (trackingMode == TrackingMode.BLUETOOTH) || (trackingMode == TrackingMode.BOTH)
 }
 
 private fun requestForegroundLocation(launcher: ActivityResultLauncher<Array<String>>) {

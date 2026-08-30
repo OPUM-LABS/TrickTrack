@@ -37,9 +37,9 @@ fun ExpandableSettingsGroup(
     modifier: Modifier = Modifier,
     description: String? = null,
     icon: ImageVector? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(value = false) }
     val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
 
     Card(
@@ -54,9 +54,9 @@ fun ExpandableSettingsGroup(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (icon != null) {
+                icon?.let {
                     Icon(
-                        imageVector = icon,
+                        imageVector = it,
                         contentDescription = null,
                         modifier = Modifier.padding(end = 16.dp)
                     )

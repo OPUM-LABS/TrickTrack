@@ -137,7 +137,7 @@ class LocationService : Service() {
 
     private suspend fun evaluateTrackingState() {
         // If a manual trip is active, we don't interfere with it.
-        if (_isTracking.value && _currentTripTrigger.value == TripTrigger.MANUAL) {
+        if (_isTracking.value && (_currentTripTrigger.value == TripTrigger.MANUAL)) {
             AppLogger.log("LocationService", "Manual trip active, not evaluating automatic/bluetooth state.")
             return
         }
@@ -193,7 +193,7 @@ class LocationService : Service() {
 
     private suspend fun isWithinSchedule(): Boolean {
         val now = Calendar.getInstance()
-        val currentDayOfWeek = when (now.get(Calendar.DAY_OF_WEEK)) {
+        val currentDayOfWeek = when (now[Calendar.DAY_OF_WEEK]) {
             Calendar.MONDAY -> java.time.DayOfWeek.MONDAY
             Calendar.TUESDAY -> java.time.DayOfWeek.TUESDAY
             Calendar.WEDNESDAY -> java.time.DayOfWeek.WEDNESDAY
@@ -261,7 +261,7 @@ class LocationService : Service() {
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
-            Looper.getMainLooper()
+            Looper.getMainLooper(),
         )
     }
 
@@ -312,7 +312,7 @@ class LocationService : Service() {
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
-            Looper.getMainLooper()
+            Looper.getMainLooper(),
         )
     }
 

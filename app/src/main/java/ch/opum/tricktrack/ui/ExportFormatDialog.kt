@@ -25,13 +25,13 @@ fun ExportFormatDialog(
     onDismiss: () -> Unit,
     onExportCsvClicked: () -> Unit,
     onExportPdfClicked: () -> Unit,
-    viewModel: TripsViewModel
+    viewModel: TripsViewModel,
 ) {
     val drivers by viewModel.allDrivers.collectAsState()
     val companies by viewModel.allCompanies.collectAsState()
     val vehicles by viewModel.allVehicles.collectAsState()
 
-    var driverExpanded by remember { mutableStateOf(false) }
+    var driverExpanded by remember { mutableStateOf(value = false) }
     var companyExpanded by remember { mutableStateOf(false) }
     var vehicleExpanded by remember { mutableStateOf(false) }
 
@@ -51,7 +51,9 @@ fun ExportFormatDialog(
     if (showConfigDialog) {
         ExportConfigDialog(
             viewModel = viewModel,
-            onDismiss = { showConfigDialog = false }
+            onDismiss = {
+                showConfigDialog = false
+            },
         )
     }
 

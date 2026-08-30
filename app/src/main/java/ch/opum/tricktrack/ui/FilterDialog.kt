@@ -19,7 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
@@ -75,7 +74,7 @@ fun FilterDialog(
     currentFilterState: FilterState,
     allVehicles: List<VehicleEntity>,
     onApplyFilter: (FilterState) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     var keyword by remember { mutableStateOf(currentFilterState.keyword) }
     var selectedType by remember { mutableStateOf(currentFilterState.type.takeIf { it != TripType.ALL }) }
@@ -83,7 +82,7 @@ fun FilterDialog(
     var endDate by remember { mutableStateOf(currentFilterState.endDate) }
     var selectedVehicleIds by remember { mutableStateOf(currentFilterState.vehicleIds) }
 
-    var showRangePicker by remember { mutableStateOf(false) }
+    var showRangePicker by remember { mutableStateOf(value = false) }
     var vehicleExpanded by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -109,7 +108,7 @@ fun FilterDialog(
             
             Spacer(modifier = Modifier.height(24.dp))
 
-            ClearableTextField( // Using ClearableTextField
+            ClearableTextField(
                 value = keyword,
                 onValueChange = { keyword = it },
                 label = { Text(stringResource(R.string.filter_keyword_label)) },
@@ -239,7 +238,9 @@ fun FilterDialog(
             DateRangeSelectionField(
                 startDate = startDate,
                 endDate = endDate,
-                onClick = { showRangePicker = true }
+                onClick = {
+                showRangePicker = true
+            }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -264,12 +265,13 @@ fun FilterDialog(
                     DialogAcceptButton(onClick = {
                         val endOfDay = endDate?.let {
                             val calendar = Calendar.getInstance()
-                            calendar.timeInMillis = it
-                            calendar.set(Calendar.HOUR_OF_DAY, 23)
-                            calendar.set(Calendar.MINUTE, 59)
-                            calendar.set(Calendar.SECOND, 59)
-                            calendar.set(Calendar.MILLISECOND, 999)
-                            calendar.timeInMillis
+                            calendar.apply {
+                                timeInMillis = it
+                                set(Calendar.HOUR_OF_DAY, 23)
+                                set(Calendar.MINUTE, 59)
+                                set(Calendar.SECOND, 59)
+                                set(Calendar.MILLISECOND, 999)
+                            }.timeInMillis
                         }
 
                         val newState = FilterState(
@@ -356,7 +358,7 @@ fun DateRangeSelectionField(
     onClick: () -> Unit
 ) {
     val formatter = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale)
-    val dateText = if (startDate != null && endDate != null) {
+    val dateText = if ((startDate != null) && (endDate != null)) {
         "${formatter.format(Date(startDate))} - ${formatter.format(Date(endDate))}"
     } else if (startDate != null) {
         formatter.format(Date(startDate))

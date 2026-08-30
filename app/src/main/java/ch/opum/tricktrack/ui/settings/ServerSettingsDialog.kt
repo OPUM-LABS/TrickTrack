@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ServerSettingsDialog(
     onDismiss: () -> Unit,
-    context: Context
+    context: Context,
 ) {
     val appPreferences = remember { AppPreferences(context) }
     val serverValidator = remember { ServerValidator() }
@@ -40,9 +40,9 @@ fun ServerSettingsDialog(
     var osrmUrlInput by remember { mutableStateOf(appPreferences.getOsrmUrl()) }
     var photonUrlInput by remember { mutableStateOf(appPreferences.getPhotonUrl()) }
 
-    var osrmTestIcon by remember { mutableStateOf<ImageVector>(Icons.Default.Refresh) }
+    var osrmTestIcon by remember { mutableStateOf(Icons.Default.Refresh) }
     var osrmTestColor by remember { mutableStateOf(Color.Unspecified) }
-    var isOsrmValid by remember { mutableStateOf(false) }
+    var isOsrmValid by remember { mutableStateOf(value = false) }
 
     var photonTestIcon by remember { mutableStateOf<ImageVector>(Icons.Default.Refresh) }
     var photonTestColor by remember { mutableStateOf(Color.Unspecified) }

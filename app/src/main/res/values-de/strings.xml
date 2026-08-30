@@ -22,14 +22,10 @@
     <string name="settings_odometer_mode_description">Endkilometerstand manuell eingeben, um die Fahrstrecke zu berechnen.</string>
     <string name="settings_bluetooth_trigger_title">Start bei Bluetooth-Verbindung</string>
     <string name="settings_bluetooth_trigger_description">Startet die Verfolgung automatisch, wenn ein ausgewähltes Bluetooth-Gerät verbunden wird.</string>
-    <string name="settings_bluetooth_select_device">Gerät auswählen</string>
-    <string name="settings_bluetooth_change_device">Gerät ändern</string>
     <string name="settings_smart_location_snapping_title">Intelligente Standort-Anpassung</string>
     <string name="settings_smart_location_snapping_description">Verwendet Favoritennamen für Adressen in der Nähe von gespeicherten Orten.</string>
     <string name="settings_smart_location_radius_label">Erfassungsradius (Meter)</string>
     <string name="settings_schedule_title">Zeitplan für automatische Verfolgung</string>
-    <string name="settings_schedule_description">Tippen, um den täglichen Zeitplan zu bearbeiten</string>
-    <string name="settings_schedule_edit_cd">Zeitplan bearbeiten</string>
     <string name="settings_default_type_title">Standardtyp</string>
     <string name="trip_type_business">Geschäftlich</string>
     <string name="trip_type_personal">Privat</string>
@@ -39,13 +35,10 @@
     <string name="settings_export_fields_title">Exportfelder konfigurieren</string>
     <string name="settings_export_fields_configure_cd">Export konfigurieren</string>
     <string name="settings_enable_schedule_title">Zeitplan aktivieren</string>
-    <string name="settings_enable_schedule_description">Lassen Sie den Zeitplan das Tracking steuern</string>
-    <string name="settings_controlled_by_schedule">Vom Zeitplan gesteuert</string>
     <string name="settings_advanced_settings_title">Erweiterte Einstellungen</string>
     <string name="settings_advanced_settings_description">Konfigurieren Sie API-URLs und andere erweiterte Optionen.</string>
     <string name="settings_stillness_timer_label">Stillstand-Timer (Sekunden)</string>
     <string name="settings_min_speed_label">Mindestgeschwindigkeit (km/h)</string>
-    <string name="settings_all_days">Alle Tage</string>
     <string name="settings_backup_restore_title">Sicherung und Wiederherstellung</string>
     <string name="settings_backup_restore_description">Verwalten Sie Ihre Datensicherungen.</string>
     <string name="settings_tracking_defaults_title">Tracking-Standardeinstellungen</string>
@@ -115,21 +108,12 @@
     <string name="export_column_expenses">Kosten</string>
 
     <!-- Schedule Settings Dialog -->
-    <string name="schedule_select_start_time">Startzeit für %1$s auswählen</string>
-    <string name="schedule_select_end_time">Endzeit für %1$s auswählen</string>
-    <string name="schedule_loading">Zeitplan wird geladen…</string>
     <string name="schedule_from">Von:</string>
     <string name="schedule_to">Bis:</string>
-    <string name="schedule_reset_cd">Zurücksetzen</string>
-    <string name="schedule_reset_times">Zeiten zurücksetzen</string>
     <string name="schedule_weekdays">Wochentage</string>
     <string name="schedule_weekend">Wochenende</string>
     <string name="schedule_all_days">Alle Tage</string>
     <string name="schedule_customize_individual_days">Einzelne Tage anpassen</string>
-    <string name="button_apply">Anwenden</string>
-    <string name="schedule_target_automatic">Automatisch</string>
-    <string name="schedule_target_bluetooth">Bluetooth</string>
-    <string name="schedule_target_both">Beide</string>
 
     <!-- Menu Navigation -->
 
@@ -164,8 +148,6 @@
     <!-- Permission Dialog -->
     <string name="permission_status_title">Berechtigungsstatus</string>
     <string name="permission_granted_cd">Gewährt</string>
-    <string name="permission_denied_cd">Verweigert</string>
-    <string name="open_settings_button">Einstellungen öffnen</string>
     <string name="permission_precise_location">Genauer Standort</string>
     <string name="permission_background_location">Standort im Hintergrund</string>
     <string name="permission_bluetooth">Bluetooth</string>
@@ -177,8 +159,6 @@
     <string name="filter_keyword_label">Stichwort</string>
     <string name="filter_trip_type_label">Fahrttyp:</string>
     <string name="filter_trip_type_all">Alle</string>
-    <string name="filter_start_date_label">Startdatum</string>
-    <string name="filter_end_date_label">Enddatum</string>
     <string name="filter_reset_button">Zurücksetzen</string>
 
     <!-- Edit Trip Dialog -->
@@ -192,15 +172,12 @@
     <string name="distance_km_label">Distanz</string>
     <string name="description_optional_label">Beschreibung (optional)</string>
     <string name="delete_trip_cd">Fahrt löschen</string>
-    <string name="button_add">Hinzufügen</string>
     <string name="end_time_before_start_time_toast">Die Endzeit darf nicht vor der Startzeit liegen.</string>
     <string name="calculate_distance_button">Berechnen</string>
     <string name="delete_filtered_trips_title">Gefilterte Fahrten löschen?</string>
     <string name="delete_filtered_trips_confirmation">Möchten Sie wirklich alle Fahrten löschen, die dem aktuellen Filter entsprechen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
 
     <!-- Trip Summary Dialog -->
-    <string name="trip_summary_title">Fahrtzusammenfassung</string>
-    <string name="total_distance_label">Gesamtdistanz: %.2f km</string>
 
     <!-- Trip Screen -->
     <string name="expenses_label">Ausgaben: %1$.2f %2$s</string>
@@ -214,7 +191,6 @@
     <string name="trip_distance_label">%.2f km</string>
     <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Beschreibung</string>
-    <string name="automatic_trip_cd">Automatische Fahrt</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Fahrtüberprüfungs-Updates</string>
@@ -268,14 +244,7 @@
     <string name="photon_server_url">Photon-Server-URL</string>
     <string name="settings_osrm_server">OSRM-Server</string>
     <string name="settings_photon_geocoder">Photon-Geocoder</string>
-    <string name="osrm_connection_failed">OSRM-Verbindung fehlgeschlagen</string>
-    <string name="photon_connection_failed">Photon-Verbindung fehlgeschlagen</string>
     <string name="reset_to_defaults">Auf Standardwerte zurücksetzen</string>
-    <string name="cancel">Abbrechen</string>
-    <string name="reset_to_defaults_message_osrm">OSRM-URL auf Standard zurückgesetzt.</string>
-    <string name="reset_to_defaults_message_photon">Photon-URL auf Standard zurückgesetzt.</string>
-    <string name="server_valid">Server gültig!</string>
-    <string name="servers_saved_successfully">Server-URLs erfolgreich gespeichert!</string>
     <string name="test_server">Test</string>
     <string name="export_column_driver">Fahrer hinzufügen</string>
     <string name="export_column_company">Unternehmen hinzufügen</string>

@@ -77,7 +77,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
             Text(
                 stringResource(R.string.review_no_trips), 
                 style = MaterialTheme.typography.bodyLarge, 
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     } else {
@@ -320,7 +320,7 @@ fun ReviewTripCard(
                     }
                 }
 
-                if (isOdometerModeEnabled && selectedVehicle != null) {
+                if (isOdometerModeEnabled && (selectedVehicle != null)) {
                     val calcDistance = (odometerValue - selectedVehicle!!.currentOdometer).coerceAtLeast(0.0)
                     Text(
                         text = "Calculated: %.2f km".format(calcDistance),

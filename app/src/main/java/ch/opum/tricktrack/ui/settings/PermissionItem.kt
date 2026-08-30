@@ -13,7 +13,7 @@ sealed class PermissionRequirement(
     val titleRes: Int,
     val descriptionRes: Int,
     val icon: ImageVector,
-    val permission: String? = null
+    val permission: String? = null,
 ) {
     object PreciseLocation : PermissionRequirement(
         "precise_location",
@@ -69,11 +69,5 @@ data class PermissionStatus(
 
 sealed class PermissionHealthState {
     object AllGranted : PermissionHealthState()
-    data class Missing(val missing: List<PermissionStatus>) : PermissionHealthState()
+    data class Missing(@Suppress("unused") val missing: List<PermissionStatus>) : PermissionHealthState()
 }
-
-// Keep the old PermissionItem for compatibility until refactor is complete
-data class PermissionItem(
-    val name: String,
-    val isGranted: Boolean
-)

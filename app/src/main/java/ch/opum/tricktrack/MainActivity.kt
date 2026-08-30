@@ -177,11 +177,13 @@ class MainActivity : ComponentActivity() {
         _currentIntent.value = intent // Set initial intent
 
         setContent {
-            val tripsViewModel: TripsViewModel = viewModel(factory = ViewModelFactory(
-                getApplication(),
-                (application as TripApplication).repository,
-                (application as TripApplication).userPreferencesRepository
-            ))
+            val tripsViewModel: TripsViewModel = viewModel(
+                factory = ViewModelFactory(
+                    application,
+                    (application as TripApplication).repository,
+                    (application as TripApplication).userPreferencesRepository,
+                ),
+            )
             val themeMode by tripsViewModel.themeMode.collectAsState()
 
             TrickTrackTheme(themeMode = themeMode) {
@@ -257,7 +259,7 @@ fun MainScreen(
                 Intent.createChooser(
                     shareIntent,
                     "Share trips PDF"
-                )
+                ),
             )
         }
     }
@@ -299,8 +301,8 @@ fun MainScreen(
     var selectedPlaceToEdit by remember { mutableStateOf<SavedPlace?>(null) }
 
     // State for Settings dialogs
-    var showLogsDialog by remember { mutableStateOf(false) }
-    var showAboutDialog by remember { mutableStateOf(false) }
+    var showLogsDialog by remember { mutableStateOf(value = false) }
+    var showAboutDialog by remember { mutableStateOf(value = false) }
 
 
     val backgroundLocationPermissionLauncher = rememberLauncherForActivityResult(
@@ -315,7 +317,7 @@ fun MainScreen(
     val foregroundLocationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
     ) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+        if ((permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) || (permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true)) {
             tripsViewModel.startTracking(TripTrigger.MANUAL)
         } else {
             Toast.makeText(
@@ -536,7 +538,7 @@ fun MainScreen(
                 items.forEach { screen ->
                     NavigationBarItem(
                         icon = {
-                            if (screen is Screen.Review && unconfirmedTrips.isNotEmpty()) {
+                            if ((screen is Screen.Review) && unconfirmedTrips.isNotEmpty()) {
                                 BadgedBox(
                                     badge = {
         Badge(
@@ -904,15 +906,16 @@ fun EditTripDialog(
 
     val allVehicles by tripsViewModel.allVehicles.collectAsState()
     var selectedVehicle by remember(trip, allVehicles) {
-        mutableStateOf(trip?.vehicleId?.let { id -> allVehicles.find { it.id == id } }
-            ?: tripsViewModel.selectedVehicle)
+        mutableStateOf(
+            value = trip?.vehicleId?.let { id -> allVehicles.find { it.id == id } }
+                ?: tripsViewModel.selectedVehicle
+        )
     }
     var vehicleExpanded by remember { mutableStateOf(false) }
 
     // Use the ViewModel's distanceInput for the text field
     var distanceText by remember(tripsViewModel.distanceInput) { mutableStateOf(tripsViewModel.distanceInput) }
 
-    // When in edit mode, initialize with the trip's distance
     LaunchedEffect(trip) {
         trip?.let {
             distanceText = "%.2f".format(it.distance)
@@ -936,8 +939,8 @@ fun EditTripDialog(
 
     // State for Start Date and Time
     val startCalendar = Calendar.getInstance().apply {
-        if (trip != null) {
-            time = trip.date
+        trip?.let {
+            time = it.date
         }
     }
     val selectedStartDate = remember { mutableStateOf(startCalendar) }
@@ -946,15 +949,15 @@ fun EditTripDialog(
 
     // State for End Time
     val endCalendar = Calendar.getInstance().apply {
-        if (trip != null) {
-            timeInMillis = trip.endDate
-        } else {
+        trip?.let {
+            timeInMillis = it.endDate
+        } ?: run {
             time = startCalendar.time
             add(Calendar.MINUTE, 15)
         }
     }
     val selectedEndDate = remember { mutableStateOf(endCalendar) }
-    val showEndTimePicker = remember { mutableStateOf(false) }
+    val showEndTimePicker = remember { mutableStateOf(value = false) }
 
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
@@ -1132,7 +1135,7 @@ fun EditTripDialog(
             }
             Spacer(modifier = Modifier.height(8.dp))
             Box(modifier = Modifier.fillMaxWidth()) {
-                ClearableTextField( // Using ClearableTextField
+                ClearableTextField(
                     value = startText,
                     onValueChange = {
                         startText = it
@@ -1260,9 +1263,9 @@ fun EditTripDialog(
             if (isOdometerModeEnabled) {
                 OutlinedTextField(
                     value = odometerText,
-                    onValueChange = { 
-                        if (it.length <= 8 && it.all { char -> char.isDigit() }) {
-                            odometerText = it 
+                    onValueChange = { newValue ->
+                        if ((newValue.length <= 8) && newValue.all { char -> char.isDigit() }) {
+                            odometerText = newValue
                         }
                     },
                     label = { Text(stringResource(R.string.end_odometer_label)) },

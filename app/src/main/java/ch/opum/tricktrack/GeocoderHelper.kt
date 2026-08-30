@@ -7,10 +7,10 @@ import android.location.Location
 import android.os.Build
 import ch.opum.tricktrack.data.place.SavedPlace
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class GeocoderHelper(private val context: Context) { // Changed to a class and added context to constructor
 
@@ -24,7 +24,7 @@ class GeocoderHelper(private val context: Context) { // Changed to a class and a
             val geocoder = Geocoder(context, Locale.getDefault())
 
             val addresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                suspendCoroutine { continuation ->
+                suspendCancellableCoroutine { continuation ->
                     geocoder.getFromLocation(lat, lng, 1) { addresses ->
                         continuation.resume(addresses)
                     }
@@ -47,7 +47,7 @@ class GeocoderHelper(private val context: Context) { // Changed to a class and a
         try {
             val geocoder = Geocoder(context, Locale.getDefault())
             val addresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                suspendCoroutine { continuation ->
+                suspendCancellableCoroutine { continuation ->
                     geocoder.getFromLocationName(locationName, 1) { addresses ->
                         continuation.resume(addresses)
                     }

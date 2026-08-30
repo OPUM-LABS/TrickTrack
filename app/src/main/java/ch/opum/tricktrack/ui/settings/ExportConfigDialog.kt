@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ExportConfigDialog(
     viewModel: TripsViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val exportColumns by viewModel.exportColumns.collectAsState()
     val expenseTrackingEnabled by viewModel.expenseTrackingEnabled.collectAsState()
@@ -133,12 +133,14 @@ fun ExportConfigDialog(
             ) {
                 DialogDeclineButton(onClick = onDismiss)
                 Spacer(modifier = Modifier.width(12.dp))
-                DialogAcceptButton(onClick = {
-                    viewModel.setExportColumns(tempSelectedColumns)
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) onDismiss()
+                DialogAcceptButton(
+                    onClick = {
+                        viewModel.setExportColumns(tempSelectedColumns)
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) onDismiss()
+                        }
                     }
-                })
+                )
             }
         }
     }

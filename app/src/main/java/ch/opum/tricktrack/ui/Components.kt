@@ -101,7 +101,7 @@ fun LicensePlateBadge(vehicle: VehicleEntity, modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             if (brandIconResId != 0) {
                 Icon(

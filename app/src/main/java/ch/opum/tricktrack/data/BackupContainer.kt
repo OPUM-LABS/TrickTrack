@@ -1,11 +1,7 @@
 package ch.opum.tricktrack.data
 
 import androidx.annotation.Keep
-import ch.opum.tricktrack.data.CompanyEntity
-import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.place.SavedPlace
-import ch.opum.tricktrack.data.Trip
-import ch.opum.tricktrack.data.VehicleEntity
 import com.google.gson.annotations.SerializedName
 
 @Keep
