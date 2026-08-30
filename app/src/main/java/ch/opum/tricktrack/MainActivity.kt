@@ -85,6 +85,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -157,6 +158,7 @@ import ch.opum.tricktrack.util.DistanceFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -308,7 +310,7 @@ fun MainScreen(
 
 
     val backgroundLocationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
+        contract = ActivityResultContracts.RequestPermission(),
     ) { isGranted ->
         if (!isGranted) {
             Toast.makeText(context, "Background location permission denied", Toast.LENGTH_SHORT)
@@ -427,7 +429,7 @@ fun MainScreen(
                 actions = {
                     when (currentRoute) {
                         Screen.TripList.route -> {
-                            var showFilterDialog by remember { mutableStateOf(false) }
+                            var showFilterDialog by remember { mutableStateOf(value = false) }
                             var showExportDialog by remember { mutableStateOf(false) }
                             val isFilterActive by tripsViewModel.isFilterActive.collectAsState()
                             var showAddManualTripDialog by remember { mutableStateOf(false) }
@@ -645,19 +647,21 @@ fun TripScreen(
     val listState = rememberLazyListState()
     var isAllCollapsed by remember { mutableStateOf(value = false) }
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item {
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Fixed Top Header (Non-transparent, solid background)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.background,
+            tonalElevation = 2.dp
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column { // Wrap distance and expense in a Column
+                Column {
                     Text(
                         text = totalDistanceLabel,
                         style = MaterialTheme.typography.headlineSmall,
@@ -671,8 +675,8 @@ fun TripScreen(
                     if (expenseTrackingEnabled) {
                         Text(
                             text = stringResource(R.string.expenses_label, totalExpense, expenseCurrency),
-                            style = MaterialTheme.typography.titleMedium, // Slightly smaller than headlineSmall
-                            color = MaterialTheme.colorScheme.onSurfaceVariant // Grayish tint
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -715,173 +719,181 @@ fun TripScreen(
             }
         }
 
-        if (isFilterActive) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (currentFilterState.type != TripType.ALL) {
-                        InputChip(
-                            selected = true,
-                            onClick = { tripsViewModel.removeFilter(currentFilterState.copy(type = TripType.ALL)) },
-                            label = { Text(currentFilterState.type.name) },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.remove_filter_cd)
-                                )
-                            }
-                        )
-                    }
-                    if (currentFilterState.keyword.isNotEmpty()) {
-                        InputChip(
-                            selected = true,
-                            onClick = { tripsViewModel.removeFilter(currentFilterState.copy(keyword = "")) },
-                            label = { Text(currentFilterState.keyword) },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.remove_filter_cd)
-                                )
-                            }
-                        )
-                    }
-                    if (currentFilterState.startDate != null) {
-                        val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
-                            Date(currentFilterState.startDate!!)
-                        )
-                        InputChip(
-                            selected = true,
-                            onClick = {
-                                tripsViewModel.removeFilter(
-                                    currentFilterState.copy(
-                                        startDate = null
-                                    )
-                                )
-                            },
-                            label = { Text(stringResource(R.string.from_date_label, date)) },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.remove_filter_cd)
-                                )
-                            }
-                        )
-                    }
-                    if (currentFilterState.endDate != null) {
-                        val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
-                            Date(currentFilterState.endDate!!)
-                        )
-                        InputChip(
-                            selected = true,
-                            onClick = { tripsViewModel.removeFilter(currentFilterState.copy(endDate = null)) },
-                            label = { Text(stringResource(R.string.to_date_label, date)) },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.remove_filter_cd)
-                                )
-                            }
-                        )
-                    }
-                    if (currentFilterState.vehicleIds.isNotEmpty()) {
-                        val allVehicles by tripsViewModel.allVehicles.collectAsState()
-                        val displayText = if (currentFilterState.vehicleIds.size == 1) {
-                            allVehicles.find { it.id == currentFilterState.vehicleIds.first() }?.licensePlate ?: ""
-                        } else {
-                            stringResource(R.string.vehicles_selected_count, currentFilterState.vehicleIds.size)
-                        }
-                        InputChip(
-                            selected = true,
-                            onClick = { tripsViewModel.removeFilter(currentFilterState.copy(vehicleIds = emptySet())) },
-                            label = { Text(displayText) },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.remove_filter_cd)
-                                )
-                            }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        }
-
-        var expandedIndex = if (isFilterActive) 2 else 1
-        groupedTrips.forEach { group ->
-            val headerIndexInExpandedList = expandedIndex
-            stickyHeader(key = group.date) {
-                val dailyTotalCost = if (expenseTrackingEnabled) {
-                    group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
-                } else {
-                    0.0f
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                        .clickable {
-                            if (isAllCollapsed) {
-                                isAllCollapsed = false
-                                scope.launch {
-                                    listState.scrollToItem(headerIndexInExpandedList)
-                                }
-                            } else {
-                                isAllCollapsed = true
-                            }
-                        }
-                        .padding(vertical = 16.dp, horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Left side: Date
-                    val dateFormat = SimpleDateFormat("EEE, d MMM yy", LocalLocale.current.platformLocale)
-                    Text(
-                        text = dateFormat.format(Date(group.date)),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f)) // Pushes content to the right
-
-                    // Right side: Trip count, total distance, and optional total expense
+        // Scrollable List
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (isFilterActive) {
+                item {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End // Explicitly align to end
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
-                        Text(
-                            text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        if (expenseTrackingEnabled) {
-                            Text(
-                                text = stringResource(R.string.daily_total_cost_label, dailyTotalCost, expenseCurrency),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
+                        if (currentFilterState.type != TripType.ALL) {
+                            InputChip(
+                                selected = true,
+                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(type = TripType.ALL)) },
+                                label = { Text(currentFilterState.type.name) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.remove_filter_cd)
+                                    )
+                                }
+                            )
+                        }
+                        if (currentFilterState.keyword.isNotEmpty()) {
+                            InputChip(
+                                selected = true,
+                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(keyword = "")) },
+                                label = { Text(currentFilterState.keyword) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.remove_filter_cd)
+                                    )
+                                }
+                            )
+                        }
+                        if (currentFilterState.startDate != null) {
+                            val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
+                                Date(currentFilterState.startDate!!)
+                            )
+                            InputChip(
+                                selected = true,
+                                onClick = {
+                                    tripsViewModel.removeFilter(
+                                        currentFilterState.copy(
+                                            startDate = null
+                                        )
+                                    )
+                                },
+                                label = { Text(stringResource(R.string.from_date_label, date)) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.remove_filter_cd)
+                                    )
+                                }
+                            )
+                        }
+                        if (currentFilterState.endDate != null) {
+                            val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
+                                Date(currentFilterState.endDate!!)
+                            )
+                            InputChip(
+                                selected = true,
+                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(endDate = null)) },
+                                label = { Text(stringResource(R.string.to_date_label, date)) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.remove_filter_cd)
+                                    )
+                                }
+                            )
+                        }
+                        if (currentFilterState.vehicleIds.isNotEmpty()) {
+                            val allVehicles by tripsViewModel.allVehicles.collectAsState()
+                            val displayText = if (currentFilterState.vehicleIds.size == 1) {
+                                allVehicles.find { it.id == currentFilterState.vehicleIds.first() }?.licensePlate ?: ""
+                            } else {
+                                stringResource(R.string.vehicles_selected_count, currentFilterState.vehicleIds.size)
+                            }
+                            InputChip(
+                                selected = true,
+                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(vehicleIds = emptySet())) },
+                                label = { Text(displayText) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.remove_filter_cd)
+                                    )
+                                }
                             )
                         }
                     }
                 }
             }
-            
-            if (!isAllCollapsed) {
-                items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
-                    TripItem(
-                        tripWithVehicle = tripWithVehicle,
-                        onClick = { onTripClick(tripWithVehicle.trip) },
-                        expenseTrackingEnabled = expenseTrackingEnabled,
-                        expenseRatePerKm = expenseRatePerKm,
-                        expenseCurrency = expenseCurrency,
-                        distanceUnit = distanceUnit
-                    )
+
+            var expandedIndexCounter = if (isFilterActive) 1 else 0
+            groupedTrips.forEach { group ->
+                val expandedHeaderIndex = expandedIndexCounter
+                stickyHeader(key = group.date) {
+                    val dailyTotalCost = if (expenseTrackingEnabled) {
+                        group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
+                    } else {
+                        0.0f
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background)
+                            .clickable {
+                                if (isAllCollapsed) {
+                                    isAllCollapsed = false
+                                    scope.launch {
+                                        // Wait a bit for items to be added before scrolling
+                                        kotlinx.coroutines.delay(100.milliseconds)
+                                        listState.animateScrollToItem(expandedHeaderIndex)
+                                    }
+                                } else {
+                                    isAllCollapsed = true
+                                }
+                            }
+                            .padding(vertical = 16.dp, horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left side: Date
+                        val dateFormat = SimpleDateFormat("EEE, d MMM yy", LocalLocale.current.platformLocale)
+                        Text(
+                            text = dateFormat.format(Date(group.date)),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f)) // Pushes content to the right
+
+                        // Right side: Trip count, total distance, and optional total expense
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End // Explicitly align to end
+                        ) {
+                            val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
+                            Text(
+                                text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            if (expenseTrackingEnabled) {
+                                Text(
+                                    text = stringResource(R.string.daily_total_cost_label, dailyTotalCost, expenseCurrency),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
                 }
+                
+                if (!isAllCollapsed) {
+                    items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
+                        TripItem(
+                            tripWithVehicle = tripWithVehicle,
+                            onClick = { onTripClick(tripWithVehicle.trip) },
+                            expenseTrackingEnabled = expenseTrackingEnabled,
+                            expenseRatePerKm = expenseRatePerKm,
+                            expenseCurrency = expenseCurrency,
+                            distanceUnit = distanceUnit,
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                }
+                expandedIndexCounter += 1 + group.trips.size
             }
-            expandedIndex += 1 + group.trips.size
         }
     }
 }
@@ -988,18 +1000,20 @@ fun EditTripDialog(
         DatePickerDialog(
             onDismissRequest = { showDatePicker.value = false },
             confirmButton = {
-                Button(onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        val newCal = Calendar.getInstance().apply { timeInMillis = it }
-                        selectedStartDate.value.apply {
-                            timeInMillis = newCal.timeInMillis
+                Button(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { dateMillis ->
+                            val newCal = Calendar.getInstance().apply { timeInMillis = dateMillis }
+                            selectedStartDate.value.apply {
+                                timeInMillis = newCal.timeInMillis
+                            }
+                            selectedEndDate.value.apply {
+                                timeInMillis = newCal.timeInMillis
+                            }
                         }
-                        selectedEndDate.value.apply {
-                            timeInMillis = newCal.timeInMillis
-                        }
+                        showDatePicker.value = false
                     }
-                    showDatePicker.value = false
-                }) {
+                ) {
                     Text(stringResource(R.string.button_ok))
                 }
             },
@@ -1558,11 +1572,12 @@ fun TripItem(
     expenseTrackingEnabled: Boolean,
     expenseRatePerKm: Float,
     expenseCurrency: String,
-    distanceUnit: ch.opum.tricktrack.data.DistanceUnit
+    distanceUnit: ch.opum.tricktrack.data.DistanceUnit,
+    modifier: Modifier = Modifier
 ) {
     val trip = tripWithVehicle.trip
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp) // Added horizontal padding
             .clickable(onClick = onClick),
