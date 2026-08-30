@@ -11,7 +11,7 @@ object CarBrandHelper {
     val brands = listOf(
         "Abarth", "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti", "Buick",
         "Cadillac", "Chevrolet", "Chrysler", "Citroën", "Dacia", "Daewoo", "Daihatsu", 
-        "Dodge", "Eagle", "Ferrari", "Fiat", "Fisker", "Ford", "Genesis", "GMC", "Honda", "Hummer",
+        "Dodge", "DS Automobiles", "Eagle", "Ferrari", "Fiat", "Fisker", "Ford", "Genesis", "GMC", "Honda", "Hummer",
         "Hyundai", "Infiniti", "Isuzu", "Jaguar", "Jeep", "Kia", "Koenigsegg", 
         "Lamborghini", "Lancia", "Land Rover", "Lexus", "Lincoln", "Lotus", 
         "Maserati", "Maybach", "Mazda", "McLaren", "Mercedes-Benz", "Mercury", "MG", "Mini",
