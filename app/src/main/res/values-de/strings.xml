@@ -121,6 +121,10 @@
     <string name="schedule_to">Bis:</string>
     <string name="schedule_reset_cd">Zurücksetzen</string>
     <string name="schedule_reset_times">Zeiten zurücksetzen</string>
+    <string name="schedule_weekdays">Wochentage</string>
+    <string name="schedule_weekend">Wochenende</string>
+    <string name="schedule_all_days">Alle Tage</string>
+    <string name="schedule_customize_individual_days">Einzelne Tage anpassen</string>
     <string name="button_apply">Anwenden</string>
     <string name="schedule_target_automatic">Automatisch</string>
     <string name="schedule_target_bluetooth">Bluetooth</string>
@@ -261,6 +265,8 @@
     <string name="backup_failed">Backup konnte nicht erstellt werden. Bitte versuchen Sie es erneut.</string>
     <string name="osrm_server_url">OSRM-Server-URL</string>
     <string name="photon_server_url">Photon-Server-URL</string>
+    <string name="settings_osrm_server">OSRM-Server</string>
+    <string name="settings_photon_geocoder">Photon-Geocoder</string>
     <string name="osrm_connection_failed">OSRM-Verbindung fehlgeschlagen</string>
     <string name="photon_connection_failed">Photon-Verbindung fehlgeschlagen</string>
     <string name="reset_to_defaults">Auf Standardwerte zurücksetzen</string>

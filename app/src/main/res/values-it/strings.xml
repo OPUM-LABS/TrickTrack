@@ -122,6 +122,10 @@
     <string name="schedule_to">A:</string>
     <string name="schedule_reset_cd">Reimposta</string>
     <string name="schedule_reset_times">Reimposta orari</string>
+    <string name="schedule_weekdays">Giorni feriali</string>
+    <string name="schedule_weekend">Fine settimana</string>
+    <string name="schedule_all_days">Tutti i giorni</string>
+    <string name="schedule_customize_individual_days">Personalizza singoli giorni</string>
     <string name="button_apply">Applica</string>
     <string name="schedule_target_automatic">Automatico</string>
     <string name="schedule_target_bluetooth">Bluetooth</string>
@@ -262,6 +266,8 @@
     <string name="backup_failed">Impossibile creare il backup. Riprova.</string>
     <string name="osrm_server_url">URL server OSRM</string>
     <string name="photon_server_url">URL server Photon</string>
+    <string name="settings_osrm_server">Server OSRM</string>
+    <string name="settings_photon_geocoder">Geocodificatore Photon</string>
     <string name="osrm_connection_failed">Connessione OSRM non riuscita</string>
     <string name="photon_connection_failed">Connessione Photon non riuscita</string>
     <string name="reset_to_defaults">Ripristina impostazioni predefinite</string>

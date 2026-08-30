@@ -124,6 +124,10 @@
     <string name="schedule_to">To:</string>
     <string name="schedule_reset_cd">Reset</string>
     <string name="schedule_reset_times">Reset Times</string>
+    <string name="schedule_weekdays">Weekdays</string>
+    <string name="schedule_weekend">Weekend</string>
+    <string name="schedule_all_days">All Days</string>
+    <string name="schedule_customize_individual_days">Customize individual days</string>
     <string name="button_apply">Apply</string>
     <string name="schedule_target_automatic">Automatic</string>
     <string name="schedule_target_bluetooth">Bluetooth</string>
@@ -270,6 +274,8 @@
     <!-- Server Settings Dialog -->
     <string name="osrm_server_url">OSRM Server URL</string>
     <string name="photon_server_url">Photon Server URL</string>
+    <string name="settings_osrm_server">OSRM Server</string>
+    <string name="settings_photon_geocoder">Photon Geocoder</string>
     <string name="osrm_connection_failed">OSRM Connection Failed</string>
     <string name="photon_connection_failed">Photon Connection Failed</string>
     <string name="reset_to_defaults">Reset to Defaults</string>

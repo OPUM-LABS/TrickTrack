@@ -73,7 +73,7 @@ fun ServerSettingsDialog(
 
             // OSRM Section
             ServerConfigCard(
-                title = "OSRM Server",
+                title = stringResource(R.string.settings_osrm_server),
                 url = osrmUrlInput,
                 onUrlChange = {
                     osrmUrlInput = it
@@ -106,7 +106,7 @@ fun ServerSettingsDialog(
 
             // Photon Section
             ServerConfigCard(
-                title = "Photon Geocoder",
+                title = stringResource(R.string.settings_photon_geocoder),
                 url = photonUrlInput,
                 onUrlChange = {
                     photonUrlInput = it

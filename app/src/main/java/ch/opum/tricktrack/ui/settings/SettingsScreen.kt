@@ -1427,7 +1427,7 @@ fun ScheduleBottomSheet(
                                 tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekdays.contains(day))
                             }
                         },
-                        label = { Text("Weekdays") }
+                        label = { Text(stringResource(R.string.schedule_weekdays)) }
                     )
                 }
                 item {
@@ -1439,7 +1439,7 @@ fun ScheduleBottomSheet(
                                 tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekend.contains(day))
                             }
                         },
-                        label = { Text("Weekend") }
+                        label = { Text(stringResource(R.string.schedule_weekend)) }
                     )
                 }
                 item {
@@ -1450,7 +1450,7 @@ fun ScheduleBottomSheet(
                                 tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = true)
                             }
                         },
-                        label = { Text("All Days") }
+                        label = { Text(stringResource(R.string.schedule_all_days)) }
                     )
                 }
             }
@@ -1497,7 +1497,7 @@ fun ScheduleBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Customize individual days",
+                    text = stringResource(R.string.schedule_customize_individual_days),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )
