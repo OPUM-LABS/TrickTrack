@@ -198,6 +198,7 @@
     <string name="description_cd">Descrizione</string>
     <string name="filtered_distance_label">Distanza: %1$s</string>
     <string name="filtered_trips_label">Viaggi: %d</string>
+    <string name="scroll_to_top">Torna su</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Aggiornamenti revisione viaggi</string>

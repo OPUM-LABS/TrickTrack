@@ -198,6 +198,7 @@
     <string name="description_cd">Description</string>
     <string name="filtered_distance_label">Distance : %1$s</string>
     <string name="filtered_trips_label">Trajets : %d</string>
+    <string name="scroll_to_top">Haut de page</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Mises à jour de la révision des trajets</string>

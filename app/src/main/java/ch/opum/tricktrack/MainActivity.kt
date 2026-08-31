@@ -13,7 +13,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -38,7 +37,6 @@ import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -53,6 +51,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -103,6 +102,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -726,200 +726,236 @@ fun TripScreen(
             }
         }
 
-        // Scrollable List
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (isFilterActive) {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (currentFilterState.type != TripType.ALL) {
-                            InputChip(
-                                selected = true,
-                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(type = TripType.ALL)) },
-                                label = { Text(currentFilterState.type.name) },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.remove_filter_cd)
-                                    )
-                                }
-                            )
-                        }
-                        if (currentFilterState.keyword.isNotEmpty()) {
-                            InputChip(
-                                selected = true,
-                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(keyword = "")) },
-                                label = { Text(currentFilterState.keyword) },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.remove_filter_cd)
-                                    )
-                                }
-                            )
-                        }
-                        if (currentFilterState.startDate != null) {
-                            val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
-                                Date(currentFilterState.startDate!!)
-                            )
-                            InputChip(
-                                selected = true,
-                                onClick = {
-                                    tripsViewModel.removeFilter(
-                                        currentFilterState.copy(
-                                            startDate = null
-                                        )
-                                    )
-                                },
-                                label = { Text(stringResource(R.string.from_date_label, date)) },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.remove_filter_cd)
-                                    )
-                                }
-                            )
-                        }
-                        if (currentFilterState.endDate != null) {
-                            val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
-                                Date(currentFilterState.endDate!!)
-                            )
-                            InputChip(
-                                selected = true,
-                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(endDate = null)) },
-                                label = { Text(stringResource(R.string.to_date_label, date)) },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.remove_filter_cd)
-                                    )
-                                }
-                            )
-                        }
-                        if (currentFilterState.vehicleIds.isNotEmpty()) {
-                            val allVehicles by tripsViewModel.allVehicles.collectAsState()
-                            val displayText = if (currentFilterState.vehicleIds.size == 1) {
-                                allVehicles.find { it.id == currentFilterState.vehicleIds.first() }?.licensePlate ?: ""
-                            } else {
-                                stringResource(R.string.vehicles_selected_count, currentFilterState.vehicleIds.size)
-                            }
-                            InputChip(
-                                selected = true,
-                                onClick = { tripsViewModel.removeFilter(currentFilterState.copy(vehicleIds = emptySet())) },
-                                label = { Text(displayText) },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.remove_filter_cd)
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
-            var groupIndexCounter = if (isFilterActive) 1 else 0
-            groupedTrips.forEach { group ->
-                val currentHeaderIndex = groupIndexCounter
-                stickyHeader(key = group.date) {
-                    val dailyTotalCost = if (expenseTrackingEnabled) {
-                        group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
-                    } else {
-                        0.0f
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background)
-                            .clickable {
-                                if (isAllCollapsed) {
-                                    scope.launch {
-                                        // 1. Scroll to the header first while still collapsed
-                                        listState.animateScrollToItem(currentHeaderIndex)
-                                        // 2. Small delay to ensure scroll is settled
-                                        kotlinx.coroutines.delay(100.milliseconds)
-                                        // 3. Expand everything
-                                        isAllCollapsed = false
-                                        // 4. Continually scroll to the target for a brief moment
-                                        // to "lock" it at the top while items above expand.
-                                        repeat(20) {
-                                            listState.scrollToItem(currentHeaderIndex)
-                                            kotlinx.coroutines.delay(16.milliseconds)
-                                        }
-                                    }
-                                } else {
-                                    isAllCollapsed = true
-                                }
-                            }
-                            .padding(vertical = 16.dp, horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Left side: Date
-                        val dateFormat = SimpleDateFormat("EEE, d MMM yy", LocalLocale.current.platformLocale)
-                        Text(
-                            text = dateFormat.format(Date(group.date)),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.weight(1f)) // Pushes content to the right
-
-                        // Right side: Trip count, total distance, and optional total expense
+        // Scrollable List area with overlay button
+        Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (isFilterActive) {
+                    item {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End // Explicitly align to end
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
-                            Text(
-                                text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            if (expenseTrackingEnabled) {
-                                Text(
-                                    text = stringResource(R.string.daily_total_cost_label, dailyTotalCost, expenseCurrency),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary
+                            if (currentFilterState.type != TripType.ALL) {
+                                InputChip(
+                                    selected = true,
+                                    onClick = { tripsViewModel.removeFilter(currentFilterState.copy(type = TripType.ALL)) },
+                                    label = { Text(currentFilterState.type.name) },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.remove_filter_cd)
+                                        )
+                                    }
+                                )
+                            }
+                            if (currentFilterState.keyword.isNotEmpty()) {
+                                InputChip(
+                                    selected = true,
+                                    onClick = { tripsViewModel.removeFilter(currentFilterState.copy(keyword = "")) },
+                                    label = { Text(currentFilterState.keyword) },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.remove_filter_cd)
+                                        )
+                                    }
+                                )
+                            }
+                            if (currentFilterState.startDate != null) {
+                                val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
+                                    Date(currentFilterState.startDate!!)
+                                )
+                                InputChip(
+                                    selected = true,
+                                    onClick = {
+                                        tripsViewModel.removeFilter(
+                                            currentFilterState.copy(
+                                                startDate = null
+                                            )
+                                        )
+                                    },
+                                    label = { Text(stringResource(R.string.from_date_label, date)) },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.remove_filter_cd)
+                                        )
+                                    }
+                                )
+                            }
+                            if (currentFilterState.endDate != null) {
+                                val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
+                                    Date(currentFilterState.endDate!!)
+                                )
+                                InputChip(
+                                    selected = true,
+                                    onClick = { tripsViewModel.removeFilter(currentFilterState.copy(endDate = null)) },
+                                    label = { Text(stringResource(R.string.to_date_label, date)) },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.remove_filter_cd)
+                                        )
+                                    }
+                                )
+                            }
+                            if (currentFilterState.vehicleIds.isNotEmpty()) {
+                                val allVehicles by tripsViewModel.allVehicles.collectAsState()
+                                val displayText = if (currentFilterState.vehicleIds.size == 1) {
+                                    allVehicles.find { it.id == currentFilterState.vehicleIds.first() }?.licensePlate ?: ""
+                                } else {
+                                    stringResource(R.string.vehicles_selected_count, currentFilterState.vehicleIds.size)
+                                }
+                                InputChip(
+                                    selected = true,
+                                    onClick = { tripsViewModel.removeFilter(currentFilterState.copy(vehicleIds = emptySet())) },
+                                    label = { Text(displayText) },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.remove_filter_cd)
+                                        )
+                                    }
                                 )
                             }
                         }
                     }
                 }
-                
+
+                var groupIndexCounter = if (isFilterActive) 1 else 0
+                groupedTrips.forEach { group ->
+                    val currentHeaderIndex = groupIndexCounter
+                    stickyHeader(key = group.date) {
+                        val dailyTotalCost = if (expenseTrackingEnabled) {
+                            group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
+                        } else {
+                            0.0f
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.background)
+                                .clickable {
+                                    if (isAllCollapsed) {
+                                        scope.launch {
+                                            // 1. Scroll to the header first while still collapsed
+                                            listState.animateScrollToItem(currentHeaderIndex)
+                                            // 2. Small delay to ensure scroll is settled
+                                            kotlinx.coroutines.delay(100.milliseconds)
+                                            // 3. Expand everything
+                                            isAllCollapsed = false
+                                            // 4. Continually scroll to the target for a brief moment
+                                            // to "lock" it at the top while items above expand.
+                                            repeat(20) {
+                                                listState.scrollToItem(currentHeaderIndex)
+                                                kotlinx.coroutines.delay(16.milliseconds)
+                                            }
+                                        }
+                                    } else {
+                                        isAllCollapsed = true
+                                    }
+                                }
+                                .padding(vertical = 16.dp, horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Left side: Date
+                            val dateFormat = SimpleDateFormat("EEE, d MMM yy", LocalLocale.current.platformLocale)
+                            Text(
+                                text = dateFormat.format(Date(group.date)),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f)) // Pushes content to the right
+
+                            // Right side: Trip count, total distance, and optional total expense
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.End // Explicitly align to end
+                            ) {
+                                val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
+                                Text(
+                                    text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if (expenseTrackingEnabled) {
+                                    Text(
+                                        text = stringResource(R.string.daily_total_cost_label, dailyTotalCost, expenseCurrency),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
                 item(key = "group_content_${group.date}") {
-                    AnimatedVisibility(
+                    androidx.compose.animation.AnimatedVisibility(
                         visible = !isAllCollapsed,
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut()
                     ) {
                         Column {
-                            group.trips.forEach { tripWithVehicle ->
-                                TripItem(
-                                    tripWithVehicle = tripWithVehicle,
-                                    onClick = { onTripClick(tripWithVehicle.trip) },
-                                    expenseTrackingEnabled = expenseTrackingEnabled,
-                                    expenseRatePerKm = expenseRatePerKm,
-                                    expenseCurrency = expenseCurrency,
-                                    distanceUnit = distanceUnit
-                                )
+                                group.trips.forEach { tripWithVehicle ->
+                                    TripItem(
+                                        tripWithVehicle = tripWithVehicle,
+                                        onClick = { onTripClick(tripWithVehicle.trip) },
+                                        expenseTrackingEnabled = expenseTrackingEnabled,
+                                        expenseRatePerKm = expenseRatePerKm,
+                                        expenseCurrency = expenseCurrency,
+                                        distanceUnit = distanceUnit
+                                    )
+                                }
                             }
                         }
                     }
+                    groupIndexCounter += 2
                 }
-                groupIndexCounter += 2
+
+                // Overscroll Spacer: Allows any header to reach the top
+                item {
+                    Spacer(modifier = Modifier.height(800.dp)) 
+                }
             }
 
-            // Overscroll Spacer: Allows any header to reach the top
-            item {
-                Spacer(modifier = Modifier.height(800.dp)) 
+            // Floating "Scroll to Top" button
+            val showButton by remember {
+                derivedStateOf { listState.firstVisibleItemIndex > 0 }
+            }
+            
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showButton,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp)
+            ) {
+                FilledTonalButton(
+                    onClick = {
+                        scope.launch {
+                            listState.animateScrollToItem(0)
+                        }
+                    },
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = null
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.scroll_to_top))
+                }
             }
         }
     }
