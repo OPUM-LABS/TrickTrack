@@ -13,6 +13,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -411,16 +416,18 @@ fun MainScreen(
             TopAppBar(
                 title = {
                     val title = when (currentRoute) {
-                        Screen.TripList.route -> stringResource(R.string.screen_title_trips)
+                        Screen.TripList.route -> "" // Title is handled by TripScreen header
                         Screen.Review.route -> stringResource(R.string.screen_title_review)
                         Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
                         Screen.Settings.route -> stringResource(R.string.screen_title_settings)
                         else -> ""
                     }
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
+                    if (title.isNotEmpty()) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
@@ -545,12 +552,12 @@ fun MainScreen(
                             if ((screen is Screen.Review) && unconfirmedTrips.isNotEmpty()) {
                                 BadgedBox(
                                     badge = {
-        Badge(
-            containerColor = Color(0xFFB00020),
-            contentColor = Color.White
-        ) {
-            Text(unconfirmedTrips.size.toString())
-        }
+                                        Badge(
+                                            containerColor = Color(0xFFB00020),
+                                            contentColor = Color.White
+                                        ) {
+                                            Text(unconfirmedTrips.size.toString())
+                                        }
                                     }
                                 ) {
                                     Icon(screen.icon, contentDescription = stringResource(screen.title))
@@ -648,11 +655,11 @@ fun TripScreen(
     var isAllCollapsed by remember { mutableStateOf(value = false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Fixed Top Header (Non-transparent, solid background)
+        // Fixed Top Header
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 2.dp
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 1.dp
         ) {
             Row(
                 modifier = Modifier
@@ -819,9 +826,9 @@ fun TripScreen(
                 }
             }
 
-            var expandedIndexCounter = if (isFilterActive) 1 else 0
+            var groupIndexCounter = if (isFilterActive) 1 else 0
             groupedTrips.forEach { group ->
-                val expandedHeaderIndex = expandedIndexCounter
+                val currentHeaderIndex = groupIndexCounter
                 stickyHeader(key = group.date) {
                     val dailyTotalCost = if (expenseTrackingEnabled) {
                         group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
@@ -834,11 +841,19 @@ fun TripScreen(
                             .background(MaterialTheme.colorScheme.background)
                             .clickable {
                                 if (isAllCollapsed) {
-                                    isAllCollapsed = false
                                     scope.launch {
-                                        // Wait a bit for items to be added before scrolling
+                                        // 1. Scroll to the header first while still collapsed
+                                        listState.animateScrollToItem(currentHeaderIndex)
+                                        // 2. Small delay to ensure scroll is settled
                                         kotlinx.coroutines.delay(100.milliseconds)
-                                        listState.animateScrollToItem(expandedHeaderIndex)
+                                        // 3. Expand everything
+                                        isAllCollapsed = false
+                                        // 4. Continually scroll to the target for a brief moment
+                                        // to "lock" it at the top while items above expand.
+                                        repeat(20) {
+                                            listState.scrollToItem(currentHeaderIndex)
+                                            kotlinx.coroutines.delay(16.milliseconds)
+                                        }
                                     }
                                 } else {
                                     isAllCollapsed = true
@@ -879,20 +894,32 @@ fun TripScreen(
                     }
                 }
                 
-                if (!isAllCollapsed) {
-                    items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
-                        TripItem(
-                            tripWithVehicle = tripWithVehicle,
-                            onClick = { onTripClick(tripWithVehicle.trip) },
-                            expenseTrackingEnabled = expenseTrackingEnabled,
-                            expenseRatePerKm = expenseRatePerKm,
-                            expenseCurrency = expenseCurrency,
-                            distanceUnit = distanceUnit,
-                            modifier = Modifier.animateItem()
-                        )
+                item(key = "group_content_${group.date}") {
+                    AnimatedVisibility(
+                        visible = !isAllCollapsed,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        Column {
+                            group.trips.forEach { tripWithVehicle ->
+                                TripItem(
+                                    tripWithVehicle = tripWithVehicle,
+                                    onClick = { onTripClick(tripWithVehicle.trip) },
+                                    expenseTrackingEnabled = expenseTrackingEnabled,
+                                    expenseRatePerKm = expenseRatePerKm,
+                                    expenseCurrency = expenseCurrency,
+                                    distanceUnit = distanceUnit
+                                )
+                            }
+                        }
                     }
                 }
-                expandedIndexCounter += 1 + group.trips.size
+                groupIndexCounter += 2
+            }
+
+            // Overscroll Spacer: Allows any header to reach the top
+            item {
+                Spacer(modifier = Modifier.height(800.dp)) 
             }
         }
     }
