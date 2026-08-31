@@ -17,7 +17,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,9 +37,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Calculate
@@ -71,8 +71,8 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -112,16 +112,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -134,9 +132,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.data.TripWithVehicle
-import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.place.SavedPlace
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ConfirmationBottomSheet
@@ -145,16 +143,18 @@ import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.ExportFormatDialog
 import ch.opum.tricktrack.ui.FilterDialog
 import ch.opum.tricktrack.ui.LicensePlateBadge
+import ch.opum.tricktrack.ui.StyledAddress
 import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import ch.opum.tricktrack.ui.TimePickerDialog
+import ch.opum.tricktrack.ui.TimelineNode
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.navigation.Screen
 import ch.opum.tricktrack.ui.place.AddEditPlaceDialog
-import ch.opum.tricktrack.ui.place.PlacesListScreen
 import ch.opum.tricktrack.ui.place.FavouritesViewModel
+import ch.opum.tricktrack.ui.place.PlacesListScreen
 import ch.opum.tricktrack.ui.review.ReviewScreen
 import ch.opum.tricktrack.ui.settings.SettingsScreen
 import ch.opum.tricktrack.ui.theme.TrickTrackTheme
@@ -163,12 +163,11 @@ import ch.opum.tricktrack.util.DistanceFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import androidx.compose.ui.platform.LocalLocale
+import kotlin.time.Duration.Companion.milliseconds
 
 class MainActivity : ComponentActivity() {
 
@@ -437,7 +436,7 @@ fun MainScreen(
                     when (currentRoute) {
                         Screen.TripList.route -> {
                             var showFilterDialog by remember { mutableStateOf(value = false) }
-                            var showExportDialog by remember { mutableStateOf(false) }
+                            var showExportDialog by remember { mutableStateOf(value = false) }
                             val isFilterActive by tripsViewModel.isFilterActive.collectAsState()
                             var showAddManualTripDialog by remember { mutableStateOf(false) }
                             var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
@@ -1668,9 +1667,10 @@ fun TripItem(
                             tint = typeColor,
                             modifier = Modifier.size(20.dp)
                         )
-                        tripWithVehicle.vehicle?.let {
+                        val vehicle = tripWithVehicle.vehicle
+                        if (vehicle != null) {
                             Spacer(modifier = Modifier.width(8.dp))
-                            LicensePlateBadge(it)
+                            LicensePlateBadge(vehicle)
                         }
                         
                         if (!trip.isAutomatic) {
@@ -1696,7 +1696,8 @@ fun TripItem(
                         Text(
                             text = DistanceFormatter.format(trip.distance, distanceUnit),
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
                         if (expenseTrackingEnabled) {
                             val tripCost = trip.distance.toFloat() * expenseRatePerKm
@@ -1711,134 +1712,69 @@ fun TripItem(
 
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.outlineVariant,
-                    thickness = 1.dp
+                    thickness = 0.5.dp
                 )
 
                 // Timeline Content Row
                 Row(
                     modifier = Modifier
                         .height(IntrinsicSize.Min)
-                        .padding(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 12.dp,
-                            bottom = 12.dp
-                        ),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.Top
                 ) {
                     // Column 1: Visual Timeline
                     TimelineNode()
 
                     // Column 2: Data
-                    Column(modifier = Modifier.padding(start = 16.dp)) {
+                    Column(
+                        modifier = Modifier.padding(start = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         val timeFormatter = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale)
 
-                        // Start Row
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = timeFormatter.format(trip.date), // Assuming start time is the trip date
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = trip.startLoc,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        // Start Point
+                        StyledAddress(
+                            time = timeFormatter.format(trip.date),
+                            address = trip.startLoc
+                        )
 
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // End Row
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = timeFormatter.format(Date(trip.endDate)),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = trip.endLoc,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        // End Point
+                        StyledAddress(
+                            time = timeFormatter.format(Date(trip.endDate)),
+                            address = trip.endLoc
+                        )
                     }
                 }
                 if (!trip.description.isNullOrBlank()) {
-                    Row(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = stringResource(R.string.description_cd),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = trip.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Notes,
+                                contentDescription = stringResource(R.string.description_cd),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = trip.description,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
-
-@Composable
-fun TimelineNode() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(40.dp)
-    ) {
-        val circleRadius = 8.dp
-        val strokeWidth = 2.dp
-        val lineColor = MaterialTheme.colorScheme.onSurface
-        val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-
-        // Start Circle
-        Canvas(modifier = Modifier.size(circleRadius * 2)) {
-            drawCircle(
-                color = lineColor,
-                radius = size.minDimension / 2,
-                style = Stroke(width = strokeWidth.toPx())
-            )
-        }
-
-        // Dotted Line
-        Canvas(
-            modifier = Modifier
-                .weight(1f)
-                .width(strokeWidth)
-        ) {
-            drawLine(
-                color = lineColor,
-                start = center.copy(y = 0f),
-                end = center.copy(y = size.height),
-                strokeWidth = strokeWidth.toPx(),
-                pathEffect = pathEffect
-            )
-        }
-
-        // End Circle
-        Canvas(modifier = Modifier.size(circleRadius * 2)) {
-            drawCircle(
-                color = lineColor,
-                radius = size.minDimension / 2,
-                style = Stroke(width = strokeWidth.toPx())
-            )
-        }
-    }
-}
-

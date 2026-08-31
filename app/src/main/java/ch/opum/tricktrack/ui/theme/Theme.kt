@@ -1,5 +1,6 @@
 package ch.opum.tricktrack.ui.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -12,7 +13,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import android.app.Activity
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
