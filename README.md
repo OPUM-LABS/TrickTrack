@@ -145,7 +145,7 @@ Need more details? Check out the **[GitHub Wiki](https://github.com/OPUM-LABS/Tr
 
 ## ⚖️ License & Attribution
 
-This project is open-source.
+This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
 
 * **Map Data:** © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).
 * **Geocoding:** Powered by [Photon](https://github.com/komoot/photon).

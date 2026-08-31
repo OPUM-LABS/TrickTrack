@@ -98,7 +98,7 @@
     <!-- New strings for SettingsScreen.kt -->
     <string name="settings_bluetooth_select_devices_dialog_title">Sélectionner les appareils Bluetooth</string>
     <string name="about_version">Version : %1$s</string>
-    <string name="about_license">Publié sous licence MIT</string>
+    <string name="about_license">Publié sous licence GPLv3</string>
     <string name="about_osm_attribution">Données cartographiques © contributeurs OpenStreetMap</string>
     <string name="about_copyright">© 2026 Michel Perrin @ OPUM-Labs</string>
     <string name="about_made_with_love">Créé avec ❤️ et 🤖</string>
