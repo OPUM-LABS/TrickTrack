@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
@@ -88,7 +89,11 @@ class ThousandsSeparatorTransformation : VisualTransformation {
 }
 
 @Composable
-fun LicensePlateBadge(vehicle: VehicleEntity, modifier: Modifier = Modifier) {
+fun LicensePlateBadge(
+    vehicle: VehicleEntity, 
+    modifier: Modifier = Modifier,
+    showDropdownIndicator: Boolean = false
+) {
     val context = LocalContext.current
     val brandIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
     Surface(
@@ -117,6 +122,14 @@ fun LicensePlateBadge(vehicle: VehicleEntity, modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            if (showDropdownIndicator) {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

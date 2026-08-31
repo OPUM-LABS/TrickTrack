@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -226,7 +227,7 @@ fun ReviewTripCard(
                                     .clickable { vehicleExpanded = true }
                             ) {
                                 if (selectedVehicle != null) {
-                                    LicensePlateBadge(selectedVehicle!!)
+                                    LicensePlateBadge(selectedVehicle!!, showDropdownIndicator = true)
                                 } else {
                                     Surface(
                                         shape = RoundedCornerShape(6.dp),
@@ -248,6 +249,12 @@ fun ReviewTripCard(
                                                 text = stringResource(R.string.favourites_tab_vehicles),
                                                 style = MaterialTheme.typography.labelMedium,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                     }
