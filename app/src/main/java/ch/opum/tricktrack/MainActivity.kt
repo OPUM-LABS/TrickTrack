@@ -414,11 +414,11 @@ fun MainScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    val title = when (currentRoute) {
-                        Screen.TripList.route -> "" // Title is handled by TripScreen header
-                        Screen.Review.route -> stringResource(R.string.screen_title_review)
-                        Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
-                        Screen.Settings.route -> stringResource(R.string.screen_title_settings)
+                    val title = when {
+                        currentRoute == Screen.TripList.route -> stringResource(R.string.screen_title_trips)
+                        currentRoute == Screen.Review.route -> stringResource(R.string.screen_title_review)
+                        currentRoute == Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
+                        currentRoute == Screen.Settings.route -> stringResource(R.string.screen_title_settings)
                         else -> ""
                     }
                     if (title.isNotEmpty()) {
@@ -429,8 +429,8 @@ fun MainScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
                 ),
                 actions = {
                     when (currentRoute) {
@@ -840,25 +840,21 @@ fun TripScreen(
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.background)
                                 .clickable {
-                                    if (isAllCollapsed) {
-                                        scope.launch {
-                                            // 1. Scroll to the header first while still collapsed
-                                            listState.animateScrollToItem(currentHeaderIndex)
-                                            // 2. Small delay to ensure scroll is settled
-                                            kotlinx.coroutines.delay(100.milliseconds)
-                                            // 3. Expand everything
-                                            isAllCollapsed = false
-                                            // 4. Continually scroll to the target for a brief moment
-                                            // to "lock" it at the top while items above expand.
-                                            repeat(20) {
-                                                listState.scrollToItem(currentHeaderIndex)
-                                                kotlinx.coroutines.delay(16.milliseconds)
-                                            }
+                                if (isAllCollapsed) {
+                                    isAllCollapsed = false
+                                    scope.launch {
+                                        // Yield to let the list recompose with expanded items
+                                        kotlinx.coroutines.yield()
+                                        // Continuous lock for the duration of the unfold animation
+                                        repeat(40) {
+                                            listState.scrollToItem(currentHeaderIndex)
+                                            kotlinx.coroutines.delay(16.milliseconds)
                                         }
-                                    } else {
-                                        isAllCollapsed = true
                                     }
+                                } else {
+                                    isAllCollapsed = true
                                 }
+                            }
                                 .padding(vertical = 16.dp, horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
