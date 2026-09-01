@@ -108,7 +108,6 @@ import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.DaySchedule
 import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.ScheduleSettings
-import ch.opum.tricktrack.permission.TrackingMode
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.DialogAcceptButton
@@ -123,6 +122,12 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.util.Date
 import java.util.Locale
+
+enum class TrackingMode {
+    AUTO,
+    BLUETOOTH,
+    BOTH
+}
 
 @Composable
 fun rememberPermissionHelper(): (TrackingMode, onSuccess: () -> Unit) -> Unit {
@@ -542,6 +547,12 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
+        val permissionHealth by viewModel.permissionHealth.collectAsState()
+        if (permissionHealth is PermissionHealthState.Missing) {
+            PermissionWarningBanner(onAction = { showPermissionSheet = true })
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         val themeMode by viewModel.themeMode.collectAsState()
 
         ExpandableSettingsGroup(
@@ -584,12 +595,6 @@ fun SettingsScreen(
                     }
                 }
             }
-        }
-
-        val permissionHealth by viewModel.permissionHealth.collectAsState()
-        if (permissionHealth is PermissionHealthState.Missing) {
-            PermissionWarningBanner(onAction = { showPermissionSheet = true })
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
         ExpandableSettingsGroup(

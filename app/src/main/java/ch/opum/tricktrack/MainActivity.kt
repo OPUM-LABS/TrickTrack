@@ -414,11 +414,11 @@ fun MainScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    val title = when {
-                        currentRoute == Screen.TripList.route -> stringResource(R.string.screen_title_trips)
-                        currentRoute == Screen.Review.route -> stringResource(R.string.screen_title_review)
-                        currentRoute == Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
-                        currentRoute == Screen.Settings.route -> stringResource(R.string.screen_title_settings)
+                    val title = when (currentRoute) {
+                        Screen.TripList.route -> stringResource(R.string.screen_title_trips)
+                        Screen.Review.route -> stringResource(R.string.screen_title_review)
+                        Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
+                        Screen.Settings.route -> stringResource(R.string.screen_title_settings)
                         else -> ""
                     }
                     if (title.isNotEmpty()) {

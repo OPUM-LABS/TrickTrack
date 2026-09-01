@@ -225,9 +225,6 @@ fun ReviewTripCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
-                    val icons = listOf(Icons.Default.Work, Icons.Default.Person)
-                    
                     Icon(
                         imageVector = if (selectedType == TripType.BUSINESS) Icons.Default.Work else Icons.Default.Person,
                         contentDescription = null,

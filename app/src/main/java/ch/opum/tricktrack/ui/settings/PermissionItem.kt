@@ -20,7 +20,7 @@ sealed class PermissionRequirement(
         R.string.permission_precise_location,
         R.string.permission_precise_location_desc,
         Icons.Default.LocationOn,
-        android.Manifest.permission.ACCESS_FINE_LOCATION
+        android.Manifest.permission.ACCESS_FINE_LOCATION,
     )
 
     object BackgroundLocation : PermissionRequirement(
@@ -30,7 +30,7 @@ sealed class PermissionRequirement(
         Icons.Default.LocationOn,
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)
             android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        else null
+        else null,
     )
 
     object Bluetooth : PermissionRequirement(
@@ -40,7 +40,7 @@ sealed class PermissionRequirement(
         Icons.Default.Bluetooth,
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
             android.Manifest.permission.BLUETOOTH_CONNECT
-        else null
+        else null,
     )
 
     object Notifications : PermissionRequirement(
@@ -50,7 +50,7 @@ sealed class PermissionRequirement(
         Icons.Default.Notifications,
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU)
             android.Manifest.permission.POST_NOTIFICATIONS
-        else null
+        else null,
     )
 
     object BatteryOptimization : PermissionRequirement(
@@ -58,16 +58,16 @@ sealed class PermissionRequirement(
         R.string.permission_battery_optimization_title,
         R.string.permission_battery_optimization_desc,
         Icons.Default.BatteryAlert,
-        null
+        null,
     )
 }
 
 data class PermissionStatus(
     val requirement: PermissionRequirement,
-    val isGranted: Boolean
+    val isGranted: Boolean,
 )
 
 sealed class PermissionHealthState {
     object AllGranted : PermissionHealthState()
-    data class Missing(@Suppress("unused") val missing: List<PermissionStatus>) : PermissionHealthState()
+    data class Missing(val missing: List<PermissionStatus>) : PermissionHealthState()
 }

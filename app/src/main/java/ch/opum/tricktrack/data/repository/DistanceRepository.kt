@@ -3,6 +3,8 @@ package ch.opum.tricktrack.data.repository
 import android.content.Context
 import android.util.Log
 import ch.opum.tricktrack.data.AppPreferences
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -13,16 +15,16 @@ class DistanceRepository(context: Context) {
     private val client = OkHttpClient()
     private val prefs = AppPreferences(context)
 
-    suspend fun getDrivingDistance(startLat: Double, startLon: Double, endLat: Double, endLon: Double): Double? {
+    suspend fun getDrivingDistance(startLat: Double, startLon: Double, endLat: Double, endLon: Double): Double? = withContext(Dispatchers.IO) {
         val baseUrl = prefs.getOsrmUrl().trim().removeSuffix("/")
         val url = "$baseUrl/$startLon,$startLat;$endLon,$endLat?overview=false"
         Log.d("DistanceRepository", "Requesting URL: $url")
         val request = Request.Builder().url(url).build()
 
-        return try {
+        try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val responseData = response.body?.string()
+                val responseData = response.body.string()
                 Log.d("DistanceRepository", "Response: $responseData")
                 val jsonObject = JSONObject(responseData)
                 val distanceInMeters = jsonObject.getJSONArray("routes").getJSONObject(0).getDouble("distance")

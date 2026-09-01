@@ -204,7 +204,7 @@ class TripsViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList<TripGroup>(),
+        initialValue = emptyList(),
     )
 
     val unconfirmedTrips: StateFlow<List<TripWithVehicle>> = repository.unconfirmedTrips
@@ -260,7 +260,7 @@ class TripsViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList<TripGroup>(),
+        initialValue = emptyList(),
     )
 
     // New StateFlow for total distance label
@@ -767,7 +767,7 @@ class TripsViewModel(
             val tripsToDelete = confirmedTrips.first()
             repository.deleteTrips(tripsToDelete)
             tripsToDelete.forEach {
-                TripNotificationManager.cancelTripNotification(getApplication<Application>(), it.trip.id)
+                TripNotificationManager.cancelTripNotification(getApplication(), it.trip.id)
             }
         }
     }
@@ -798,13 +798,6 @@ class TripsViewModel(
             }
             
             repository.updateTrip(updatedTrip)
-            TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
-        }
-    }
-
-    fun discardTrip(trip: Trip) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteTrip(trip)
             TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
         }
     }

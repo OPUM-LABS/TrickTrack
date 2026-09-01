@@ -138,8 +138,6 @@
     <string name="action_delete">Delete</string>
 
     <!-- Review Screen -->
-    <string name="review_discard_trip_title">Discard Trip?</string>
-    <string name="review_discard_trip_message">Are you sure you want to discard this trip? This cannot be undone.</string>
     <string name="review_discard_button">Discard</string>
     <string name="review_no_trips">No trips to review!</string>
     <string name="review_trip_count_and_distance">%1$d Trips • %2$s</string>
@@ -200,7 +198,6 @@
     <string name="to_date_label">To: %s</string>
     <string name="trip_count_and_distance_label">%1$d Trips • %2$s</string>
     <string name="daily_total_cost_label">• %1$.2f %2$s</string>
-    <string name="trip_distance_label">%.2f km</string>
     <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Description</string>
     <string name="filtered_distance_label">Distance: %1$s</string>

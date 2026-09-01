@@ -69,7 +69,7 @@ fun ServerSettingsDialog(
     var osrmTestColor by remember { mutableStateOf(Color.Unspecified) }
     var isOsrmValid by remember { mutableStateOf(value = false) }
 
-    var photonTestIcon by remember { mutableStateOf<ImageVector>(Icons.Default.Refresh) }
+    var photonTestIcon by remember { mutableStateOf(Icons.Default.Refresh) }
     var photonTestColor by remember { mutableStateOf(Color.Unspecified) }
     var isPhotonValid by remember { mutableStateOf(false) }
 

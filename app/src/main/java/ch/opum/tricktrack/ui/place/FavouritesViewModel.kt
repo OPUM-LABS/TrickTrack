@@ -156,7 +156,7 @@ class FavouritesViewModel(
     val filteredBrands: StateFlow<List<String>> = _brandQuery
         .map { query: String ->
             if (query.isBlank()) {
-                emptyList<String>()
+                emptyList()
             } else {
                 CarBrandHelper.brands.filter { it.contains(query, ignoreCase = true) }
             }
