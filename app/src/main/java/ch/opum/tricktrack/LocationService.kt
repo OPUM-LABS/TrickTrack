@@ -13,8 +13,10 @@ import androidx.core.content.IntentCompat
 import android.location.Location
 import android.os.Build
 import android.os.CountDownTimer
+import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import ch.opum.tricktrack.data.Trip
@@ -59,6 +61,7 @@ class LocationService : Service() {
     private var lastLocationTime: Long = 0
     private var lastReportedSpeed: Double = 0.0
     private var currentDistanceUnit: DistanceUnit = DistanceUnit.KM
+    private var currentMinSpeed: Int = 10
 
 
     override fun onCreate() {
@@ -74,6 +77,12 @@ class LocationService : Service() {
                 if (_isTracking.value) {
                     updateNotification(_distance.value)
                 }
+            }
+        }
+
+        applicationScope.launch {
+            userPreferencesRepository.minSpeed.collect { speed ->
+                currentMinSpeed = speed
             }
         }
 
@@ -341,8 +350,9 @@ class LocationService : Service() {
                 val distance = prevLocation.distanceTo(location)
                 val speed = distance / timeDifference // m/s
                 val speedKmh = speed * 3.6
-                AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h")
-                if (speedKmh > 20) {
+                val minSpeedValue = currentMinSpeed
+                AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h (Threshold: $minSpeedValue km/h)")
+                if (speedKmh >= minSpeedValue) {
                     if (highSpeedCounter == 0) {
                         // This is the first detection of high speed. Cache this location.
                         potentialTripStartLocation = prevLocation
@@ -350,14 +360,14 @@ class LocationService : Service() {
                     }
                     highSpeedCounter++
                     AppLogger.log("LocationService", "High speed detected. Counter: $highSpeedCounter")
-                    if (highSpeedCounter >= 3) {
+                    if (highSpeedCounter >= 2) {
                         isStartingTrip = true
                         startAutoTrip()
                     }
                 } else {
                     highSpeedCounter = 0
                     potentialTripStartLocation = null // Clear the cache if speed drops
-                    AppLogger.log("LocationService", "Speed below threshold. Resetting counter and clearing potential start location.")
+                    AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Resetting counter and clearing potential start location.")
                 }
             }
         }
@@ -589,7 +599,7 @@ class LocationService : Service() {
             val defaultVehicleId = userPreferencesRepository.defaultVehicleId.first().takeIf { it != -1 }
             val tripType = if (isBusinessDefault) "Business" else "Personal"
 
-            val isConfirmed = _currentTripTrigger.value == TripTrigger.MANUAL
+            val isConfirmed = false // All live-tracked trips require review before confirmation
 
             val trip = Trip(
                 startLoc = startAddress,
@@ -616,6 +626,15 @@ class LocationService : Service() {
                 "LocationService",
                 "Trip too short, not saving. Distance: $finalDistance meters"
             )
+            if (_currentTripTrigger.value == TripTrigger.MANUAL) {
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        applicationContext,
+                        "Trip under 100m was not saved.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
 
