@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -243,6 +245,7 @@ fun PlacesListScreen(
                     },
                     selectedId = selectedId,
                     onSelect = { id -> viewModel.setDefaultDriver(id) },
+                    emptyIcon = Icons.Default.Person,
                     viewModel = viewModel
                 )
             }
@@ -257,6 +260,7 @@ fun PlacesListScreen(
                     },
                     selectedId = selectedId,
                     onSelect = { id -> viewModel.setDefaultCompany(id) },
+                    emptyIcon = Icons.Default.Work,
                     viewModel = viewModel
                 )
             }
@@ -271,6 +275,7 @@ fun PlacesListScreen(
                     },
                     selectedId = selectedId,
                     onSelect = { id -> viewModel.setDefaultVehicle(id) },
+                    emptyIcon = Icons.Default.DirectionsCar,
                     viewModel = viewModel
                 )
             }
@@ -656,6 +661,7 @@ fun GenericGroupedList(
     onEdit: (SimpleItem) -> Unit,
     selectedId: Int?,
     onSelect: (Int) -> Unit,
+    emptyIcon: androidx.compose.ui.graphics.vector.ImageVector,
     viewModel: FavouritesViewModel? = null
 ) {
     val listState = rememberLazyListState()
@@ -676,11 +682,23 @@ fun GenericGroupedList(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                stringResource(R.string.favourites_no_items), 
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = emptyIcon,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    stringResource(R.string.favourites_no_items),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
+            }
         }
     } else {
         Row(modifier = Modifier.fillMaxSize()) {

@@ -84,6 +84,23 @@
     <string name="permission_battery_optimization_desc">Disable optimizations to ensure tracking isn\'t killed by the system.</string>
     <string name="permission_enable">Enable</string>
 
+    <!-- Onboarding -->
+    <string name="screen_title_onboarding">Welcome</string>
+    <string name="onboarding_welcome_title">Welcome to TrickTrack</string>
+    <string name="onboarding_welcome_desc">The intelligent companion for your vehicle logs. Let\'s get everything set up for automatic tracking.</string>
+    <string name="onboarding_precise_location_title">Precise Location</string>
+    <string name="onboarding_background_location_title">Background Location</string>
+    <string name="onboarding_background_location_instruction">On the next screen, please select \"Allow all the time\" to enable automatic trip detection.</string>
+    <string name="onboarding_notifications_title">Stay Notified</string>
+    <string name="onboarding_notifications_desc">We\'ll let you know when a trip is ready for review.</string>
+    <string name="onboarding_battery_title">Battery Optimization</string>
+    <string name="onboarding_battery_desc">To ensure tracking is never interrupted, please disable battery optimizations for TrickTrack.</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_finish">Continue to App</string>
+    <string name="onboarding_grant_permission">Grant Permission</string>
+    <string name="onboarding_open_settings">Open Settings</string>
+    <string name="onboarding_permission_granted">Permission Granted</string>
+
     <!-- General -->
     <string name="button_save">Save</string>
     <string name="button_cancel">Cancel</string>

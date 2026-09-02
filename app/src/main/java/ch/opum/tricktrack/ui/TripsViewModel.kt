@@ -390,6 +390,15 @@ class TripsViewModel(
         it is PermissionHealthState.AllGranted 
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val hasCompletedOnboarding: StateFlow<Boolean> = userPreferencesRepository.hasCompletedOnboarding
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setHasCompletedOnboarding(completed: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setHasCompletedOnboarding(completed)
+        }
+    }
+
     val expenseTrackingEnabled: StateFlow<Boolean> =
         userPreferencesRepository.expenseTrackingEnabled
             .stateIn(

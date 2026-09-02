@@ -84,6 +84,23 @@
     <string name="permission_battery_optimization_desc">Deaktivieren Sie Optimierungen, damit die Aufzeichnung nicht vom System beendet wird.</string>
     <string name="permission_enable">Aktivieren</string>
 
+    <!-- Onboarding -->
+    <string name="screen_title_onboarding">Willkommen</string>
+    <string name="onboarding_welcome_title">Willkommen bei TrickTrack</string>
+    <string name="onboarding_welcome_desc">Der intelligente Begleiter für Ihr Fahrtenbuch. Lassen Sie uns alles für das automatische Tracking einrichten.</string>
+    <string name="onboarding_precise_location_title">Genauer Standort</string>
+    <string name="onboarding_background_location_title">Hintergrund-Standort</string>
+    <string name="onboarding_background_location_instruction">Wählen Sie auf dem nächsten Bildschirm bitte \"Immer zulassen\", um die automatische Fahrterkennung zu ermöglichen.</string>
+    <string name="onboarding_notifications_title">Bleiben Sie informiert</string>
+    <string name="onboarding_notifications_desc">Wir benachrichtigen Sie, wenn eine Fahrt zur Überprüfung bereit ist.</string>
+    <string name="onboarding_battery_title">Akku-Optimierung</string>
+    <string name="onboarding_battery_desc">Um sicherzustellen, dass das Tracking nie unterbrochen wird, deaktivieren Sie bitte die Akku-Optimierungen für TrickTrack.</string>
+    <string name="onboarding_continue">Weiter</string>
+    <string name="onboarding_finish">Weiter zur App</string>
+    <string name="onboarding_grant_permission">Berechtigung erteilen</string>
+    <string name="onboarding_open_settings">Einstellungen öffnen</string>
+    <string name="onboarding_permission_granted">Berechtigung erteilt</string>
+
     <!-- General -->
     <string name="button_save">Speichern</string>
     <string name="button_cancel">Abbrechen</string>

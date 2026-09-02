@@ -62,6 +62,7 @@ class UserPreferencesRepository(private val context: Context) {
         val DISTANCE_MONITORING_RADIUS = intPreferencesKey("distance_monitoring_radius")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
+        val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -297,6 +298,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setDistanceUnit(unit: DistanceUnit) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DISTANCE_UNIT] = unit.name
+        }
+    }
+
+    val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.HAS_COMPLETED_ONBOARDING] ?: false
+        }
+
+    suspend fun setHasCompletedOnboarding(completed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HAS_COMPLETED_ONBOARDING] = completed
         }
     }
 

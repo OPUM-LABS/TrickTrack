@@ -85,6 +85,23 @@
     <string name="permission_battery_optimization_desc">Disabilita le ottimizzazioni per garantire che il monitoraggio non venga interrotto dal sistema.</string>
     <string name="permission_enable">Abilita</string>
 
+    <!-- Onboarding -->
+    <string name="screen_title_onboarding">Benvenuto</string>
+    <string name="onboarding_welcome_title">Benvenuto in TrickTrack</string>
+    <string name="onboarding_welcome_desc">Il compagno intelligente per i tuoi registri di bordo. Configuriamo tutto per il tracciamento automatico.</string>
+    <string name="onboarding_precise_location_title">Posizione precisa</string>
+    <string name="onboarding_background_location_title">Posizione in background</string>
+    <string name="onboarding_background_location_instruction">Nella schermata successiva, seleziona \"Consenti sempre\" per abilitare il rilevamento automatico dei viaggi.</string>
+    <string name="onboarding_notifications_title">Resta aggiornato</string>
+    <string name="onboarding_notifications_desc">Ti avviseremo quando un viaggio è pronto per la revisione.</string>
+    <string name="onboarding_battery_title">Ottimizzazione della batteria</string>
+    <string name="onboarding_battery_desc">Per garantire che il tracciamento non venga mai interrotto, disabilita le ottimizzazioni della batteria per TrickTrack.</string>
+    <string name="onboarding_continue">Continua</string>
+    <string name="onboarding_finish">Continua verso l\'app</string>
+    <string name="onboarding_grant_permission">Concedi autorizzazione</string>
+    <string name="onboarding_open_settings">Apri impostazioni</string>
+    <string name="onboarding_permission_granted">Autorizzazione concessa</string>
+
     <!-- General -->
     <string name="button_save">Salva</string>
     <string name="button_cancel">Annulla</string>

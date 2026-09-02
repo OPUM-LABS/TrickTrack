@@ -2,7 +2,6 @@ package ch.opum.tricktrack
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -124,7 +123,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -152,6 +150,7 @@ import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.navigation.Screen
+import ch.opum.tricktrack.ui.onboarding.OnboardingScreen
 import ch.opum.tricktrack.ui.place.AddEditPlaceDialog
 import ch.opum.tricktrack.ui.place.FavouritesViewModel
 import ch.opum.tricktrack.ui.place.PlacesListScreen
@@ -195,26 +194,6 @@ class MainActivity : ComponentActivity() {
 
             TrickTrackTheme(themeMode = themeMode) {
                 val context = LocalContext.current
-                val notificationPermissionLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestPermission()
-                ) { isGranted ->
-                    if (isGranted) {
-                        Toast.makeText(context, "Notifications Enabled", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                LaunchedEffect(Unit) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.POST_NOTIFICATIONS
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
-                    }
-                }
-
                 val application = context.applicationContext as TripApplication
                 MainScreen(
                     currentIntent = currentIntent,
@@ -250,6 +229,11 @@ fun MainScreen(
     val currentRoute = currentDestination?.route
     val totalDistanceLabel by tripsViewModel.totalDistanceLabel.collectAsState()
     val tripCountLabel by tripsViewModel.tripCountLabel.collectAsState()
+    val hasCompletedOnboarding by tripsViewModel.hasCompletedOnboarding.collectAsState()
+
+    val startDestination = remember(hasCompletedOnboarding) {
+        if (hasCompletedOnboarding) Screen.TripList.route else Screen.Onboarding.route
+    }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -412,180 +396,194 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    val title = when (currentRoute) {
-                        Screen.TripList.route -> stringResource(R.string.screen_title_trips)
-                        Screen.Review.route -> stringResource(R.string.screen_title_review)
-                        Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
-                        Screen.Settings.route -> stringResource(R.string.screen_title_settings)
-                        else -> ""
-                    }
-                    if (title.isNotEmpty()) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                ),
-                actions = {
-                    when (currentRoute) {
-                        Screen.TripList.route -> {
-                            var showFilterDialog by remember { mutableStateOf(value = false) }
-                            var showExportDialog by remember { mutableStateOf(value = false) }
-                            val isFilterActive by tripsViewModel.isFilterActive.collectAsState()
-                            var showAddManualTripDialog by remember { mutableStateOf(false) }
-                            var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
+            if (currentRoute != Screen.Onboarding.route) {
+                TopAppBar(
+                    title = {
+                        val title = when (currentRoute) {
+                            Screen.TripList.route -> stringResource(R.string.screen_title_trips)
+                            Screen.Review.route -> stringResource(R.string.screen_title_review)
+                            Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
+                            Screen.Settings.route -> stringResource(R.string.screen_title_settings)
+                            else -> ""
+                        }
+                        if (title.isNotEmpty()) {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    actions = {
+                        when (currentRoute) {
+                            Screen.TripList.route -> {
+                                var showFilterDialog by remember { mutableStateOf(value = false) }
+                                var showExportDialog by remember { mutableStateOf(value = false) }
+                                val isFilterActive by tripsViewModel.isFilterActive.collectAsState()
+                                var showAddManualTripDialog by remember { mutableStateOf(false) }
+                                var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
-                            IconButton(onClick = { showAddManualTripDialog = true }) {
-                                Icon(Icons.Default.Add, stringResource(R.string.action_add_manual_trip))
-                            }
-                            IconButton(onClick = { showDeleteConfirmationDialog = true }) {
-                                Icon(Icons.Default.Delete, stringResource(R.string.action_delete))
-                            }
-                            IconButton(onClick = { showFilterDialog = true }) {
-                                Icon(
-                                    Icons.Default.FilterList,
-                                    stringResource(R.string.action_filter),
-                                    tint = if (isFilterActive) MaterialTheme.colorScheme.secondary else LocalContentColor.current
-                                )
-                            }
-                            IconButton(onClick = { showExportDialog = true }) {
-                                Icon(Icons.Default.Share, stringResource(R.string.action_export))
-                            }
+                                IconButton(onClick = { showAddManualTripDialog = true }) {
+                                    Icon(Icons.Default.Add, stringResource(R.string.action_add_manual_trip))
+                                }
+                                IconButton(onClick = { showDeleteConfirmationDialog = true }) {
+                                    Icon(Icons.Default.Delete, stringResource(R.string.action_delete))
+                                }
+                                IconButton(onClick = { showFilterDialog = true }) {
+                                    Icon(
+                                        Icons.Default.FilterList,
+                                        stringResource(R.string.action_filter),
+                                        tint = if (isFilterActive) MaterialTheme.colorScheme.secondary else LocalContentColor.current
+                                    )
+                                }
+                                IconButton(onClick = { showExportDialog = true }) {
+                                    Icon(Icons.Default.Share, stringResource(R.string.action_export))
+                                }
 
-                            if (showExportDialog) {
-                                ExportFormatDialog(
-                                    onDismiss = { showExportDialog = false },
-                                    onExportCsvClicked = {
-                                        scope.launch {
-                                            val uri = tripsViewModel.exportAllTripsToCsv(
-                                                context = context,
-                                                driverName = tripsViewModel.selectedDriver?.name,
-                                                companyName = tripsViewModel.selectedCompany?.name,
-                                                vehicleName = tripsViewModel.selectedVehicle?.licensePlate
-                                            )
-                                            uri?.let {
-                                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                                    type = "text/csv"
-                                                    putExtra(Intent.EXTRA_STREAM, it)
-                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                }
-                                                context.startActivity(
-                                                    Intent.createChooser(
-                                                        shareIntent,
-                                                        "Share trips CSV"
-                                                    )
+                                if (showExportDialog) {
+                                    ExportFormatDialog(
+                                        onDismiss = { showExportDialog = false },
+                                        onExportCsvClicked = {
+                                            scope.launch {
+                                                val uri = tripsViewModel.exportAllTripsToCsv(
+                                                    context = context,
+                                                    driverName = tripsViewModel.selectedDriver?.name,
+                                                    companyName = tripsViewModel.selectedCompany?.name,
+                                                    vehicleName = tripsViewModel.selectedVehicle?.licensePlate
                                                 )
+                                                uri?.let {
+                                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                                        type = "text/csv"
+                                                        putExtra(Intent.EXTRA_STREAM, it)
+                                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                    }
+                                                    context.startActivity(
+                                                        Intent.createChooser(
+                                                            shareIntent,
+                                                            "Share trips CSV"
+                                                        )
+                                                    )
+                                                }
                                             }
-                                        }
-                                    },
-                                    onExportPdfClicked = {
-                                        tripsViewModel.exportTripsToPdf()
-                                        showExportDialog = false
-                                    },
-                                    viewModel = tripsViewModel
-                                )
-                            }
+                                        },
+                                        onExportPdfClicked = {
+                                            tripsViewModel.exportTripsToPdf()
+                                            showExportDialog = false
+                                        },
+                                        viewModel = tripsViewModel
+                                    )
+                                }
 
-                            if (showFilterDialog) {
-                                val currentFilterState by tripsViewModel.filterState.collectAsState()
-                                val allVehicles by tripsViewModel.allVehicles.collectAsState()
-                                FilterDialog(
-                                    currentFilterState = currentFilterState,
-                                    allVehicles = allVehicles,
-                                    onApplyFilter = { newFilterState ->
-                                        tripsViewModel.updateFilter(newFilterState)
-                                        showFilterDialog = false
-                                    },
-                                    onDismiss = { showFilterDialog = false }
-                                )
-                            }
+                                if (showFilterDialog) {
+                                    val currentFilterState by tripsViewModel.filterState.collectAsState()
+                                    val allVehicles by tripsViewModel.allVehicles.collectAsState()
+                                    FilterDialog(
+                                        currentFilterState = currentFilterState,
+                                        allVehicles = allVehicles,
+                                        onApplyFilter = { newFilterState ->
+                                            tripsViewModel.updateFilter(newFilterState)
+                                            showFilterDialog = false
+                                        },
+                                        onDismiss = { showFilterDialog = false }
+                                    )
+                                }
 
-                            if (showDeleteConfirmationDialog) {
-                                ConfirmationBottomSheet(
-                                    title = stringResource(R.string.delete_filtered_trips_title),
-                                    message = stringResource(R.string.delete_filtered_trips_confirmation),
-                                    onConfirm = {
-                                        tripsViewModel.deleteFilteredTrips()
-                                        showDeleteConfirmationDialog = false
-                                    },
-                                    onDismiss = { showDeleteConfirmationDialog = false }
-                                )
-                            }
+                                if (showDeleteConfirmationDialog) {
+                                    ConfirmationBottomSheet(
+                                        title = stringResource(R.string.delete_filtered_trips_title),
+                                        message = stringResource(R.string.delete_filtered_trips_confirmation),
+                                        onConfirm = {
+                                            tripsViewModel.deleteFilteredTrips()
+                                            showDeleteConfirmationDialog = false
+                                        },
+                                        onDismiss = { showDeleteConfirmationDialog = false }
+                                    )
+                                }
 
-                            if (showAddManualTripDialog) {
-                                EditTripDialog(
-                                    trip = null,
-                                    onDismiss = { showAddManualTripDialog = false },
-                                    onSave = { newTrip ->
-                                        tripsViewModel.saveOrUpdateTrip(newTrip)
-                                        showAddManualTripDialog = false
-                                    },
-                                    onDelete = { /* Not used in add mode */ },
-                                    favouritesViewModel = favouritesViewModel,
-                                    tripsViewModel = tripsViewModel
-                                )
+                                if (showAddManualTripDialog) {
+                                    EditTripDialog(
+                                        trip = null,
+                                        onDismiss = { showAddManualTripDialog = false },
+                                        onSave = { newTrip ->
+                                            tripsViewModel.saveOrUpdateTrip(newTrip)
+                                            showAddManualTripDialog = false
+                                        },
+                                        onDelete = { /* Not used in add mode */ },
+                                        favouritesViewModel = favouritesViewModel,
+                                        tripsViewModel = tripsViewModel
+                                    )
+                                }
                             }
-                        }
-                        Screen.Settings.route -> {
-                            IconButton(onClick = { showAboutDialog = true }) {
-                                Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.action_about))
+                            Screen.Settings.route -> {
+                                IconButton(onClick = { showAboutDialog = true }) {
+                                    Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.action_about))
+                                }
                             }
                         }
                     }
-                }
-            )
+                )
+            }
         },
         bottomBar = {
-            NavigationBar {
-                val items =
-                    listOf(Screen.Review, Screen.TripList, Screen.PlacesList, Screen.Settings)
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        icon = {
-                            if ((screen is Screen.Review) && unconfirmedTrips.isNotEmpty()) {
-                                BadgedBox(
-                                    badge = {
-                                        Badge(
-                                            containerColor = Color(0xFFB00020),
-                                            contentColor = Color.White
-                                        ) {
-                                            Text(unconfirmedTrips.size.toString())
+            if (currentRoute != Screen.Onboarding.route) {
+                NavigationBar {
+                    val items =
+                        listOf(Screen.Review, Screen.TripList, Screen.PlacesList, Screen.Settings)
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            icon = {
+                                if ((screen is Screen.Review) && unconfirmedTrips.isNotEmpty()) {
+                                    BadgedBox(
+                                        badge = {
+                                            Badge(
+                                                containerColor = Color(0xFFB00020),
+                                                contentColor = Color.White
+                                            ) {
+                                                Text(unconfirmedTrips.size.toString())
+                                            }
                                         }
+                                    ) {
+                                        Icon(screen.icon, contentDescription = stringResource(screen.title))
                                     }
-                                ) {
+                                } else {
                                     Icon(screen.icon, contentDescription = stringResource(screen.title))
                                 }
-                            } else {
-                                Icon(screen.icon, contentDescription = stringResource(screen.title))
-                            }
-                        },
-                        label = { Text(stringResource(screen.title)) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            },
+                            label = { Text(stringResource(screen.title)) },
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.TripList.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(Screen.Onboarding.route) {
+                OnboardingScreen(
+                    onFinish = {
+                        tripsViewModel.setHasCompletedOnboarding(true)
+                        navController.navigate(Screen.TripList.route) {
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
             composable(Screen.Review.route) {
                 ReviewScreen(viewModel = tripsViewModel)
             }

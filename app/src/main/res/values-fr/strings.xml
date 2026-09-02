@@ -85,6 +85,23 @@
     <string name="permission_battery_optimization_desc">Désactivez les optimisations pour garantir que le suivi n\'est pas arrêté par le système.</string>
     <string name="permission_enable">Activer</string>
 
+    <!-- Onboarding -->
+    <string name="screen_title_onboarding">Bienvenue</string>
+    <string name="onboarding_welcome_title">Bienvenue sur TrickTrack</string>
+    <string name="onboarding_welcome_desc">Le compagnon intelligent pour vos journaux de véhicule. Configurons tout pour le suivi automatique.</string>
+    <string name="onboarding_precise_location_title">Localisation précise</string>
+    <string name="onboarding_background_location_title">Localisation en arrière-plan</string>
+    <string name="onboarding_background_location_instruction">Sur l\'écran suivant, veuillez sélectionner \"Toujours autoriser\" pour activer la détection automatique des trajets.</string>
+    <string name="onboarding_notifications_title">Restez notifié</string>
+    <string name="onboarding_notifications_desc">Nous vous préviendrons lorsqu\'un trajet est prêt à être examiné.</string>
+    <string name="onboarding_battery_title">Optimisation de la batterie</string>
+    <string name="onboarding_battery_desc">Pour garantir que le suivi ne soit jamais interrompu, veuillez désactiver les optimisations de batterie pour TrickTrack.</string>
+    <string name="onboarding_continue">Continuer</string>
+    <string name="onboarding_finish">Continuer vers l\'application</string>
+    <string name="onboarding_grant_permission">Accorder l\'autorisation</string>
+    <string name="onboarding_open_settings">Ouvrir les paramètres</string>
+    <string name="onboarding_permission_granted">Autorisation accordée</string>
+
     <!-- General -->
     <string name="button_save">Enregistrer</string>
     <string name="button_cancel">Annuler</string>
