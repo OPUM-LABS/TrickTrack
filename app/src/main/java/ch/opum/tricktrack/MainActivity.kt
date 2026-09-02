@@ -707,18 +707,48 @@ fun TripScreen(
                             onStartTrip()
                         }
                     },
-                    colors = buttonColors
+                    colors = buttonColors,
+                    contentPadding = if (isTracking) {
+                        PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    } else {
+                        ButtonDefaults.ContentPadding
+                    }
                 ) {
                     val formattedLiveDistance = DistanceFormatter.formatShort(distance / 1000.0, distanceUnit)
-                    Icon(
-                        imageVector = if (isTracking) Icons.Default.Stop else Icons.Default.DirectionsCar,
-                        contentDescription = if (isTracking) stringResource(R.string.stop_trip_button, formattedLiveDistance) else stringResource(R.string.start_trip_button)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        if (isTracking) stringResource(R.string.stop_trip_button, formattedLiveDistance)
-                        else stringResource(R.string.start_trip_button)
-                    )
+                    if (isTracking) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Stop,
+                                contentDescription = stringResource(R.string.stop),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.stop),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = formattedLiveDistance,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.DirectionsCar,
+                            contentDescription = stringResource(R.string.start_trip_button)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.start_trip_button)
+                        )
+                    }
                 }
             }
         }
