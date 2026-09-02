@@ -708,16 +708,17 @@ fun TripScreen(
                         }
                     },
                     colors = buttonColors,
-                    contentPadding = if (isTracking) {
-                        PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    } else {
-                        ButtonDefaults.ContentPadding
-                    }
+                    modifier = Modifier
+                        .width(135.dp)
+                        .height(48.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     val formattedLiveDistance = DistanceFormatter.formatShort(distance / 1000.0, distanceUnit)
                     if (isTracking) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Stop,
@@ -740,14 +741,23 @@ fun TripScreen(
                             }
                         }
                     } else {
-                        Icon(
-                            imageVector = Icons.Default.DirectionsCar,
-                            contentDescription = stringResource(R.string.start_trip_button)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.start_trip_button)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DirectionsCar,
+                                contentDescription = stringResource(R.string.start_trip_button),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.start_trip_button),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
