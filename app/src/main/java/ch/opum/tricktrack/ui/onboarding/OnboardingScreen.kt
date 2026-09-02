@@ -47,6 +47,14 @@ fun OnboardingScreen(
     var currentStep by remember { mutableStateOf(OnboardingStep.WELCOME) }
     val context = LocalContext.current
 
+    val onNext: () -> Unit = {
+        if (currentStep == OnboardingStep.FINISH) {
+            onFinish()
+        } else {
+            currentStep = OnboardingStep.entries[currentStep.ordinal + 1]
+        }
+    }
+
     Scaffold { padding ->
         Box(
             modifier = Modifier
@@ -78,7 +86,7 @@ fun OnboardingScreen(
                         OnboardingStep.BACKGROUND_LOCATION -> BackgroundLocationStep()
                         OnboardingStep.BLUETOOTH -> BluetoothStep()
                         OnboardingStep.NOTIFICATIONS -> NotificationsStep()
-                        OnboardingStep.BATTERY -> BatteryStep()
+                        OnboardingStep.BATTERY -> BatteryStep(onGranted = onNext)
                         OnboardingStep.FINISH -> FinishStep()
                     }
                 }
@@ -87,13 +95,7 @@ fun OnboardingScreen(
 
                 StepActions(
                     step = currentStep,
-                    onNext = {
-                        if (currentStep == OnboardingStep.FINISH) {
-                            onFinish()
-                        } else {
-                            currentStep = OnboardingStep.entries[currentStep.ordinal + 1]
-                        }
-                    },
+                    onNext = onNext,
                     context = context
                 )
             }
@@ -181,7 +183,7 @@ fun NotificationsStep() {
 }
 
 @Composable
-fun BatteryStep() {
+fun BatteryStep(onGranted: () -> Unit) {
     val context = LocalContext.current
     val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
     
@@ -195,7 +197,11 @@ fun BatteryStep() {
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                isGranted = powerManager.isIgnoringBatteryOptimizations(context.packageName)
+                val nowGranted = powerManager.isIgnoringBatteryOptimizations(context.packageName)
+                if (nowGranted && !isGranted) {
+                    onGranted()
+                }
+                isGranted = nowGranted
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
