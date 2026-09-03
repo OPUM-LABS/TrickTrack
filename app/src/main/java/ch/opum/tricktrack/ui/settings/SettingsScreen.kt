@@ -1862,6 +1862,20 @@ fun PermissionBottomSheet(
         viewModel.checkPermissions(context)
     }
 
+    // Re-check permissions when coming back to foreground
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.checkPermissions(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -1888,7 +1902,16 @@ fun PermissionBottomSheet(
                     onEnable = {
                         when (val req = status.requirement) {
                             PermissionRequirement.BatteryOptimization -> {
-                                openAppSettings(context)
+                                try {
+                                    @SuppressLint("BatteryLife")
+                                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                        data = Uri.fromParts("package", context.packageName, null)
+                                    }
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {
+                                    val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                    context.startActivity(intent)
+                                }
                             }
                             else -> {
                                 if (req.permission != null) {
