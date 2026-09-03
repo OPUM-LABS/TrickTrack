@@ -531,6 +531,13 @@ class LocationService : Service() {
                 val distance = prevLocation.distanceTo(location)
                 val speed = distance / timeDifference // m/s
                 val speedKmh = speed * 3.6
+
+                // Sanity check: Ignore impossible speeds (> 250 km/h) or poor accuracy caused by cell tower jumps / GPS glitches
+                if (speedKmh > 250.0 || (location.hasAccuracy() && location.accuracy > 100f)) {
+                    AppLogger.log("LocationService", "Ignoring GPS glitch/teleportation. Speed: $speedKmh km/h, Accuracy: ${location.accuracy}")
+                    return@let
+                }
+
                 val minSpeedValue = currentMinSpeed
                 AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h (Threshold: $minSpeedValue km/h)")
                 var currentCounter: Int
@@ -714,25 +721,30 @@ class LocationService : Service() {
 
     private fun startAutoTrip() {
         applicationScope.launch {
-            // The check for Bluetooth priority is now handled in evaluateTrackingState()
-            // This function just starts the auto trip if called.
-            AppLogger.log("LocationService", "Starting automatic trip")
-            highSpeedCounter = 0
-            isManualTrip = false // Auto trips are not manual
-            isBluetoothTriggeredTrip = false
-            _currentTripTrigger.value = TripTrigger.AUTOMATIC
-            withContext(Dispatchers.Main) {
-                startTrip() // This will reset _startLocation to null
-                _startLocation.value = potentialTripStartLocation // Immediately set it from the cache
-                AppLogger.log(
-                    "LocationService",
-                    "Setting trip start location from cached value: ${
-                        potentialTripStartLocation?.let {
-                            AppLogger.sanitizeLocation(it.latitude, it.longitude)
-                        }
-                    }"
-                )
-                potentialTripStartLocation = null // Clear the cache
+            try {
+                // The check for Bluetooth priority is now handled in evaluateTrackingState()
+                // This function just starts the auto trip if called.
+                AppLogger.log("LocationService", "Starting automatic trip")
+                highSpeedCounter = 0
+                isManualTrip = false // Auto trips are not manual
+                isBluetoothTriggeredTrip = false
+                _currentTripTrigger.value = TripTrigger.AUTOMATIC
+                withContext(Dispatchers.Main) {
+                    startTrip() // This will reset _startLocation to null
+                    _startLocation.value = potentialTripStartLocation // Immediately set it from the cache
+                    AppLogger.log(
+                        "LocationService",
+                        "Setting trip start location from cached value: ${
+                            potentialTripStartLocation?.let {
+                                AppLogger.sanitizeLocation(it.latitude, it.longitude)
+                            }
+                        }"
+                    )
+                    potentialTripStartLocation = null // Clear the cache
+                }
+            } catch (e: Exception) {
+                AppLogger.log("LocationService", "Error starting automatic trip: ${e.message}")
+            } finally {
                 isStartingTrip = false
             }
         }
