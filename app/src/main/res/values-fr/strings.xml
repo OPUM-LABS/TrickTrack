@@ -101,6 +101,7 @@
     <string name="onboarding_grant_permission">Accorder l\'autorisation</string>
     <string name="onboarding_open_settings">Ouvrir les paramètres</string>
     <string name="onboarding_permission_granted">Autorisation accordée</string>
+    <string name="onboarding_skip">Passer</string>
 
     <!-- General -->
     <string name="button_save">Enregistrer</string>

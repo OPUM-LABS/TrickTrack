@@ -61,6 +61,21 @@ fun OnboardingScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            if (currentStep != OnboardingStep.FINISH) {
+                TextButton(
+                    onClick = onNext,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.onboarding_skip),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()

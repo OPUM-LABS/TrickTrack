@@ -100,6 +100,7 @@
     <string name="onboarding_grant_permission">Berechtigung erteilen</string>
     <string name="onboarding_open_settings">Einstellungen öffnen</string>
     <string name="onboarding_permission_granted">Berechtigung erteilt</string>
+    <string name="onboarding_skip">Überspringen</string>
 
     <!-- General -->
     <string name="button_save">Speichern</string>

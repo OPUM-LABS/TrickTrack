@@ -101,6 +101,7 @@
     <string name="onboarding_grant_permission">Concedi autorizzazione</string>
     <string name="onboarding_open_settings">Apri impostazioni</string>
     <string name="onboarding_permission_granted">Autorizzazione concessa</string>
+    <string name="onboarding_skip">Salta</string>
 
     <!-- General -->
     <string name="button_save">Salva</string>
