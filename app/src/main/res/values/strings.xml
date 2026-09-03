@@ -307,6 +307,10 @@
     <string name="settings_last_movement_above_threshold">Speed above threshold (Count: %d/2)</string>
     <string name="settings_last_movement_below_threshold">Speed below threshold (%d km/h)</string>
     <string name="settings_last_movement_none">No movement detected yet in this session.</string>
+    <string name="settings_motion_sensor_title">Motion Sensor Status</string>
+    <string name="settings_motion_sensor_type">Sensor: %s</string>
+    <string name="settings_motion_sensor_state">State: %s</string>
+    <string name="settings_motion_sensor_last_event">Last Event: %s</string>
     <string name="notification_still_driving_title">Still driving?</string>
     <string name="notification_still_driving_text">GPS signal lost. Are you still driving?</string>
     <string name="yes">Yes</string>

@@ -1295,6 +1295,7 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
+            val motionSensorInfo by viewModel.motionSensorInfo.collectAsState()
             val lastMovementInfo by viewModel.lastMovementInfo.collectAsState()
             val distanceUnit by viewModel.distanceUnit.collectAsState()
 
@@ -1304,7 +1305,7 @@ fun SettingsScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1324,7 +1325,30 @@ fun SettingsScreen(
                         )
                     }
 
+                    if (motionSensorInfo != null) {
+                        val sensor = motionSensorInfo!!
+                        val sensorTimeStr = SimpleDateFormat("HH:mm:ss", LocalLocale.current.platformLocale).format(Date(sensor.timestamp))
+
+                        Text(
+                            text = stringResource(R.string.settings_motion_sensor_type, sensor.sensorName),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_motion_sensor_state, sensor.statusText),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (sensor.isMotionDetected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_motion_sensor_last_event, sensorTimeStr),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                    }
+
                     if (lastMovementInfo != null) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         val info = lastMovementInfo!!
                         val timeStr = SimpleDateFormat("HH:mm:ss", LocalLocale.current.platformLocale).format(Date(info.timestamp))
                         val formattedDistance = DistanceFormatter.formatShort(info.distanceMeters / 1000.0, distanceUnit)
@@ -1349,7 +1373,7 @@ fun SettingsScreen(
                             fontWeight = FontWeight.SemiBold,
                             color = if (info.speedKmh >= info.speedThresholdKmh) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    } else {
+                    } else if (motionSensorInfo == null) {
                         Text(
                             text = stringResource(R.string.settings_last_movement_none),
                             style = MaterialTheme.typography.bodySmall,

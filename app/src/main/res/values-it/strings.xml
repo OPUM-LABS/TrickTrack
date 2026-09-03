@@ -306,6 +306,10 @@
     <string name="settings_last_movement_above_threshold">Velocità superiore alla soglia (Conteggio: %d/2)</string>
     <string name="settings_last_movement_below_threshold">Velocità inferiore alla soglia (%d km/h)</string>
     <string name="settings_last_movement_none">Nessun movimento ancora rilevato in questa sessione.</string>
+    <string name="settings_motion_sensor_title">Stato del sensore di movimento</string>
+    <string name="settings_motion_sensor_type">Sensore: %s</string>
+    <string name="settings_motion_sensor_state">Stato: %s</string>
+    <string name="settings_motion_sensor_last_event">Ultimo evento: %s</string>
     <string name="notification_still_driving_title">Stai ancora guidando?</string>
     <string name="notification_still_driving_text">Segnale GPS perso. Stai ancora guidando?</string>
     <string name="yes">Sì</string>

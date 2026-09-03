@@ -10,6 +10,12 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import androidx.core.content.IntentCompat
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.hardware.TriggerEvent
+import android.hardware.TriggerEventListener
 import android.location.Location
 import android.os.Build
 import android.os.CountDownTimer
@@ -35,10 +41,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 data class MovementInfo(
     val timestamp: Long = System.currentTimeMillis(),
@@ -46,6 +55,14 @@ data class MovementInfo(
     val speedKmh: Double,
     val speedThresholdKmh: Int,
     val counter: Int
+)
+
+data class MotionSensorInfo(
+    val timestamp: Long = System.currentTimeMillis(),
+    val sensorName: String,
+    val isMotionDetected: Boolean,
+    val isGpsActive: Boolean,
+    val statusText: String,
 )
 
 class LocationService : Service() {
@@ -71,9 +88,21 @@ class LocationService : Service() {
     private var currentDistanceUnit: DistanceUnit = DistanceUnit.KM
     private var currentMinSpeed: Int = 10
 
+    private lateinit var sensorManager: SensorManager
+    private var significantMotionSensor: Sensor? = null
+    private var accelerometerSensor: Sensor? = null
+    private var triggerEventListener: TriggerEventListener? = null
+    private var accelerometerListener: SensorEventListener? = null
+    private var isGpsElevated: Boolean = false
+
 
     override fun onCreate() {
         super.onCreate()
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
+        if (significantMotionSensor == null) {
+            accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannels()
@@ -127,6 +156,9 @@ class LocationService : Service() {
             ACTION_BLUETOOTH_DISCONNECTED,
             -> {
                 applicationScope.launch {
+                    if (isMonitoring) {
+                        stopMonitoringInternal()
+                    }
                     evaluateTrackingState()
                 }
             }
@@ -253,6 +285,121 @@ class LocationService : Service() {
         return isWithinTime
     }
 
+    private fun armMotionSensor() {
+        disarmMotionSensor()
+        val sensorName = if (significantMotionSensor != null) "Hardware Significant Motion" else if (accelerometerSensor != null) "Accelerometer" else "Low-Power Location"
+        _motionSensorInfo.value = MotionSensorInfo(
+            timestamp = System.currentTimeMillis(),
+            sensorName = sensorName,
+            isMotionDetected = false,
+            isGpsActive = false,
+            statusText = "Stationary (GPS Sleeping - Battery Saving Mode)"
+        )
+
+        if (significantMotionSensor != null) {
+            triggerEventListener = object : TriggerEventListener() {
+                override fun onTrigger(event: TriggerEvent?) {
+                    AppLogger.log("LocationService", "Significant motion detected by hardware sensor!")
+                    applicationScope.launch(Dispatchers.Main) {
+                        onMotionDetected()
+                    }
+                }
+            }
+            sensorManager.requestTriggerSensor(triggerEventListener, significantMotionSensor)
+        } else if (accelerometerSensor != null) {
+            accelerometerListener = object : SensorEventListener {
+                private var lastAccelTime: Long = 0
+                override fun onSensorChanged(event: SensorEvent?) {
+                    if (event == null) return
+                    val now = System.currentTimeMillis()
+                    if (now - lastAccelTime < 1000) return
+                    lastAccelTime = now
+                    val x = event.values[0]
+                    val y = event.values[1]
+                    val z = event.values[2]
+                    val gVector = sqrt((x * x + y * y + z * z).toDouble()) - SensorManager.GRAVITY_EARTH
+                    if (abs(gVector) > 1.8) {
+                        AppLogger.log("LocationService", "Motion detected by accelerometer!")
+                        disarmMotionSensor()
+                        applicationScope.launch(Dispatchers.Main) {
+                            onMotionDetected()
+                        }
+                    }
+                }
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+            }
+            sensorManager.registerListener(accelerometerListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+    }
+
+    private fun disarmMotionSensor() {
+        triggerEventListener?.let {
+            if (significantMotionSensor != null) {
+                sensorManager.cancelTriggerSensor(it, significantMotionSensor)
+            }
+        }
+        triggerEventListener = null
+
+        accelerometerListener?.let {
+            sensorManager.unregisterListener(it)
+        }
+        accelerometerListener = null
+    }
+
+    private fun onMotionDetected() {
+        if (!isMonitoring || _isTracking.value) return
+        AppLogger.log("LocationService", "Motion sensor triggered! Elevating to High-Accuracy GPS for speed check.")
+        isGpsElevated = true
+        val sensorName = if (significantMotionSensor != null) "Hardware Significant Motion" else "Accelerometer"
+        _motionSensorInfo.value = MotionSensorInfo(
+            timestamp = System.currentTimeMillis(),
+            sensorName = sensorName,
+            isMotionDetected = true,
+            isGpsActive = true,
+            statusText = "Motion Detected! High-Accuracy GPS Active"
+        )
+        upgradeToHighAccuracyGps()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun upgradeToHighAccuracyGps() {
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+            .setWaitForAccurateLocation(false)
+            .setMinUpdateIntervalMillis(3000)
+            .build()
+
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper(),
+        )
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun downgradeToLowPowerMonitoring() {
+        if (!isMonitoring || _isTracking.value) return
+        AppLogger.log("LocationService", "Speed below threshold. Returning to Low-Power Motion Detection.")
+        isGpsElevated = false
+        armMotionSensor()
+
+        applicationScope.launch {
+            val radius = userPreferencesRepository.distanceMonitoringRadius.first()
+            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 15000)
+                .setMinUpdateDistanceMeters(radius.toFloat())
+                .build()
+
+            withContext(Dispatchers.Main) {
+                fusedLocationClient.removeLocationUpdates(locationCallback)
+                fusedLocationClient.requestLocationUpdates(
+                    locationRequest,
+                    locationCallback,
+                    Looper.getMainLooper(),
+                )
+            }
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private suspend fun startMonitoring() {
         if (isMonitoring) {
@@ -263,6 +410,7 @@ class LocationService : Service() {
         _isTracking.value = false // Ensure trip tracking is off
         previousMonitoringLocation = null
         highSpeedCounter = 0
+        isGpsElevated = false
         AppLogger.log("LocationService", "Starting monitoring and resetting state.")
         val notification = NotificationCompat.Builder(this, "monitoring_channel")
             .setContentTitle(getString(R.string.app_name))
@@ -280,19 +428,30 @@ class LocationService : Service() {
 
         val isDistanceMonitoringEnabled = userPreferencesRepository.isDistanceMonitoringEnabled.first()
         val radius = userPreferencesRepository.distanceMonitoringRadius.first()
-        
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000).apply {
-            if (isDistanceMonitoringEnabled) {
-                setMinUpdateDistanceMeters(radius.toFloat())
-            }
-        }.build()
 
-        fusedLocationClient.removeLocationUpdates(locationCallback)
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper(),
-        )
+        if (isDistanceMonitoringEnabled) {
+            armMotionSensor()
+            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 15000)
+                .setMinUpdateDistanceMeters(radius.toFloat())
+                .build()
+
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper(),
+            )
+        } else {
+            disarmMotionSensor()
+            _motionSensorInfo.value = MotionSensorInfo(
+                timestamp = System.currentTimeMillis(),
+                sensorName = "Continuous GPS",
+                isMotionDetected = true,
+                isGpsActive = true,
+                statusText = "Continuous High-Accuracy GPS"
+            )
+            upgradeToHighAccuracyGps()
+        }
     }
 
     private fun stopMonitoring() {
@@ -306,8 +465,10 @@ class LocationService : Service() {
             AppLogger.log("LocationService", "Monitoring not active, no need to stop internally.")
             return
         }
+        disarmMotionSensor()
         fusedLocationClient.removeLocationUpdates(locationCallback)
         isMonitoring = false
+        isGpsElevated = false
         AppLogger.log("LocationService", "Stopped internal monitoring updates.")
     }
 
@@ -352,6 +513,18 @@ class LocationService : Service() {
             return
         }
 
+        // If location updates fired because of distance displacement, elevate to High-Accuracy GPS
+        val isDistanceMonitoringEnabled = runCatching {
+            runBlocking { userPreferencesRepository.isDistanceMonitoringEnabled.first() }
+        }.getOrDefault(false)
+
+        if (isDistanceMonitoringEnabled && !isGpsElevated && previousMonitoringLocation != null) {
+            val dist = previousMonitoringLocation!!.distanceTo(location)
+            if (dist > 5.0) { // Displaced
+                onMotionDetected()
+            }
+        }
+
         previousMonitoringLocation?.let { prevLocation ->
             val timeDifference = (location.time - prevLocation.time) / 1000.0 // in seconds
             if (timeDifference > 1) { // Guard against zero or near-zero time difference
@@ -372,6 +545,7 @@ class LocationService : Service() {
                     AppLogger.log("LocationService", "High speed detected. Counter: $highSpeedCounter")
                     if (highSpeedCounter >= 2) {
                         isStartingTrip = true
+                        disarmMotionSensor()
                         startAutoTrip()
                     }
                 } else {
@@ -379,6 +553,9 @@ class LocationService : Service() {
                     currentCounter = 0
                     potentialTripStartLocation = null // Clear the cache if speed drops
                     AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Resetting counter and clearing potential start location.")
+                    if (isDistanceMonitoringEnabled && isGpsElevated) {
+                        downgradeToLowPowerMonitoring()
+                    }
                 }
 
                 _lastMovementInfo.value = MovementInfo(
@@ -670,9 +847,11 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        disarmMotionSensor()
         fusedLocationClient.removeLocationUpdates(locationCallback)
         _isTracking.value = false
         isMonitoring = false
+        isGpsElevated = false
         AppLogger.log("LocationService", "Service destroyed.")
     }
 
@@ -763,6 +942,9 @@ class LocationService : Service() {
         private val _isTracking =
             MutableStateFlow(value = false)
         val isTracking = _isTracking.asStateFlow()
+
+        private val _motionSensorInfo = MutableStateFlow<MotionSensorInfo?>(null)
+        val motionSensorInfo = _motionSensorInfo.asStateFlow()
 
         private val _lastMovementInfo = MutableStateFlow<MovementInfo?>(null)
         val lastMovementInfo = _lastMovementInfo.asStateFlow()

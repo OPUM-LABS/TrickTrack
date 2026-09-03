@@ -305,6 +305,10 @@
     <string name="settings_last_movement_above_threshold">Tempo über Schwellenwert (Zähler: %d/2)</string>
     <string name="settings_last_movement_below_threshold">Tempo unter Schwellenwert (%d km/h)</string>
     <string name="settings_last_movement_none">In dieser Sitzung noch keine Bewegung erkannt.</string>
+    <string name="settings_motion_sensor_title">Bewegungssensor-Status</string>
+    <string name="settings_motion_sensor_type">Sensor: %s</string>
+    <string name="settings_motion_sensor_state">Status: %s</string>
+    <string name="settings_motion_sensor_last_event">Letztes Ereignis: %s</string>
     <string name="notification_still_driving_title">Fahren Sie noch?</string>
     <string name="notification_still_driving_text">GPS-Signal verloren. Fahren Sie noch?</string>
     <string name="yes">Ja</string>

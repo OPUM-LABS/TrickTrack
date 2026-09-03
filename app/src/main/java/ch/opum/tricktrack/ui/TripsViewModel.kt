@@ -17,6 +17,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
+import ch.opum.tricktrack.MotionSensorInfo
 import ch.opum.tricktrack.MovementInfo
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripNotificationManager
@@ -291,6 +292,13 @@ class TripsViewModel(
         )
 
     val lastMovementInfo: StateFlow<MovementInfo?> = LocationService.lastMovementInfo
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    val motionSensorInfo: StateFlow<MotionSensorInfo?> = LocationService.motionSensorInfo
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
