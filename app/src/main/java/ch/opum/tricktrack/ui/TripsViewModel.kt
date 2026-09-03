@@ -17,6 +17,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
 import ch.opum.tricktrack.LocationService
+import ch.opum.tricktrack.MovementInfo
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.TripNotificationManager
 import ch.opum.tricktrack.util.DistanceFormatter
@@ -287,6 +288,13 @@ class TripsViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = false
+        )
+
+    val lastMovementInfo: StateFlow<MovementInfo?> = LocationService.lastMovementInfo
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
         )
 
     // Changed distance to StateFlow

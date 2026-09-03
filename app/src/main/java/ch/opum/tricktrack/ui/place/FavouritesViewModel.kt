@@ -1,10 +1,12 @@
 package ch.opum.tricktrack.ui.place
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ch.opum.tricktrack.GeocoderHelper
+import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.CompanyDao
 import ch.opum.tricktrack.data.CompanyEntity
@@ -33,10 +35,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import kotlin.time.Duration.Companion.milliseconds
 
 class FavouritesViewModel(
@@ -173,15 +174,21 @@ class FavouritesViewModel(
     private val _nameSuggestions = MutableStateFlow<List<LocationSuggestion>>(emptyList())
     val nameSuggestions = _nameSuggestions.asStateFlow()
 
-    private var searchJob: Job? = null
+    private var addressSearchJob: Job? = null
+    private var nameSearchJob: Job? = null
 
-    private fun performSearch(query: String, suggestionsState: MutableStateFlow<List<LocationSuggestion>>) {
-        searchJob?.cancel()
+    private fun performSearch(
+        query: String,
+        suggestionsState: MutableStateFlow<List<LocationSuggestion>>,
+        isAddressSearch: Boolean
+    ) {
+        if (isAddressSearch) addressSearchJob?.cancel() else nameSearchJob?.cancel()
+
         if (query.isBlank()) {
             suggestionsState.value = emptyList()
             return
         }
-        searchJob = viewModelScope.launch(Dispatchers.IO) {
+        val newJob = viewModelScope.launch(Dispatchers.IO) {
             delay(300.milliseconds) // Debounce delay
 
             val localPlaces = savedPlaceDao.getAll().first()
@@ -204,25 +211,36 @@ class FavouritesViewModel(
                     )
                 }
 
+            @SuppressLint("MissingPermission")
             val photonSuggestions = try {
                 // --- Get current location for bias ---
                 val lastLocation = try {
                     fusedLocationClient.lastLocation.await()
-                } catch (_: SecurityException) {
+                } catch (_: Exception) {
                     null
                 }
 
-                var urlString = "https://photon.komoot.io/api/?q=$query&limit=5"
+                val appPreferences = AppPreferences(getApplication())
+                val baseUrl = appPreferences.getPhotonUrl().trim().removeSuffix("/")
+                val encodedQuery = URLEncoder.encode(query, "UTF-8")
+
+                var urlString = "$baseUrl/?q=$encodedQuery&limit=5"
                 if (lastLocation != null) {
                     urlString += "&lat=${lastLocation.latitude}&lon=${lastLocation.longitude}"
                 }
                 Log.d("PhotonSearch", "URL: $urlString")
 
                 val url = URL(urlString)
-                val connection = url.openConnection() as HttpURLConnection
-                val reader = BufferedReader(InputStreamReader(connection.inputStream))
-                val response = reader.readText()
-                reader.close()
+                val connection = (url.openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 3000
+                    readTimeout = 3000
+                }
+
+                val response = try {
+                    connection.inputStream.bufferedReader().use { it.readText() }
+                } finally {
+                    connection.disconnect()
+                }
 
                 val jsonResponse = JSONObject(response)
                 val features = jsonResponse.getJSONArray("features")
@@ -239,6 +257,10 @@ class FavouritesViewModel(
                     val street = properties.optString("street")
                     val housenumber = properties.optString("housenumber")
                     val city = properties.optString("city")
+                        .ifBlank { properties.optString("town") }
+                        .ifBlank { properties.optString("village") }
+                        .ifBlank { properties.optString("municipality") }
+                        .ifBlank { properties.optString("hamlet") }
                     val postcode = properties.optString("postcode")
 
                     // Requirement 1: Display Name (Title)
@@ -280,14 +302,20 @@ class FavouritesViewModel(
 
             suggestionsState.value = (localSuggestions + photonSuggestions).distinctBy { it.fullAddress }
         }
+
+        if (isAddressSearch) {
+            addressSearchJob = newJob
+        } else {
+            nameSearchJob = newJob
+        }
     }
 
     fun searchAddress(query: String) {
-        performSearch(query, _addressSuggestions)
+        performSearch(query, _addressSuggestions, isAddressSearch = true)
     }
 
     fun searchName(query: String) {
-        performSearch(query, _nameSuggestions)
+        performSearch(query, _nameSuggestions, isAddressSearch = false)
     }
 
     fun clearAddressSuggestions() {

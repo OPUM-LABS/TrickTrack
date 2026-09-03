@@ -300,6 +300,12 @@
     <string name="settings_distance_monitoring_title">Sensibilité au mouvement (expérimental)</string>
     <string name="settings_distance_monitoring_description">Vérifier la vitesse uniquement si l\'appareil se déplace de plus d\'une certaine distance. Économise la batterie lorsqu\'il est immobile.</string>
     <string name="settings_distance_monitoring_radius_label">RAYON DE RÉVEIL (MÈTRES)</string>
+    <string name="settings_last_movement_title">Dernier mouvement détecté</string>
+    <string name="settings_last_movement_time">Heure : %s</string>
+    <string name="settings_last_movement_details">Distance : %1$s • Vitesse : %2$s km/h</string>
+    <string name="settings_last_movement_above_threshold">Vitesse supérieure au seuil (Compteur : %d/2)</string>
+    <string name="settings_last_movement_below_threshold">Vitesse inférieure au seuil (%d km/h)</string>
+    <string name="settings_last_movement_none">Aucun mouvement détecté pour le moment dans cette session.</string>
     <string name="notification_still_driving_title">Vous conduisez toujours ?</string>
     <string name="notification_still_driving_text">Signal GPS perdu. Vous conduisez toujours ?</string>
     <string name="yes">Oui</string>

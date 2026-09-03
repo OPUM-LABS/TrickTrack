@@ -40,6 +40,14 @@ import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
 
+data class MovementInfo(
+    val timestamp: Long = System.currentTimeMillis(),
+    val distanceMeters: Float,
+    val speedKmh: Double,
+    val speedThresholdKmh: Int,
+    val counter: Int
+)
+
 class LocationService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -352,6 +360,7 @@ class LocationService : Service() {
                 val speedKmh = speed * 3.6
                 val minSpeedValue = currentMinSpeed
                 AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h (Threshold: $minSpeedValue km/h)")
+                var currentCounter: Int
                 if (speedKmh >= minSpeedValue) {
                     if (highSpeedCounter == 0) {
                         // This is the first detection of high speed. Cache this location.
@@ -359,6 +368,7 @@ class LocationService : Service() {
                         AppLogger.log("LocationService", "Potential trip start detected and cached.")
                     }
                     highSpeedCounter++
+                    currentCounter = highSpeedCounter
                     AppLogger.log("LocationService", "High speed detected. Counter: $highSpeedCounter")
                     if (highSpeedCounter >= 2) {
                         isStartingTrip = true
@@ -366,10 +376,28 @@ class LocationService : Service() {
                     }
                 } else {
                     highSpeedCounter = 0
+                    currentCounter = 0
                     potentialTripStartLocation = null // Clear the cache if speed drops
                     AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Resetting counter and clearing potential start location.")
                 }
+
+                _lastMovementInfo.value = MovementInfo(
+                    timestamp = System.currentTimeMillis(),
+                    distanceMeters = distance,
+                    speedKmh = speedKmh,
+                    speedThresholdKmh = minSpeedValue,
+                    counter = currentCounter
+                )
             }
+        }
+        if (previousMonitoringLocation == null) {
+            _lastMovementInfo.value = MovementInfo(
+                timestamp = System.currentTimeMillis(),
+                distanceMeters = 0f,
+                speedKmh = 0.0,
+                speedThresholdKmh = currentMinSpeed,
+                counter = 0
+            )
         }
         previousMonitoringLocation = location
     }
@@ -735,6 +763,9 @@ class LocationService : Service() {
         private val _isTracking =
             MutableStateFlow(value = false)
         val isTracking = _isTracking.asStateFlow()
+
+        private val _lastMovementInfo = MutableStateFlow<MovementInfo?>(null)
+        val lastMovementInfo = _lastMovementInfo.asStateFlow()
 
         private val _currentTripTrigger = MutableStateFlow(TripTrigger.MANUAL)
     }

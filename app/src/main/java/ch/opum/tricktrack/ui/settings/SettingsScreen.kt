@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -117,6 +118,7 @@ import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
+import ch.opum.tricktrack.util.DistanceFormatter
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -1290,6 +1292,75 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            HorizontalDivider()
+
+            val lastMovementInfo by viewModel.lastMovementInfo.collectAsState()
+            val distanceUnit by viewModel.distanceUnit.collectAsState()
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_last_movement_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    if (lastMovementInfo != null) {
+                        val info = lastMovementInfo!!
+                        val timeStr = SimpleDateFormat("HH:mm:ss", LocalLocale.current.platformLocale).format(Date(info.timestamp))
+                        val formattedDistance = DistanceFormatter.formatShort(info.distanceMeters / 1000.0, distanceUnit)
+
+                        Text(
+                            text = stringResource(R.string.settings_last_movement_time, timeStr),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_last_movement_details, formattedDistance, "%.1f".format(info.speedKmh)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = if (info.speedKmh >= info.speedThresholdKmh) {
+                                stringResource(R.string.settings_last_movement_above_threshold, info.counter)
+                            } else {
+                                stringResource(R.string.settings_last_movement_below_threshold, info.speedThresholdKmh)
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (info.speedKmh >= info.speedThresholdKmh) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.settings_last_movement_none),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider()
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()

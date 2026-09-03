@@ -301,6 +301,12 @@
     <string name="settings_distance_monitoring_title">Movement Sensitivity (Experimental)</string>
     <string name="settings_distance_monitoring_description">Only check for speed if the device moves more than a certain distance. Saves battery when stationary.</string>
     <string name="settings_distance_monitoring_radius_label">WAKE-UP RADIUS (METERS)</string>
+    <string name="settings_last_movement_title">Last Detected Movement</string>
+    <string name="settings_last_movement_time">Time: %s</string>
+    <string name="settings_last_movement_details">Distance: %1$s • Speed: %2$s km/h</string>
+    <string name="settings_last_movement_above_threshold">Speed above threshold (Count: %d/2)</string>
+    <string name="settings_last_movement_below_threshold">Speed below threshold (%d km/h)</string>
+    <string name="settings_last_movement_none">No movement detected yet in this session.</string>
     <string name="notification_still_driving_title">Still driving?</string>
     <string name="notification_still_driving_text">GPS signal lost. Are you still driving?</string>
     <string name="yes">Yes</string>
