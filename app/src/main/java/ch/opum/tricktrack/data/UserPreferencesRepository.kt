@@ -64,6 +64,11 @@ class UserPreferencesRepository(private val context: Context) {
         val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
         val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
         val SHOW_SETTINGS_HELP = booleanPreferencesKey("show_settings_help")
+        val IS_CUSTOMIZE_INDIVIDUAL_DAYS = booleanPreferencesKey("is_customize_individual_days")
+        val GLOBAL_START_HOUR = intPreferencesKey("global_start_hour")
+        val GLOBAL_START_MINUTE = intPreferencesKey("global_start_minute")
+        val GLOBAL_END_HOUR = intPreferencesKey("global_end_hour")
+        val GLOBAL_END_MINUTE = intPreferencesKey("global_end_minute")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -210,22 +215,41 @@ class UserPreferencesRepository(private val context: Context) {
     val scheduleSettings: Flow<ScheduleSettings> = context.dataStore.data.map { preferences ->
         val targetString = preferences[PreferencesKeys.KEY_SCHEDULE_TARGET]
         val target = targetString?.let { ScheduleTarget.valueOf(it) } ?: ScheduleTarget.AUTOMATIC
+        val isCustomize = preferences[PreferencesKeys.IS_CUSTOMIZE_INDIVIDUAL_DAYS] ?: false
+        val globalStartH = preferences[PreferencesKeys.GLOBAL_START_HOUR] ?: 8
+        val globalStartM = preferences[PreferencesKeys.GLOBAL_START_MINUTE] ?: 0
+        val globalEndH = preferences[PreferencesKeys.GLOBAL_END_HOUR] ?: 17
+        val globalEndM = preferences[PreferencesKeys.GLOBAL_END_MINUTE] ?: 0
 
         val dailySchedules = DayOfWeek.entries.associateWith { day ->
             DaySchedule(
                 isEnabled = preferences[PreferencesKeys.trackingDayEnabled(day)] ?: true,
-                startHour = preferences[PreferencesKeys.trackingStartHour(day)] ?: 0,
+                startHour = preferences[PreferencesKeys.trackingStartHour(day)] ?: 8,
                 startMinute = preferences[PreferencesKeys.trackingStartMinute(day)] ?: 0,
-                endHour = preferences[PreferencesKeys.trackingEndHour(day)] ?: 23,
-                endMinute = preferences[PreferencesKeys.trackingEndMinute(day)] ?: 59
+                endHour = preferences[PreferencesKeys.trackingEndHour(day)] ?: 17,
+                endMinute = preferences[PreferencesKeys.trackingEndMinute(day)] ?: 0
             )
         }
-        ScheduleSettings(target, dailySchedules)
+        ScheduleSettings(
+            target = target,
+            isCustomizeIndividualDays = isCustomize,
+            globalStartHour = globalStartH,
+            globalStartMinute = globalStartM,
+            globalEndHour = globalEndH,
+            globalEndMinute = globalEndM,
+            dailySchedules = dailySchedules
+        )
     }
 
     suspend fun updateScheduleSettings(settings: ScheduleSettings) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.KEY_SCHEDULE_TARGET] = settings.target.name
+            preferences[PreferencesKeys.IS_CUSTOMIZE_INDIVIDUAL_DAYS] = settings.isCustomizeIndividualDays
+            preferences[PreferencesKeys.GLOBAL_START_HOUR] = settings.globalStartHour
+            preferences[PreferencesKeys.GLOBAL_START_MINUTE] = settings.globalStartMinute
+            preferences[PreferencesKeys.GLOBAL_END_HOUR] = settings.globalEndHour
+            preferences[PreferencesKeys.GLOBAL_END_MINUTE] = settings.globalEndMinute
+
             settings.dailySchedules.forEach { (day, schedule) ->
                 preferences[PreferencesKeys.trackingDayEnabled(day)] = schedule.isEnabled
                 preferences[PreferencesKeys.trackingStartHour(day)] = schedule.startHour

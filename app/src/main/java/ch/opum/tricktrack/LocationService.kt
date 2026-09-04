@@ -278,10 +278,26 @@ class LocationService : Service() {
         }
 
         val currentTime = LocalTime.of(now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
-        val startTime = LocalTime.of(daySchedule.startHour, daySchedule.startMinute)
-        val endTime = LocalTime.of(daySchedule.endHour, daySchedule.endMinute)
+        val (startH, startM) = if (scheduleSettings.isCustomizeIndividualDays) {
+            daySchedule.startHour to daySchedule.startMinute
+        } else {
+            scheduleSettings.globalStartHour to scheduleSettings.globalStartMinute
+        }
+        val (endH, endM) = if (scheduleSettings.isCustomizeIndividualDays) {
+            daySchedule.endHour to daySchedule.endMinute
+        } else {
+            scheduleSettings.globalEndHour to scheduleSettings.globalEndMinute
+        }
 
-        val isWithinTime = !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime)
+        val startTime = LocalTime.of(startH, startM)
+        val endTime = LocalTime.of(endH, endM)
+
+        val isWithinTime = if (startTime.isBefore(endTime) || startTime == endTime) {
+            !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime)
+        } else {
+            // Overnight schedule support (e.g. 22:00 to 06:00)
+            !currentTime.isBefore(startTime) || !currentTime.isAfter(endTime)
+        }
         if (!isWithinTime) {
             AppLogger.log("LocationService", "Current time $currentTime is outside of schedule ($startTime - $endTime).")
         }

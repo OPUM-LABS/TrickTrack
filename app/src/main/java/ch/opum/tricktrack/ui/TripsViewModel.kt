@@ -318,27 +318,15 @@ class TripsViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ScheduleSettings(ScheduleTarget.AUTOMATIC, emptyMap())
+            initialValue = ScheduleSettings(target = ScheduleTarget.AUTOMATIC, dailySchedules = emptyMap())
         )
 
     val scheduleSummary: StateFlow<String> = scheduleSettings.map { settings ->
         val enabledDays = settings.dailySchedules.filter { it.value.isEnabled }
         if (enabledDays.isEmpty()) return@map getApplication<Application>().getString(R.string.settings_schedule_no_active_days)
 
-        val first = enabledDays.values.first()
-        val allSame = enabledDays.values.all {
-            (it.startHour == first.startHour) && (it.startMinute == first.startMinute) &&
-                    (it.endHour == first.endHour) && (it.endMinute == first.endMinute)
-        }
-
-        val timeRange = "${formatTime(first.startHour, first.startMinute)}–${
-            formatTime(
-                first.endHour,
-                first.endMinute
-            )
-        }"
-
-        if (allSame) {
+        if (!settings.isCustomizeIndividualDays) {
+            val timeRange = "${formatTime(settings.globalStartHour, settings.globalStartMinute)}–${formatTime(settings.globalEndHour, settings.globalEndMinute)}"
             when (enabledDays.size) {
                 7 -> getApplication<Application>().getString(R.string.settings_schedule_daily, timeRange)
                 5 -> if (enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
