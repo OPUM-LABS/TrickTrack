@@ -63,6 +63,7 @@ class UserPreferencesRepository(private val context: Context) {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
         val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
+        val SHOW_SETTINGS_HELP = booleanPreferencesKey("show_settings_help")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -371,6 +372,17 @@ class UserPreferencesRepository(private val context: Context) {
         .map { preferences ->
             preferences[PreferencesKeys.EXPORT_INCLUDE_DRIVER] ?: true
         }
+
+    val showSettingsHelp: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.SHOW_SETTINGS_HELP] ?: true
+        }
+
+    suspend fun setShowSettingsHelp(show: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SHOW_SETTINGS_HELP] = show
+        }
+    }
 
     suspend fun setExportIncludeDriver(include: Boolean) {
         context.dataStore.edit { preferences ->

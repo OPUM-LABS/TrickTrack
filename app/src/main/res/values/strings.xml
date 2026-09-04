@@ -153,6 +153,7 @@
     <string name="action_filter">Filter</string>
     <string name="action_export">Export</string>
     <string name="action_about">About</string>
+    <string name="action_toggle_help">Toggle In-Section Help</string>
     <string name="action_delete">Delete</string>
 
     <!-- Review Screen -->
@@ -220,6 +221,9 @@
     <string name="description_cd">Description</string>
     <string name="filtered_distance_label">Distance: %1$s</string>
     <string name="filtered_trips_label">Trips: %d</string>
+    <string name="total_distance_overline">TOTAL DISTANCE</string>
+    <string name="trips_count_label">%d Trips</string>
+    <string name="trips_count_with_expenses">%1$d Trips • %2$.2f %3$s</string>
     <string name="scroll_to_top">Scroll to top</string>
 
     <!-- Notifications -->
@@ -330,4 +334,21 @@
     <string name="settings_schedule_mon_fri">Mon–Fri, %s</string>
     <string name="settings_schedule_days_count">%1$d days, %2$s</string>
     <string name="settings_schedule_days_active">%d days active</string>
+
+    <!-- In-Section Help & Guidance -->
+    <string name="settings_help_appearance">Choose between Light, Dark, or System theme to customize how TrickTrack looks.</string>
+    <string name="settings_help_tracking">Automatic tracking uses speed and motion sensors to record trips. You can also configure Bluetooth auto-start or set an automatic schedule.</string>
+    <string name="settings_help_defaults">Set default values for new trips, such as Business vs. Personal classification, expense rate per kilometer, and default vehicle.</string>
+    <string name="settings_help_export">Customize which columns and details (Driver, Company, Vehicle) are included when exporting your logbook to CSV or PDF.</string>
+    <string name="settings_help_backup">Back up your trips and settings to a local folder or restore previous backups to prevent data loss.</string>
+    <string name="settings_help_api">Configure custom OSRM routing and Photon geocoding server URLs for privacy or self-hosted setups.</string>
+    <string name="settings_help_diagnostics">Check system permissions, view live background movement detection events, or inspect troubleshooting logs.</string>
+
+    <string name="review_empty_help">Recorded trips appear here for review before being added to your official logbook. You can set the vehicle, trip type (Business/Personal), and notes before approving.</string>
+    <string name="trips_empty_title">No trips recorded yet</string>
+    <string name="trips_empty_help">Tap \'Start\' at the top to record a trip manually, or enable \'Automatic Tracking\' in Settings to detect driving automatically.</string>
+    <string name="favourites_places_empty_help">Save your frequent addresses (e.g. Home, Office). TrickTrack will automatically convert GPS coordinates into place names.</string>
+    <string name="favourites_drivers_empty_help">Add driver profiles to associate specific drivers with trips when exporting your logbook.</string>
+    <string name="favourites_companies_empty_help">Add company profiles to assign business trips to specific companies for tax and expense reports.</string>
+    <string name="favourites_vehicles_empty_help">Add your vehicles with initial odometer readings to track mileage, select active vehicles for trips, and export per-vehicle reports.</string>
 </resources>

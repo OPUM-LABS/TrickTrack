@@ -556,10 +556,12 @@ fun SettingsScreen(
         }
 
         val themeMode by viewModel.themeMode.collectAsState()
+        val showSettingsHelp by viewModel.showSettingsHelp.collectAsState()
 
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_appearance_title),
             description = stringResource(R.string.settings_appearance_description),
+            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_appearance) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(
@@ -602,6 +604,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_settings_title),
             description = stringResource(R.string.settings_tracking_settings_description),
+            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_tracking) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // Tracking Settings
@@ -938,6 +941,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_defaults_title),
             description = stringResource(R.string.settings_tracking_defaults_description),
+            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_defaults) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // Trip Defaults
@@ -1162,6 +1166,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_backup_restore_title),
             description = stringResource(R.string.settings_backup_restore_description),
+            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_backup) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(
@@ -1231,6 +1236,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_advanced_settings_title),
             description = stringResource(R.string.settings_advanced_settings_description),
+            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_api) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // New Card for Server Settings
@@ -1260,6 +1266,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_diagnostics_title),
             description = stringResource(R.string.settings_diagnostics_description),
+            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_diagnostics) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(

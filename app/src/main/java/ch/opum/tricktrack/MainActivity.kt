@@ -16,7 +16,10 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +43,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bluetooth
@@ -227,8 +232,6 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val totalDistanceLabel by tripsViewModel.totalDistanceLabel.collectAsState()
-    val tripCountLabel by tripsViewModel.tripCountLabel.collectAsState()
     val hasCompletedOnboarding by tripsViewModel.hasCompletedOnboarding.collectAsState()
 
     val startDestination = remember(hasCompletedOnboarding) {
@@ -518,6 +521,14 @@ fun MainScreen(
                                 }
                             }
                             Screen.Settings.route -> {
+                                val showSettingsHelp by tripsViewModel.showSettingsHelp.collectAsState()
+                                IconButton(onClick = { tripsViewModel.toggleShowSettingsHelp() }) {
+                                    Icon(
+                                        imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
+                                        contentDescription = stringResource(R.string.action_toggle_help),
+                                        tint = if (showSettingsHelp) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                    )
+                                }
                                 IconButton(onClick = { showAboutDialog = true }) {
                                     Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.action_about))
                                 }
@@ -591,8 +602,6 @@ fun MainScreen(
                 TripScreen(
                     tripsViewModel = tripsViewModel,
                     onTripClick = { trip -> selectedTripToEdit = trip },
-                    totalDistanceLabel = totalDistanceLabel,
-                    tripCountLabel = tripCountLabel,
                     onStartTrip = {
                         foregroundLocationPermissionLauncher.launch(
                             arrayOf(
@@ -632,8 +641,6 @@ fun MainScreen(
 fun TripScreen(
     tripsViewModel: TripsViewModel,
     onTripClick: (Trip) -> Unit,
-    totalDistanceLabel: String,
-    tripCountLabel: String,
     onStartTrip: () -> Unit,
     navController: androidx.navigation.NavHostController
 ) {
@@ -647,6 +654,8 @@ fun TripScreen(
     val expenseCurrency by tripsViewModel.expenseCurrency.collectAsState()
     val totalExpense by tripsViewModel.totalExpense.collectAsState()
     val distanceUnit by tripsViewModel.distanceUnit.collectAsState()
+    val totalDistanceFormatted by tripsViewModel.totalDistanceFormatted.collectAsState()
+    val tripCount by tripsViewModel.tripCount.collectAsState()
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     var isAllCollapsed by remember { mutableStateOf(value = false) }
@@ -665,25 +674,32 @@ fun TripScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(
+                    modifier = Modifier.weight(1f, fill = false)
+                ) {
                     Text(
-                        text = totalDistanceLabel,
+                        text = stringResource(R.string.total_distance_overline),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = totalDistanceFormatted,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
+                    val subLineText = if (expenseTrackingEnabled) {
+                        stringResource(R.string.trips_count_with_expenses, tripCount, totalExpense, expenseCurrency)
+                    } else {
+                        stringResource(R.string.trips_count_label, tripCount)
+                    }
                     Text(
-                        text = tripCountLabel,
-                        style = MaterialTheme.typography.titleMedium,
+                        text = subLineText,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (expenseTrackingEnabled) {
-                        Text(
-                            text = stringResource(R.string.expenses_label, totalExpense, expenseCurrency),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
+                Spacer(modifier = Modifier.width(16.dp))
                 val buttonColors = if (isTracking) {
                     ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -954,6 +970,49 @@ fun TripScreen(
                 // Overscroll Spacer: Allows any header to reach the top
                 item {
                     Spacer(modifier = Modifier.height(800.dp)) 
+                }
+            }
+
+            // Centered Empty State Overlay
+            if (groupedTrips.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Route,
+                                contentDescription = null,
+                                modifier = Modifier.size(56.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.trips_empty_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.trips_empty_help),
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
 

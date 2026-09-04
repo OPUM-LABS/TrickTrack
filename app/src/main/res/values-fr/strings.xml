@@ -151,6 +151,7 @@
     <string name="action_filter">Filtrer</string>
     <string name="action_export">Exporter</string>
     <string name="action_about">À propos</string>
+    <string name="action_toggle_help">Activer/Désactiver l\'aide par section</string>
     <string name="action_delete">Supprimer</string>
 
     <!-- Review Screen -->
@@ -213,6 +214,9 @@
     <string name="description_cd">Description</string>
     <string name="filtered_distance_label">Distance : %1$s</string>
     <string name="filtered_trips_label">Trajets : %d</string>
+    <string name="total_distance_overline">DISTANCE TOTALE</string>
+    <string name="trips_count_label">%d trajets</string>
+    <string name="trips_count_with_expenses">%1$d trajets • %2$.2f %3$s</string>
     <string name="scroll_to_top">Haut de page</string>
 
     <!-- Notifications -->
@@ -329,4 +333,21 @@
     <string name="settings_schedule_mon_fri">Lun–Ven, %s</string>
     <string name="settings_schedule_days_count">%1$d jours, %2$s</string>
     <string name="settings_schedule_days_active">%d jours actifs</string>
+
+    <!-- In-Section Help & Guidance -->
+    <string name="settings_help_appearance">Choisissez entre le thème clair, sombre ou système pour personnaliser l\'apparence de TrickTrack.</string>
+    <string name="settings_help_tracking">Le suivi automatique utilise des capteurs de vitesse et de mouvement. Vous pouvez aussi configurer le démarrage Bluetooth ou un calendrier.</string>
+    <string name="settings_help_defaults">Définissez des valeurs par défaut pour les nouveaux trajets : classification (Pro/Perso), taux de frais par kilomètre et véhicule par défaut.</string>
+    <string name="settings_help_export">Personnalisez les colonnes et détails (Conducteur, Entreprise, Véhicule) inclus lors de l\'exportation en CSV ou PDF.</string>
+    <string name="settings_help_backup">Sauvegardez vos trajets et paramètres dans un dossier local ou restaurez des sauvegardes précédentes.</string>
+    <string name="settings_help_api">Configurez des URL personnalisées pour les serveurs OSRM et Photon pour la confidentialité ou les serveurs hébergés.</string>
+    <string name="settings_help_diagnostics">Vérifiez les autorisations système, consultez la détection de mouvement en direct ou examinez les journaux.</string>
+
+    <string name="review_empty_help">Les trajets enregistrés apparaissent ici pour vérification. Vous pouvez choisir le véhicule, le type (Pro/Perso) et ajouter des notes avant d\'approuver.</string>
+    <string name="trips_empty_title">Aucun trajet enregistré pour le moment</string>
+    <string name="trips_empty_help">Appuyez sur \'Démarrer\' en haut pour enregistrer un trajet manuellement, ou activez le \'Suivi automatique\' dans les Paramètres.</string>
+    <string name="favourites_places_empty_help">Enregistrez vos adresses fréquentes (ex: Domicile, Bureau). TrickTrack convertira automatiquement les coordonnées GPS en noms.</string>
+    <string name="favourites_drivers_empty_help">Ajoutez des profils de conducteur pour associer des conducteurs spécifiques aux trajets lors de l\'exportation.</string>
+    <string name="favourites_companies_empty_help">Ajoutez des entreprises pour attribuer des trajets professionnels à des sociétés spécifiques pour vos rapports.</string>
+    <string name="favourites_vehicles_empty_help">Ajoutez vos véhicules avec le kilométrage initial pour suivre la distance et générer des rapports par véhicule.</string>
 </resources>

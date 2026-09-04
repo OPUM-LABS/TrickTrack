@@ -1,6 +1,9 @@
 package ch.opum.tricktrack.ui.place
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -246,6 +249,7 @@ fun PlacesListScreen(
                     selectedId = selectedId,
                     onSelect = { id -> viewModel.setDefaultDriver(id) },
                     emptyIcon = Icons.Default.Person,
+                    emptyHelpText = stringResource(R.string.favourites_drivers_empty_help),
                     viewModel = viewModel
                 )
             }
@@ -261,6 +265,7 @@ fun PlacesListScreen(
                     selectedId = selectedId,
                     onSelect = { id -> viewModel.setDefaultCompany(id) },
                     emptyIcon = Icons.Default.Work,
+                    emptyHelpText = stringResource(R.string.favourites_companies_empty_help),
                     viewModel = viewModel
                 )
             }
@@ -276,6 +281,7 @@ fun PlacesListScreen(
                     selectedId = selectedId,
                     onSelect = { id -> viewModel.setDefaultVehicle(id) },
                     emptyIcon = Icons.Default.DirectionsCar,
+                    emptyHelpText = stringResource(R.string.favourites_vehicles_empty_help),
                     viewModel = viewModel
                 )
             }
@@ -662,6 +668,7 @@ fun GenericGroupedList(
     selectedId: Int?,
     onSelect: (Int) -> Unit,
     emptyIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    emptyHelpText: String? = null,
     viewModel: FavouritesViewModel? = null
 ) {
     val listState = rememberLazyListState()
@@ -679,25 +686,44 @@ fun GenericGroupedList(
 
     if (groupedItems.isEmpty()) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
-                Icon(
-                    imageVector = emptyIcon,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    stringResource(R.string.favourites_no_items),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                )
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = emptyIcon,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        stringResource(R.string.favourites_no_items),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    if (emptyHelpText != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            emptyHelpText,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     } else {
@@ -833,25 +859,42 @@ fun SavedPlaceList(
 
     if (groupedFavorites.isEmpty()) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "No saved Favourites",
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    stringResource(R.string.favourites_no_items),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                )
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        stringResource(R.string.favourites_no_items),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.favourites_places_empty_help),
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     } else {

@@ -265,23 +265,21 @@ class TripsViewModel(
         initialValue = emptyList(),
     )
 
-    // New StateFlow for total distance label
-    val totalDistanceLabel: StateFlow<String> = combine(confirmedTrips, distanceUnit) { filteredTrips, unit ->
+    val totalDistanceFormatted: StateFlow<String> = combine(confirmedTrips, distanceUnit) { filteredTrips, unit ->
         val total = filteredTrips.sumOf { it.trip.distance }
-        val formatted = DistanceFormatter.formatShort(total, unit)
-        getApplication<Application>().getString(R.string.filtered_distance_label, formatted)
+        DistanceFormatter.formatShort(total, unit)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = ""
     )
 
-    val tripCountLabel: StateFlow<String> = confirmedTrips.map { filteredTrips ->
-        getApplication<Application>().getString(R.string.filtered_trips_label, filteredTrips.size)
+    val tripCount: StateFlow<Int> = confirmedTrips.map { filteredTrips ->
+        filteredTrips.size
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = getApplication<Application>().getString(R.string.filtered_trips_label, 0)
+        initialValue = 0
     )
 
     val isTracking: StateFlow<Boolean> = LocationService.isTracking
@@ -412,6 +410,16 @@ class TripsViewModel(
     fun setHasCompletedOnboarding(completed: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setHasCompletedOnboarding(completed)
+        }
+    }
+
+    val showSettingsHelp: StateFlow<Boolean> = userPreferencesRepository.showSettingsHelp
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun toggleShowSettingsHelp() {
+        viewModelScope.launch {
+            val current = showSettingsHelp.value
+            userPreferencesRepository.setShowSettingsHelp(!current)
         }
     }
 

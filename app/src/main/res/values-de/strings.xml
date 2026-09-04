@@ -150,6 +150,7 @@
     <string name="action_filter">Filter</string>
     <string name="action_export">Exportieren</string>
     <string name="action_about">Über</string>
+    <string name="action_toggle_help">Abschnitts-Hilfe ein-/ausblenden</string>
     <string name="action_delete">Löschen</string>
 
     <!-- Review Screen -->
@@ -212,6 +213,9 @@
     <string name="description_cd">Beschreibung</string>
     <string name="filtered_distance_label">Distanz: %1$s</string>
     <string name="filtered_trips_label">Fahrten: %d</string>
+    <string name="total_distance_overline">GESAMTDISTANZ</string>
+    <string name="trips_count_label">%d Fahrten</string>
+    <string name="trips_count_with_expenses">%1$d Fahrten • %2$.2f %3$s</string>
     <string name="scroll_to_top">Nach oben</string>
 
     <!-- Notifications -->
@@ -328,4 +332,21 @@
     <string name="settings_schedule_mon_fri">Mo–Fr, %s</string>
     <string name="settings_schedule_days_count">%1$d Tage, %2$s</string>
     <string name="settings_schedule_days_active">%d Tage aktiv</string>
+
+    <!-- In-Section Help & Guidance -->
+    <string name="settings_help_appearance">Wählen Sie zwischen hellem, dunklem oder System-Design, um das Aussehen von TrickTrack anzupassen.</string>
+    <string name="settings_help_tracking">Die automatische Erfassung nutzt Tempo- und Bewegungssensoren. Sie können auch Bluetooth-Autostart oder einen Zeitplan einrichten.</string>
+    <string name="settings_help_defaults">Legen Sie Standardwerte für neue Fahrten fest, wie z.B. Einstufung (Geschäftlich/Privat), Kostensatz pro Kilometer und Standardfahrzeug.</string>
+    <string name="settings_help_export">Passen Sie an, welche Spalten und Angaben (Fahrer, Firma, Fahrzeug) beim Export Ihres Fahrtenbuchs als CSV oder PDF enthalten sind.</string>
+    <string name="settings_help_backup">Sichern Sie Ihre Fahrten und Einstellungen in einem lokalen Ordner oder stellen Sie frühere Sicherungen wieder her.</string>
+    <string name="settings_help_api">Konfigurieren Sie eigene OSRM-Routing- und Photon-Geokodierungs-Server für Datenschutz oder eigene Server.</string>
+    <string name="settings_help_diagnostics">Prüfen Sie Systemberechtigungen, sehen Sie Live-Bewegungsdaten oder untersuchen Sie Diagnose-Protokolle.</string>
+
+    <string name="review_empty_help">Aufgezeichnete Fahrten erscheinen hier zur Überprüfung. Sie können Fahrzeug, Typ (Geschäftlich/Privat) und Notizen festlegen, bevor Sie diese genehmigen.</string>
+    <string name="trips_empty_title">Noch keine Fahrten aufgezeichnet</string>
+    <string name="trips_empty_help">Tippen Sie oben auf \'Start\', um eine Fahrt manuell aufzuzeichnen, oder aktivieren Sie \'Automatische Verfolgung\' in den Einstellungen.</string>
+    <string name="favourites_places_empty_help">Speichern Sie häufige Adressen (z.B. Zuhause, Büro). TrickTrack verwandelt GPS-Koordinaten automatisch in Namen.</string>
+    <string name="favourites_drivers_empty_help">Fügen Sie Fahrerprofile hinzu, um Fahrten beim Export bestimmten Fahrern zuzuordnen.</string>
+    <string name="favourites_companies_empty_help">Fügen Sie Firmenprofile hinzu, um geschäftliche Fahrten bestimmten Unternehmen für Steuer- und Spesenberichte zuzuordnen.</string>
+    <string name="favourites_vehicles_empty_help">Fügen Sie Ihre Fahrzeuge mit Anfangskilometerstand hinzu, um Kilometerstände zu verfolgen und fahrzeugspezifische Berichte zu erstellen.</string>
 </resources>
