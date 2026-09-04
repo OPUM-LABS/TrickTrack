@@ -225,6 +225,9 @@
     <string name="trips_count_label">%d Trips</string>
     <string name="trips_count_with_expenses">%1$d Trips • %2$.2f %3$s</string>
     <string name="scroll_to_top">Scroll to top</string>
+    <string name="action_view_map">Map</string>
+    <string name="trip_map_title">Trip Route</string>
+    <string name="action_refresh_map">Refresh Map</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Trip Review Updates</string>

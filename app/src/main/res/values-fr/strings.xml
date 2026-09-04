@@ -218,6 +218,9 @@
     <string name="trips_count_label">%d trajets</string>
     <string name="trips_count_with_expenses">%1$d trajets • %2$.2f %3$s</string>
     <string name="scroll_to_top">Haut de page</string>
+    <string name="action_view_map">Carte</string>
+    <string name="trip_map_title">Itinéraire du trajet</string>
+    <string name="action_refresh_map">Actualiser la carte</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Mises à jour de la révision des trajets</string>

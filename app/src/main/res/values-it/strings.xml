@@ -218,6 +218,9 @@
     <string name="trips_count_label">%d viaggi</string>
     <string name="trips_count_with_expenses">%1$d viaggi • %2$.2f %3$s</string>
     <string name="scroll_to_top">Torna su</string>
+    <string name="action_view_map">Mappa</string>
+    <string name="trip_map_title">Percorso del viaggio</string>
+    <string name="action_refresh_map">Ricarica mappa</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Aggiornamenti revisione viaggi</string>

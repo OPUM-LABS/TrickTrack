@@ -11,6 +11,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.coroutines.resume
+import kotlin.math.abs
 
 class GeocoderHelper(private val context: Context) { // Changed to a class and added context to constructor
 
@@ -61,6 +62,79 @@ class GeocoderHelper(private val context: Context) { // Changed to a class and a
             e.printStackTrace()
             locationName // Fallback to the original name if geocoding fails
         }
+    }
+
+    suspend fun getCoordinatesFromAddress(
+        address: String,
+        biasLat: Double? = null,
+        biasLon: Double? = null
+    ): Pair<Double, Double>? = withContext(Dispatchers.IO) {
+        if (address.isBlank()) return@withContext null
+
+        val candidates = mutableListOf(address)
+        if (address.contains(",")) {
+            val stripped = address.substringAfter(",").trim()
+            if (stripped.isNotBlank() && stripped != address) {
+                candidates.add(stripped)
+            }
+            val lastPart = address.substringAfterLast(",").trim()
+            if (lastPart.isNotBlank() && lastPart != stripped && lastPart != address) {
+                candidates.add(lastPart)
+            }
+        }
+
+        val geocoder = Geocoder(context, Locale.getDefault())
+
+        for (candidate in candidates) {
+            try {
+                val addresses = if (biasLat != null && biasLon != null && (abs(biasLat) > 0.001 || abs(biasLon) > 0.001)) {
+                    val lowerLeftLat = (biasLat - 2.0).coerceAtLeast(-90.0)
+                    val lowerLeftLon = (biasLon - 2.0).coerceAtLeast(-180.0)
+                    val upperRightLat = (biasLat + 2.0).coerceAtMost(90.0)
+                    val upperRightLon = (biasLon + 2.0).coerceAtMost(180.0)
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        suspendCancellableCoroutine { continuation ->
+                            geocoder.getFromLocationName(candidate, 5, lowerLeftLat, lowerLeftLon, upperRightLat, upperRightLon) { list ->
+                                continuation.resume(list)
+                            }
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        geocoder.getFromLocationName(candidate, 5, lowerLeftLat, lowerLeftLon, upperRightLat, upperRightLon)
+                    }
+                } else {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        suspendCancellableCoroutine { continuation ->
+                            geocoder.getFromLocationName(candidate, 5) { list ->
+                                continuation.resume(list)
+                            }
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        geocoder.getFromLocationName(candidate, 5)
+                    }
+                }
+
+                if (!addresses.isNullOrEmpty()) {
+                    for (loc in addresses) {
+                        if (abs(loc.latitude) > 0.001 || abs(loc.longitude) > 0.001) {
+                            if (biasLat != null && biasLon != null) {
+                                val results = FloatArray(1)
+                                Location.distanceBetween(biasLat, biasLon, loc.latitude, loc.longitude, results)
+                                if (results[0] > 300_000f) {
+                                    continue // Skip implausible result in another continent/country
+                                }
+                            }
+                            return@withContext Pair(loc.latitude, loc.longitude)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        null
     }
 
     private fun formatAddress(address: Address?): String {

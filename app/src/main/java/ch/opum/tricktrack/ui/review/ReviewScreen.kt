@@ -79,6 +79,8 @@ import ch.opum.tricktrack.ui.ThousandsSeparatorTransformation
 import ch.opum.tricktrack.ui.TimelineNode
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
+import ch.opum.tricktrack.ui.components.FullscreenMapSheet
+import ch.opum.tricktrack.ui.components.TripMapView
 import ch.opum.tricktrack.util.DistanceFormatter
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -164,6 +166,15 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                         },
                         onDiscard = {
                             viewModel.deleteTrip(tripWithVehicle.trip)
+                        },
+                        onUpdatePolyline = { polyline ->
+                            viewModel.updateTripPolyline(tripWithVehicle.trip.id, polyline)
+                        },
+                        onResolvedCoords = { sLat, sLon, eLat, eLon, polyline ->
+                            viewModel.updateTripResolvedData(tripWithVehicle.trip.id, sLat, sLon, eLat, eLon, polyline)
+                        },
+                        onRefreshMap = {
+                            viewModel.refreshTripMap(tripWithVehicle.trip.id)
                         }
                     )
                 }
@@ -220,7 +231,10 @@ fun ReviewTripCard(
     distanceUnit: DistanceUnit,
     onApprove: (TripType, VehicleEntity?, Double?, String?) -> Unit,
     onDiscard: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onUpdatePolyline: ((String) -> Unit)? = null,
+    onResolvedCoords: ((Double, Double, Double, Double, String?) -> Unit)? = null,
+    onRefreshMap: (() -> Unit)? = null
 ) {
     val trip = tripWithVehicle.trip
     var selectedType by remember { mutableStateOf(if (trip.type == "Business") TripType.BUSINESS else TripType.PERSONAL) }
@@ -467,6 +481,49 @@ fun ReviewTripCard(
                         address = trip.endLoc
                     )
                 }
+            }
+
+            var showFullscreenMap by remember { mutableStateOf(false) }
+            val hasMapData = !trip.startLoc.isBlank() || !trip.endLoc.isBlank() || (trip.startLat != null && trip.startLon != null)
+
+            if (hasMapData) {
+                Spacer(modifier = Modifier.height(4.dp))
+                TripMapView(
+                    startLat = trip.startLat,
+                    startLon = trip.startLon,
+                    endLat = trip.endLat,
+                    endLon = trip.endLon,
+                    startAddress = trip.startLoc,
+                    endAddress = trip.endLoc,
+                    routePolyline = trip.routePolyline,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(130.dp)
+                        .padding(horizontal = 16.dp),
+                    isInteractive = false,
+                    onRouteCalculated = onUpdatePolyline,
+                    onResolvedCoords = onResolvedCoords,
+                    onRefresh = onRefreshMap,
+                    onClick = { showFullscreenMap = true }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            if (showFullscreenMap) {
+                FullscreenMapSheet(
+                    startLat = trip.startLat,
+                    startLon = trip.startLon,
+                    endLat = trip.endLat,
+                    endLon = trip.endLon,
+                    startAddress = trip.startLoc,
+                    endAddress = trip.endLoc,
+                    routePolyline = trip.routePolyline,
+                    title = stringResource(R.string.trip_map_title),
+                    onRouteCalculated = onUpdatePolyline,
+                    onResolvedCoords = onResolvedCoords,
+                    onRefresh = onRefreshMap,
+                    onDismiss = { showFullscreenMap = false }
+                )
             }
 
 

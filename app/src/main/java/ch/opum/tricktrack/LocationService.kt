@@ -30,6 +30,8 @@ import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.util.DistanceFormatter
+import ch.opum.tricktrack.util.PolylineUtils
+import org.osmdroid.util.GeoPoint
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -87,6 +89,7 @@ class LocationService : Service() {
     private var lastReportedSpeed: Double = 0.0
     private var currentDistanceUnit: DistanceUnit = DistanceUnit.KM
     private var currentMinSpeed: Int = 10
+    private val recordedWaypoints = mutableListOf<GeoPoint>()
 
     private lateinit var sensorManager: SensorManager
     private var significantMotionSensor: Sensor? = null
@@ -483,6 +486,7 @@ class LocationService : Service() {
         _startLocation.value = null
         _lastLocation.value = null
         _distance.value = 0.0
+        recordedWaypoints.clear()
         tripStartDate = Date()
         AppLogger.log("LocationService", "Starting location service for trip tracking.")
 
@@ -602,6 +606,7 @@ class LocationService : Service() {
 
         if (_startLocation.value == null) {
             _startLocation.value = location
+            recordedWaypoints.add(GeoPoint(location.latitude, location.longitude))
         }
 
         previousLocation?.let { prev ->
@@ -609,6 +614,7 @@ class LocationService : Service() {
                 val distance = prev.distanceTo(location)
                 if (distance > 2) { // Filter out GPS jitter
                     _distance.value += distance
+                    recordedWaypoints.add(GeoPoint(location.latitude, location.longitude))
                     AppLogger.log(
                         "LocationService",
                         "Distance since last point: ${distance}m. Total distance: ${_distance.value}m."
@@ -817,6 +823,8 @@ class LocationService : Service() {
             val tripType = if (isBusinessDefault) "Business" else "Personal"
 
             val isConfirmed = false // All live-tracked trips require review before confirmation
+            val encodedPolyline = if (recordedWaypoints.size >= 2) PolylineUtils.encode(recordedWaypoints) else null
+            recordedWaypoints.clear()
 
             val trip = Trip(
                 startLoc = startAddress,
@@ -827,9 +835,14 @@ class LocationService : Service() {
                 date = tripStartDate ?: Date(),
                 endDate = System.currentTimeMillis(),
                 isConfirmed = isConfirmed,
+                startLat = startLocation?.latitude,
+                startLon = startLocation?.longitude,
+                endLat = endLocation?.latitude,
+                endLon = endLocation?.longitude,
                 isAutomatic = _currentTripTrigger.value != TripTrigger.MANUAL,
                 vehicleId = defaultVehicleId,
-                trigger = _currentTripTrigger.value.name
+                trigger = _currentTripTrigger.value.name,
+                routePolyline = encodedPolyline
             )
             val newId = repository.insert(trip)
             AppLogger.log("LocationService", "Trip saved with ID: $newId. Trigger: ${_currentTripTrigger.value}, Confirmed: $isConfirmed")

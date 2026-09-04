@@ -217,6 +217,9 @@
     <string name="trips_count_label">%d Fahrten</string>
     <string name="trips_count_with_expenses">%1$d Fahrten • %2$.2f %3$s</string>
     <string name="scroll_to_top">Nach oben</string>
+    <string name="action_view_map">Karte</string>
+    <string name="trip_map_title">Fahrtenroute</string>
+    <string name="action_refresh_map">Karte neu laden</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Fahrtüberprüfungs-Updates</string>

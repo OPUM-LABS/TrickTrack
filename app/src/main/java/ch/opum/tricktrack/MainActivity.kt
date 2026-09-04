@@ -12,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -55,6 +56,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
@@ -154,6 +156,8 @@ import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
+import ch.opum.tricktrack.ui.components.FullscreenMapSheet
+import ch.opum.tricktrack.ui.components.TripMapView
 import ch.opum.tricktrack.ui.navigation.Screen
 import ch.opum.tricktrack.ui.onboarding.OnboardingScreen
 import ch.opum.tricktrack.ui.place.AddEditPlaceDialog
@@ -945,12 +949,13 @@ fun TripScreen(
                     }
                     
                 item(key = "group_content_${group.date}") {
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = !isAllCollapsed,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        Column {
+                    Column {
+                        AnimatedVisibility(
+                            visible = !isAllCollapsed,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Column {
                                 group.trips.forEach { tripWithVehicle ->
                                     TripItem(
                                         tripWithVehicle = tripWithVehicle,
@@ -958,12 +963,22 @@ fun TripScreen(
                                         expenseTrackingEnabled = expenseTrackingEnabled,
                                         expenseRatePerKm = expenseRatePerKm,
                                         expenseCurrency = expenseCurrency,
-                                        distanceUnit = distanceUnit
+                                        distanceUnit = distanceUnit,
+                                        onUpdatePolyline = { polyline ->
+                                            tripsViewModel.updateTripPolyline(tripWithVehicle.trip.id, polyline)
+                                        },
+                                        onResolvedCoords = { sLat, sLon, eLat, eLon, polyline ->
+                                            tripsViewModel.updateTripResolvedData(tripWithVehicle.trip.id, sLat, sLon, eLat, eLon, polyline)
+                                        },
+                                        onRefreshMap = {
+                                            tripsViewModel.refreshTripMap(tripWithVehicle.trip.id)
+                                        }
                                     )
                                 }
                             }
                         }
                     }
+                }
                     groupIndexCounter += 2
                 }
 
@@ -1020,33 +1035,36 @@ fun TripScreen(
             val showButton by remember {
                 derivedStateOf { listState.firstVisibleItemIndex > 0 }
             }
-            
-            androidx.compose.animation.AnimatedVisibility(
-                visible = showButton,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
+
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 32.dp)
             ) {
-                FilledTonalButton(
-                    onClick = {
-                        scope.launch {
-                            listState.animateScrollToItem(0)
-                        }
-                    },
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                AnimatedVisibility(
+                    visible = showButton,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = null
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.scroll_to_top))
+                    FilledTonalButton(
+                        onClick = {
+                            scope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        },
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = null
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.scroll_to_top))
+                    }
                 }
             }
         }
@@ -1728,7 +1746,10 @@ fun TripItem(
     expenseRatePerKm: Float,
     expenseCurrency: String,
     distanceUnit: ch.opum.tricktrack.data.DistanceUnit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onUpdatePolyline: ((String) -> Unit)? = null,
+    onResolvedCoords: ((Double, Double, Double, Double, String?) -> Unit)? = null,
+    onRefreshMap: (() -> Unit)? = null
 ) {
     val trip = tripWithVehicle.trip
     Card(
@@ -1865,6 +1886,77 @@ fun TripItem(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                }
+
+                val hasMapData = !trip.startLoc.isBlank() || !trip.endLoc.isBlank() || (trip.startLat != null && trip.startLon != null)
+                var isMapExpanded by remember { mutableStateOf(false) }
+                var showFullscreenMap by remember { mutableStateOf(false) }
+
+                if (hasMapData) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isMapExpanded = !isMapExpanded }
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = stringResource(R.string.action_view_map),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = if (isMapExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = stringResource(R.string.action_view_map),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = isMapExpanded,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        TripMapView(
+                            startLat = trip.startLat,
+                            startLon = trip.startLon,
+                            endLat = trip.endLat,
+                            endLon = trip.endLon,
+                            startAddress = trip.startLoc,
+                            endAddress = trip.endLoc,
+                            routePolyline = trip.routePolyline,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp)
+                                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                            isInteractive = false,
+                            onRouteCalculated = onUpdatePolyline,
+                            onResolvedCoords = onResolvedCoords,
+                            onRefresh = onRefreshMap,
+                            onClick = { showFullscreenMap = true }
+                        )
+                    }
+
+                    if (showFullscreenMap) {
+                        FullscreenMapSheet(
+                            startLat = trip.startLat,
+                            startLon = trip.startLon,
+                            endLat = trip.endLat,
+                            endLon = trip.endLon,
+                            startAddress = trip.startLoc,
+                            endAddress = trip.endLoc,
+                            routePolyline = trip.routePolyline,
+                            title = stringResource(R.string.trip_map_title),
+                            onRouteCalculated = onUpdatePolyline,
+                            onResolvedCoords = onResolvedCoords,
+                            onRefresh = onRefreshMap,
+                            onDismiss = { showFullscreenMap = false }
+                        )
                     }
                 }
             }

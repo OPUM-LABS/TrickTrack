@@ -788,6 +788,57 @@ class TripsViewModel(
         }
     }
 
+    fun updateTripPolyline(tripId: Long, routePolyline: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val trip = repository.getTripById(tripId)
+            if (trip != null && trip.routePolyline.isNullOrBlank()) {
+                repository.updateTrip(trip.copy(routePolyline = routePolyline))
+            }
+        }
+    }
+
+    fun updateTripResolvedData(
+        tripId: Long,
+        startLat: Double,
+        startLon: Double,
+        endLat: Double,
+        endLon: Double,
+        polyline: String?
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val trip = repository.getTripById(tripId)
+            if (trip != null) {
+                val updated = trip.copy(
+                    startLat = startLat,
+                    startLon = startLon,
+                    endLat = endLat,
+                    endLon = endLon,
+                    routePolyline = polyline
+                )
+                if (updated != trip) {
+                    repository.updateTrip(updated)
+                }
+            }
+        }
+    }
+
+    fun refreshTripMap(tripId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            DistanceRepository.clearCache()
+            val trip = repository.getTripById(tripId)
+            if (trip != null) {
+                val resetTrip = trip.copy(
+                    startLat = null,
+                    startLon = null,
+                    endLat = null,
+                    endLon = null,
+                    routePolyline = null
+                )
+                repository.updateTrip(resetTrip)
+            }
+        }
+    }
+
     fun deleteTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteTrip(trip)
