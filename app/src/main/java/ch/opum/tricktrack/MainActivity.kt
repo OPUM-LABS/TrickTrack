@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -1894,27 +1895,32 @@ fun TripItem(
                 var showFullscreenMap by remember { mutableStateOf(false) }
 
                 if (hasMapData) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { isMapExpanded = !isMapExpanded }
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
+                    Surface(
+                        onClick = { isMapExpanded = !isMapExpanded },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = if (isMapExpanded) RoundedCornerShape(0.dp) else RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
+                        color = if (isMapExpanded) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     ) {
-                        Text(
-                            text = stringResource(R.string.action_view_map),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = if (isMapExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = stringResource(R.string.action_view_map),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Map,
+                                contentDescription = stringResource(R.string.action_view_map),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(
+                                imageVector = if (isMapExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = stringResource(R.string.action_view_map),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
 
                     AnimatedVisibility(
@@ -1932,8 +1938,9 @@ fun TripItem(
                             routePolyline = trip.routePolyline,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(140.dp)
-                                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                                .height(160.dp),
+                            shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
+                            border = null,
                             isInteractive = false,
                             onRouteCalculated = onUpdatePolyline,
                             onResolvedCoords = onResolvedCoords,

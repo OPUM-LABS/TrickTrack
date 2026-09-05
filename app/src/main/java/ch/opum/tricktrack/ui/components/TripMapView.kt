@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +37,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -73,6 +76,8 @@ fun TripMapView(
     endLat: Double?,
     endLon: Double?,
     modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(12.dp),
+    border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     startAddress: String? = null,
     endAddress: String? = null,
     routePolyline: String? = null,
@@ -101,6 +106,8 @@ fun TripMapView(
     }
 
     var osrmPoints by remember(startLat, startLon, endLat, endLon, routePolyline) { mutableStateOf<List<GeoPoint>?>(null) }
+    var recenterTrigger by remember { mutableIntStateOf(0) }
+    var lastHandledRecenter by remember { mutableIntStateOf(0) }
 
     // Asynchronously resolve missing coordinates or route geometries
     LaunchedEffect(startLat, startLon, endLat, endLon, startAddress, endAddress, routePolyline) {
@@ -158,10 +165,10 @@ fun TripMapView(
 
     Surface(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(shape)
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        shape = shape,
+        border = border
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AndroidView(
@@ -169,8 +176,11 @@ fun TripMapView(
                 factory = { ctx ->
                     MapView(ctx).apply {
                         setTileSource(TileSourceFactory.MAPNIK)
+                        isTilesScaledToDpi = false
+                        tilesScaleFactor = 1.0f
                         setMultiTouchControls(isInteractive)
                         isClickable = isInteractive
+                        isFocusable = isInteractive
 
                         if (isInteractive) {
                             setOnTouchListener { v, event ->
@@ -179,12 +189,6 @@ fun TripMapView(
                                     v.performClick()
                                 }
                                 false
-                            }
-                        } else if (onClick != null) {
-                            setOnTouchListener { v, _ ->
-                                v.performClick()
-                                onClick.invoke()
-                                true
                             }
                         }
                     }
@@ -222,6 +226,7 @@ fun TripMapView(
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                             title = "Start"
                             icon = createMapPinDrawable(context, "#2E7D32".toColorInt())
+                            infoWindow = null
                         }
                         mapView.overlays.add(startMarker)
                     }
@@ -234,6 +239,7 @@ fun TripMapView(
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                             title = "End"
                             icon = createMapPinDrawable(context, "#C62828".toColorInt())
+                            infoWindow = null
                         }
                         mapView.overlays.add(endMarker)
                     }
@@ -244,6 +250,7 @@ fun TripMapView(
                             setPoints(linePoints)
                             outlinePaint.color = Color(0xFF1976D2).toArgb()
                             outlinePaint.strokeWidth = 8f
+                            infoWindow = null
                         }
                         mapView.overlays.add(line)
 
@@ -256,25 +263,67 @@ fun TripMapView(
                         val minLon = lons.minOrNull() ?: (startPoint?.longitude ?: 0.0)
 
                         val box = BoundingBox(maxLat + 0.003, maxLon + 0.003, minLat - 0.003, minLon - 0.003)
+                        val shouldAnimate = recenterTrigger > lastHandledRecenter
+                        if (shouldAnimate) {
+                            lastHandledRecenter = recenterTrigger
+                        }
                         mapView.post {
-                            mapView.zoomToBoundingBox(box, false)
+                            mapView.zoomToBoundingBox(box, shouldAnimate)
                         }
                     } else if (effectiveStart != null) {
-                        mapView.controller.setZoom(15.0)
-                        mapView.controller.setCenter(effectiveStart)
+                        if (recenterTrigger > lastHandledRecenter) {
+                            lastHandledRecenter = recenterTrigger
+                            mapView.controller.animateTo(effectiveStart)
+                        } else {
+                            mapView.controller.setZoom(15.0)
+                            mapView.controller.setCenter(effectiveStart)
+                        }
                     }
 
                     mapView.invalidate()
                 }
             )
 
-            if (onRefresh != null) {
+            // Transparent overlay for non-interactive mini-maps to handle tap and list scrolling
+            if (!isInteractive && onClick != null) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable { onClick.invoke() }
+                )
+            }
+
+            if (isInteractive) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                ) {
+                    IconButton(
+                        onClick = { recenterTrigger++ },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = stringResource(R.string.action_recenter_map),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+            }
+
+            if (isInteractive && onRefresh != null) {
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
                     shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 ) {
                     IconButton(
                         onClick = onRefresh,
@@ -368,19 +417,8 @@ fun FullscreenMapSheet(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (onRefresh != null) {
-                        IconButton(onClick = onRefresh) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = stringResource(R.string.action_refresh_map),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.button_close))
-                    }
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.button_close))
                 }
             }
 
@@ -398,7 +436,7 @@ fun FullscreenMapSheet(
                 isInteractive = true,
                 onRouteCalculated = onRouteCalculated,
                 onResolvedCoords = onResolvedCoords,
-                onRefresh = null
+                onRefresh = onRefresh
             )
         }
     }

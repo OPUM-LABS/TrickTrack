@@ -221,6 +221,7 @@
     <string name="action_view_map">Carte</string>
     <string name="trip_map_title">Itinéraire du trajet</string>
     <string name="action_refresh_map">Actualiser la carte</string>
+    <string name="action_recenter_map">Recentrer la carte</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Mises à jour de la révision des trajets</string>

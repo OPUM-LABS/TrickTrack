@@ -228,6 +228,7 @@
     <string name="action_view_map">Map</string>
     <string name="trip_map_title">Trip Route</string>
     <string name="action_refresh_map">Refresh Map</string>
+    <string name="action_recenter_map">Recenter Map</string>
 
     <!-- Notifications -->
     <string name="notification_channel_name">Trip Review Updates</string>
