@@ -282,6 +282,13 @@ class TripsViewModel(
         initialValue = 0
     )
 
+    val allConfirmedTripsCount: StateFlow<Int> = repository.confirmedTrips.map { it.size }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
     val isTracking: StateFlow<Boolean> = LocationService.isTracking
         .stateIn(
             scope = viewModelScope,
@@ -878,9 +885,10 @@ class TripsViewModel(
         context: Context,
         driverName: String?,
         companyName: String?,
-        vehicleName: String?
+        vehicleName: String?,
+        exportAll: Boolean = false
     ): Uri? = withContext(Dispatchers.IO) {
-        val trips = confirmedTrips.first()
+        val trips = if (exportAll) repository.confirmedTrips.first() else confirmedTrips.first()
         val columns = exportColumns.first()
         val isExpenseEnabled = expenseTrackingEnabled.first() && columns.contains("EXPENSES")
         val rate = expenseRatePerKm.first()
@@ -945,17 +953,24 @@ class TripsViewModel(
         }
     }
 
-    fun exportTripsToPdf() {
+    fun exportTripsToPdf(exportAll: Boolean = false) {
         viewModelScope.launch {
             val context = getApplication<Application>().applicationContext
-            val trips = confirmedTrips.first()
+            val trips = if (exportAll) repository.confirmedTrips.first() else confirmedTrips.first()
             val exportSettings = exportColumns.first()
             val rate = expenseRatePerKm.first()
             val currency = expenseCurrency.first()
             val isExpenseEnabled = expenseTrackingEnabled.first() && exportSettings.contains("EXPENSES")
             val includeDriver = exportIncludeDriver.first()
             val includeCompany = exportIncludeCompany.first()
+            val includeVehicle = exportIncludeVehicle.first()
             val filter = filterState.first()
+
+            val activeVehicleName = if (includeVehicle) {
+                selectedVehicle?.licensePlate ?: if (filter.vehicleIds.size == 1) {
+                    allVehicles.first().find { it.id == filter.vehicleIds.first() }?.licensePlate
+                } else null
+            } else null
 
             val pdfFile = withContext(Dispatchers.IO) {
                 PdfGenerator().generateTripReport(
@@ -967,7 +982,7 @@ class TripsViewModel(
                     expenseCurrency = currency,
                     driverName = if (includeDriver) selectedDriver?.name else null,
                     companyName = if (includeCompany) selectedCompany?.name else null,
-                    vehicleName = if (filter.vehicleIds.size == 1) selectedVehicle?.licensePlate else null,
+                    vehicleName = activeVehicleName,
                     distanceUnit = distanceUnit.value
                 )
             }

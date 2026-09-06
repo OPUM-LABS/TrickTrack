@@ -223,6 +223,26 @@
     <string name="action_refresh_map">Ricarica mappa</string>
     <string name="action_recenter_map">Ricentra mappa</string>
 
+    <!-- Redesigned Export Dialog -->
+    <string name="export_scope_title">Ambito dei viaggi</string>
+    <string name="export_scope_filtered">Viaggi filtrati (%1$d su %2$d)</string>
+    <string name="export_scope_filtered_title">Viaggi filtrati</string>
+    <string name="export_scope_filtered_count">%1$d su %2$d viaggi</string>
+    <string name="export_scope_all">Tutti i viaggi (%d)</string>
+    <string name="export_scope_all_title">Tutti i viaggi</string>
+    <string name="export_scope_all_count">%d viaggi</string>
+    <string name="export_scope_active_filters">Filtro attivo</string>
+    <string name="export_format_title">Formato di esportazione</string>
+    <string name="export_format_pdf">Registro PDF</string>
+    <string name="export_format_pdf_sub">Report PDF ufficiale con riepilogo</string>
+    <string name="export_format_csv">File dati CSV</string>
+    <string name="export_format_csv_sub">Tabella dati per Excel o contabilità</string>
+    <string name="export_action_pdf">Genera e condividi PDF</string>
+    <string name="export_action_csv">Esporta e condividi CSV</string>
+    <string name="export_configure_columns">Personalizza colonne incluse</string>
+    <string name="export_tab_header">Intestazione documento</string>
+    <string name="export_tab_columns">Colonne e campi</string>
+
     <!-- Notifications -->
     <string name="notification_channel_name">Aggiornamenti revisione viaggi</string>
     <string name="notification_channel_description">Notifiche per i viaggi pronti per la revisione.</string>
@@ -354,4 +374,5 @@
     <string name="favourites_drivers_empty_help">Aggiungi profili conducente per associare conducenti specifici ai viaggi durante l\'esportazione.</string>
     <string name="favourites_companies_empty_help">Aggiungi aziende per assegnare viaggi di lavoro ad aziende specifiche per report fiscali e spese.</string>
     <string name="favourites_vehicles_empty_help">Aggiungi i tuoi veicoli con il chilometraggio iniziale per tracciare la percorrenza e generare report per veicolo.</string>
+    <string name="favourites_header_default">Predefinito</string>
 </resources>

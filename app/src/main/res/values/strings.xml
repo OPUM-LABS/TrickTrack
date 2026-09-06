@@ -230,6 +230,26 @@
     <string name="action_refresh_map">Refresh Map</string>
     <string name="action_recenter_map">Recenter Map</string>
 
+    <!-- Redesigned Export Dialog -->
+    <string name="export_scope_title">Trip Scope</string>
+    <string name="export_scope_filtered">Filtered Trips (%1$d of %2$d)</string>
+    <string name="export_scope_filtered_title">Filtered Trips</string>
+    <string name="export_scope_filtered_count">%1$d of %2$d trips</string>
+    <string name="export_scope_all">All Trips (%d)</string>
+    <string name="export_scope_all_title">All Trips</string>
+    <string name="export_scope_all_count">%d trips</string>
+    <string name="export_scope_active_filters">Filter active</string>
+    <string name="export_format_title">Export Format</string>
+    <string name="export_format_pdf">PDF Logbook</string>
+    <string name="export_format_pdf_sub">Official formatted PDF report with summary header</string>
+    <string name="export_format_csv">CSV Data File</string>
+    <string name="export_format_csv_sub">Raw spreadsheet table for Excel or tax accounting</string>
+    <string name="export_action_pdf">Generate &amp; Share PDF</string>
+    <string name="export_action_csv">Export &amp; Share CSV</string>
+    <string name="export_configure_columns">Customize Included Columns</string>
+    <string name="export_tab_header">Document Header</string>
+    <string name="export_tab_columns">Columns &amp; Fields</string>
+
     <!-- Notifications -->
     <string name="notification_channel_name">Trip Review Updates</string>
     <string name="notification_channel_description">Notifications for trips that are ready for review.</string>
@@ -355,4 +375,5 @@
     <string name="favourites_drivers_empty_help">Add driver profiles to associate specific drivers with trips when exporting your logbook.</string>
     <string name="favourites_companies_empty_help">Add company profiles to assign business trips to specific companies for tax and expense reports.</string>
     <string name="favourites_vehicles_empty_help">Add your vehicles with initial odometer readings to track mileage, select active vehicles for trips, and export per-vehicle reports.</string>
+    <string name="favourites_header_default">Default</string>
 </resources>

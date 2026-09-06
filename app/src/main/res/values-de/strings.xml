@@ -222,6 +222,26 @@
     <string name="action_refresh_map">Karte neu laden</string>
     <string name="action_recenter_map">Karte zentrieren</string>
 
+    <!-- Redesigned Export Dialog -->
+    <string name="export_scope_title">Umfang der Fahrten</string>
+    <string name="export_scope_filtered">Gefilterte Fahrten (%1$d von %2$d)</string>
+    <string name="export_scope_filtered_title">Gefilterte Fahrten</string>
+    <string name="export_scope_filtered_count">%1$d von %2$d Fahrten</string>
+    <string name="export_scope_all">Alle Fahrten (%d)</string>
+    <string name="export_scope_all_title">Alle Fahrten</string>
+    <string name="export_scope_all_count">%d Fahrten</string>
+    <string name="export_scope_active_filters">Filter aktiv</string>
+    <string name="export_format_title">Export-Format</string>
+    <string name="export_format_pdf">PDF-Fahrtenbuch</string>
+    <string name="export_format_pdf_sub">Offizieller PDF-Bericht mit Zusammenfassung</string>
+    <string name="export_format_csv">CSV-Datendatei</string>
+    <string name="export_format_csv_sub">Tabelle für Excel oder Steuerbuchhaltung</string>
+    <string name="export_action_pdf">PDF erstellen &amp; teilen</string>
+    <string name="export_action_csv">CSV erstellen &amp; teilen</string>
+    <string name="export_configure_columns">Enthaltene Spalten anpassen</string>
+    <string name="export_tab_header">Dokumenten-Kopfzeile</string>
+    <string name="export_tab_columns">Spalten &amp; Felder</string>
+
     <!-- Notifications -->
     <string name="notification_channel_name">Fahrtüberprüfungs-Updates</string>
     <string name="notification_channel_description">Benachrichtigungen für Fahrten, die zur Überprüfung bereit sind.</string>
@@ -353,4 +373,5 @@
     <string name="favourites_drivers_empty_help">Fügen Sie Fahrerprofile hinzu, um Fahrten beim Export bestimmten Fahrern zuzuordnen.</string>
     <string name="favourites_companies_empty_help">Fügen Sie Firmenprofile hinzu, um geschäftliche Fahrten bestimmten Unternehmen für Steuer- und Spesenberichte zuzuordnen.</string>
     <string name="favourites_vehicles_empty_help">Fügen Sie Ihre Fahrzeuge mit Anfangskilometerstand hinzu, um Kilometerstände zu verfolgen und fahrzeugspezifische Berichte zu erstellen.</string>
+    <string name="favourites_header_default">Standard</string>
 </resources>

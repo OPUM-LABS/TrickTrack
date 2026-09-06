@@ -732,19 +732,38 @@ fun GenericGroupedList(
                 state = listState,
                 modifier = Modifier.weight(1f)
             ) {
+                var isFirstHeader = true
                 groupedItems.forEach { (header, items) ->
+                    val showDefaultLabel = isFirstHeader
+                    isFirstHeader = false
                     stickyHeader {
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colorScheme.surface
                         ) {
-                            Text(
-                                text = header.toString(),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = header.toString(),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (showDefaultLabel) {
+                                    Text(
+                                        text = stringResource(R.string.favourites_header_default),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(end = 4.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                     items(items) { item ->

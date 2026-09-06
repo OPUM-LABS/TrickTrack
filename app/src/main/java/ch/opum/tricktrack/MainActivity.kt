@@ -55,12 +55,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Work
@@ -448,19 +448,20 @@ fun MainScreen(
                                     )
                                 }
                                 IconButton(onClick = { showExportDialog = true }) {
-                                    Icon(Icons.Default.Share, stringResource(R.string.action_export))
+                                    Icon(Icons.Default.FileDownload, stringResource(R.string.action_export))
                                 }
 
                                 if (showExportDialog) {
                                     ExportFormatDialog(
                                         onDismiss = { showExportDialog = false },
-                                        onExportCsvClicked = {
+                                        onExportCsvClicked = { exportAll ->
                                             scope.launch {
                                                 val uri = tripsViewModel.exportAllTripsToCsv(
                                                     context = context,
                                                     driverName = tripsViewModel.selectedDriver?.name,
                                                     companyName = tripsViewModel.selectedCompany?.name,
-                                                    vehicleName = tripsViewModel.selectedVehicle?.licensePlate
+                                                    vehicleName = tripsViewModel.selectedVehicle?.licensePlate,
+                                                    exportAll = exportAll
                                                 )
                                                 uri?.let {
                                                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -477,8 +478,8 @@ fun MainScreen(
                                                 }
                                             }
                                         },
-                                        onExportPdfClicked = {
-                                            tripsViewModel.exportTripsToPdf()
+                                        onExportPdfClicked = { exportAll ->
+                                            tripsViewModel.exportTripsToPdf(exportAll = exportAll)
                                             showExportDialog = false
                                         },
                                         viewModel = tripsViewModel

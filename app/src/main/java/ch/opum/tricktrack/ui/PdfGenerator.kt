@@ -57,13 +57,72 @@ class PdfGenerator {
         this.context = context
         this.distanceUnit = distanceUnit
 
-        // First pass: Calculate total pages
-        totalPages = calculateTotalPages(tripsWithVehicle, columns, isExpenseEnabled)
+        // Pass 1: Dry run to measure exact total page count
+        totalPages = countPages(
+            tripsWithVehicle = tripsWithVehicle,
+            columns = columns,
+            isExpenseEnabled = isExpenseEnabled,
+            expenseRate = expenseRate,
+            expenseCurrency = expenseCurrency,
+            driverName = driverName,
+            companyName = companyName,
+            vehicleName = vehicleName
+        )
 
+        // Pass 2: Actual rendering with exact totalPages
+        return buildPdf(
+            tripsWithVehicle = tripsWithVehicle,
+            columns = columns,
+            isExpenseEnabled = isExpenseEnabled,
+            expenseRate = expenseRate,
+            expenseCurrency = expenseCurrency,
+            driverName = driverName,
+            companyName = companyName,
+            vehicleName = vehicleName,
+            isDryRun = false
+        )
+    }
+
+    private fun countPages(
+        tripsWithVehicle: List<TripWithVehicle>,
+        columns: Set<String>,
+        isExpenseEnabled: Boolean,
+        expenseRate: Float,
+        expenseCurrency: String,
+        driverName: String?,
+        companyName: String?,
+        vehicleName: String?
+    ): Int {
+        buildPdf(
+            tripsWithVehicle = tripsWithVehicle,
+            columns = columns,
+            isExpenseEnabled = isExpenseEnabled,
+            expenseRate = expenseRate,
+            expenseCurrency = expenseCurrency,
+            driverName = driverName,
+            companyName = companyName,
+            vehicleName = vehicleName,
+            isDryRun = true
+        )
+        return totalPages
+    }
+
+    private fun buildPdf(
+        tripsWithVehicle: List<TripWithVehicle>,
+        columns: Set<String>,
+        isExpenseEnabled: Boolean,
+        expenseRate: Float,
+        expenseCurrency: String,
+        driverName: String?,
+        companyName: String?,
+        vehicleName: String?,
+        isDryRun: Boolean
+    ): File? {
         document = PdfDocument()
+        currentPage = null
+        canvas = null
+        currentY = 0f
 
-        // Second pass: Draw the document
-        // 1. Data Preparation
         val groupedByMonth = tripsWithVehicle.groupBy {
             val cal = Calendar.getInstance()
             cal.time = it.trip.date
@@ -76,7 +135,7 @@ class PdfGenerator {
         val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         dateRange = "${dateFormat.format(minDate)} - ${dateFormat.format(maxDate)}"
 
-        // 2. Page 1: The Summary
+        // 1. Page 1: Summary
         drawSummaryPage(
             totalDistance = totalDistance,
             totalExpenses = totalExpenses,
@@ -84,29 +143,37 @@ class PdfGenerator {
             expenseCurrency = expenseCurrency,
             driverName = driverName,
             companyName = companyName,
-            vehicleName = vehicleName
+            vehicleName = vehicleName,
+            isDryRun = isDryRun
         )
 
-        // Force the trip list to start on a new page
-        startNewPage()
+        // Force trip list onto new page
+        startNewPage(isDryRun = isDryRun)
 
-        // 3. Page 2+: The Monthly Lists
+        // 2. Monthly Lists
         val orderedColumns = listOf("DATE", "START_TIME", "END_TIME", "START_LOCATION", "END_LOCATION", "DISTANCE", "TYPE", "EXPENSES")
             .filter { columns.contains(it.replace("_TIME", "")) }
         val columnWidths = getColumnWidths(orderedColumns, isExpenseEnabled)
+
         groupedByMonth.forEach { (month, monthTrips) ->
-            startNewPageIfNeeded(60f) // Space for month header
+            startNewPageIfNeeded(60f, isDryRun = isDryRun)
             drawMonthHeader(month)
             drawTableHeader(orderedColumns, columnWidths, isExpenseEnabled)
 
             monthTrips.forEach { item ->
-                drawTripRow(item, orderedColumns, columnWidths, isExpenseEnabled, expenseRate, expenseCurrency, columns.contains("VEHICLE"))
+                drawTripRow(item, orderedColumns, columnWidths, isExpenseEnabled, expenseRate, expenseCurrency, columns.contains("VEHICLE"), isDryRun = isDryRun)
             }
         }
 
-        finishPage()
+        finishPage(isDryRun = isDryRun)
 
-        // 4. Save the document
+        if (isDryRun) {
+            totalPages = document.pages.size
+            document.close()
+            return null
+        }
+
+        // Save the document
         return try {
             val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm", Locale.getDefault()).format(Date())
             val fileName = "tricktrack-trips_$timestamp.pdf"
@@ -122,63 +189,8 @@ class PdfGenerator {
         }
     }
 
-    private fun calculateTotalPages(
-        tripsWithVehicle: List<TripWithVehicle>,
-        columns: Set<String>,
-        isExpenseEnabled: Boolean
-    ): Int {
-        // This is a simplified calculation. A more accurate one would require a full layout pass.
-        var pageCount = 2 // Summary page + at least one trip page
-        val groupedByMonth = tripsWithVehicle.groupBy {
-            val cal = Calendar.getInstance()
-            cal.time = it.trip.date
-            SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(cal.time)
-        }
-        val orderedColumns = listOf("DATE", "START_TIME", "END_TIME", "START_LOCATION", "END_LOCATION", "DISTANCE", "TYPE", "EXPENSES")
-            .filter { columns.contains(it.replace("_TIME", "")) }
-        val columnWidths = getColumnWidths(orderedColumns, isExpenseEnabled)
-        val includeVehicle = columns.contains("VEHICLE")
-
-        var tempY = margin + 60f
-        groupedByMonth.forEach { (_, monthTrips) ->
-            tempY += 60f // Month header
-            tempY += 15f // Table header
-            monthTrips.forEach { item ->
-                val trip = item.trip
-                var maxRowHeight = 0f
-                orderedColumns.forEach { column ->
-                    val text = when (column) {
-                        "DATE" -> if (includeVehicle && item.vehicle != null) "01.01\n${item.vehicle.licensePlate}" else "01.01"
-                        "START_TIME" -> "00:00"
-                        "END_TIME" -> "00:00"
-                        "START_LOCATION" -> trip.startLoc.replace(", ", "\n")
-                        "END_LOCATION" -> trip.endLoc.replace(", ", "\n")
-                        "TYPE" -> trip.type
-                        "DISTANCE" -> "0.00 km"
-                        "EXPENSES" -> if (isExpenseEnabled) "0.00" else ""
-                        else -> ""
-                    }
-                    if (text.isNotEmpty()) {
-                        val colWidth = (columnWidths[column] ?: 0f).toInt()
-                        val textPaint = TextPaint()
-                        val layout = StaticLayout.Builder.obtain(text, 0, text.length, textPaint, colWidth).build()
-                        if (layout.height > maxRowHeight) {
-                            maxRowHeight = layout.height.toFloat()
-                        }
-                    }
-                }
-                tempY += maxRowHeight + 20f
-                if (tempY > pageBottom) {
-                    pageCount++
-                    tempY = margin + 60f
-                }
-            }
-        }
-        return pageCount
-    }
-
-    private fun startNewPage() {
-        finishPage()
+    private fun startNewPage(isDryRun: Boolean = false) {
+        finishPage(isDryRun = isDryRun)
         val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, document.pages.size + 1).create()
         currentPage = document.startPage(pageInfo)
         canvas = currentPage!!.canvas
@@ -186,16 +198,18 @@ class PdfGenerator {
         drawPageHeader()
     }
 
-    private fun finishPage() {
+    private fun finishPage(isDryRun: Boolean = false) {
         currentPage?.let {
-            drawPageFooter(it.info.pageNumber)
+            if (!isDryRun) {
+                drawPageFooter(it.info.pageNumber)
+            }
             document.finishPage(it)
         }
     }
 
-    private fun startNewPageIfNeeded(neededHeight: Float) {
+    private fun startNewPageIfNeeded(neededHeight: Float, isDryRun: Boolean = false) {
         if (canvas == null || currentY + neededHeight > pageBottom) {
-            startNewPage()
+            startNewPage(isDryRun = isDryRun)
         }
     }
 
@@ -223,9 +237,10 @@ class PdfGenerator {
         expenseCurrency: String,
         driverName: String?,
         companyName: String?,
-        vehicleName: String?
+        vehicleName: String?,
+        isDryRun: Boolean
     ) {
-        startNewPage()
+        startNewPage(isDryRun = isDryRun)
 
         // App Logo and Name (Top Right)
         val appNamePaint = TextPaint().apply {
@@ -247,7 +262,6 @@ class PdfGenerator {
             canvas?.drawText(appName, textX, margin + 25, appNamePaint)
         }
 
-
         // Centered Content
         val titlePaint = TextPaint().apply {
             color = Color.BLACK
@@ -256,11 +270,11 @@ class PdfGenerator {
             textAlign = Paint.Align.CENTER
         }
         val titleX = pageWidth / 2f
-        val titleY = pageHeight / 2f - 200 // Adjust as needed
+        val titleY = pageHeight / 2f - 200
 
         canvas?.drawText(context.getString(R.string.pdf_trip_report_title), titleX, titleY, titlePaint)
 
-        // --- Summary Box ---
+        // Summary Box
         val lineSpacing = 28f
         val topPadding = 30f
         val bottomPadding = 20f
@@ -268,7 +282,7 @@ class PdfGenerator {
         val leftTextMargin = margin + 20f
         val valueTextMargin = margin + 150f
 
-        var lineCount = 2 // Date Range, Total Distance
+        var lineCount = 2
         if (isExpenseEnabled) lineCount++
         val hasDriverInfo = driverName != null || companyName != null || vehicleName != null
         if (driverName != null) lineCount++
@@ -318,8 +332,7 @@ class PdfGenerator {
                 summaryY += lineSpacing
             }
 
-            // Divider
-            summaryY += dividerPadding - (lineSpacing / 2) // Adjust for visual balance
+            summaryY += dividerPadding - (lineSpacing / 2)
             canvas?.drawLine(margin + 10, summaryY, pageWidth - margin - 10, summaryY, boxPaint)
             summaryY += dividerPadding + (lineSpacing / 2)
         }
@@ -400,7 +413,8 @@ class PdfGenerator {
         isExpenseEnabled: Boolean,
         expenseRate: Float,
         expenseCurrency: String,
-        includeVehicle: Boolean
+        includeVehicle: Boolean,
+        isDryRun: Boolean
     ) {
         val trip = item.trip
         val textPaint = TextPaint().apply {
@@ -415,7 +429,6 @@ class PdfGenerator {
         val dateFormat = SimpleDateFormat("dd.MM", Locale.getDefault())
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
-        // Prepare cell content and layouts
         val cellLayouts = mutableMapOf<String, StaticLayout>()
         var maxRowHeight = 0f
 
@@ -439,30 +452,30 @@ class PdfGenerator {
             }
             if (text.isNotEmpty()) {
                 val colWidth = (columnWidths[column] ?: 0f).toInt()
-                val paint = if (column == "DATE" && text.contains("\n")) textPaint else textPaint // Simplification
-                val layout = StaticLayout.Builder.obtain(text, 0, text.length, paint, colWidth).build()
+                val layout = StaticLayout.Builder.obtain(text, 0, text.length, textPaint, colWidth).build()
                 cellLayouts[column] = layout
                 if (layout.height > maxRowHeight) {
                     maxRowHeight = layout.height.toFloat()
                 }
             }
         }
-        maxRowHeight += 20f // Add padding
+        maxRowHeight += 20f
 
-        startNewPageIfNeeded(maxRowHeight)
+        startNewPageIfNeeded(maxRowHeight, isDryRun = isDryRun)
 
-        // Draw the cells
-        var currentX = margin
-        columns.forEach { column ->
-            cellLayouts[column]?.let { layout ->
-                canvas?.withTranslation(currentX, currentY + 10f) {
-                    layout.draw(this)
+        if (!isDryRun) {
+            var currentX = margin
+            columns.forEach { column ->
+                cellLayouts[column]?.let { layout ->
+                    canvas?.withTranslation(currentX, currentY + 10f) {
+                        layout.draw(this)
+                    }
+                    currentX += columnWidths[column] ?: 0f
                 }
-                currentX += columnWidths[column] ?: 0f
             }
+            canvas?.drawLine(margin, currentY + maxRowHeight - 5f, pageWidth - margin, currentY + maxRowHeight - 5f, linePaint)
         }
 
         currentY += maxRowHeight
-        canvas?.drawLine(margin, currentY - 5f, pageWidth - margin, currentY - 5f, linePaint)
     }
 }

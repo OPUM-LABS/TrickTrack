@@ -223,6 +223,26 @@
     <string name="action_refresh_map">Actualiser la carte</string>
     <string name="action_recenter_map">Recentrer la carte</string>
 
+    <!-- Redesigned Export Dialog -->
+    <string name="export_scope_title">Étendue des trajets</string>
+    <string name="export_scope_filtered">Trajets filtrés (%1$d sur %2$d)</string>
+    <string name="export_scope_filtered_title">Trajets filtrés</string>
+    <string name="export_scope_filtered_count">%1$d sur %2$d trajets</string>
+    <string name="export_scope_all">Tous les trajets (%d)</string>
+    <string name="export_scope_all_title">Tous les trajets</string>
+    <string name="export_scope_all_count">%d trajets</string>
+    <string name="export_scope_active_filters">Filtre actif</string>
+    <string name="export_format_title">Format d\'exportation</string>
+    <string name="export_format_pdf">Journal PDF</string>
+    <string name="export_format_pdf_sub">Rapport PDF officiel avec résumé</string>
+    <string name="export_format_csv">Fichier CSV</string>
+    <string name="export_format_csv_sub">Tableau pour Excel ou comptabilité</string>
+    <string name="export_action_pdf">Générer et partager le PDF</string>
+    <string name="export_action_csv">Exporter et partager le CSV</string>
+    <string name="export_configure_columns">Personnaliser les colonnes</string>
+    <string name="export_tab_header">En-tête du document</string>
+    <string name="export_tab_columns">Colonnes &amp; champs</string>
+
     <!-- Notifications -->
     <string name="notification_channel_name">Mises à jour de la révision des trajets</string>
     <string name="notification_channel_description">Notifications pour les trajets prêts à être révisés.</string>
@@ -354,4 +374,5 @@
     <string name="favourites_drivers_empty_help">Ajoutez des profils de conducteur pour associer des conducteurs spécifiques aux trajets lors de l\'exportation.</string>
     <string name="favourites_companies_empty_help">Ajoutez des entreprises pour attribuer des trajets professionnels à des sociétés spécifiques pour vos rapports.</string>
     <string name="favourites_vehicles_empty_help">Ajoutez vos véhicules avec le kilométrage initial pour suivre la distance et générer des rapports par véhicule.</string>
+    <string name="favourites_header_default">Par défaut</string>
 </resources>
