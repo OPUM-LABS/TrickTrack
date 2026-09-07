@@ -340,6 +340,7 @@ fun SettingsScreen(
     var pairedDevices by remember { mutableStateOf<Set<BluetoothDevice>>(emptySet()) }
     var showDeviceDialog by remember { mutableStateOf(false) }
     var showPermissionSheet by remember { mutableStateOf(false) }
+    var showLastMovementSheet by remember { mutableStateOf(false) }
     var showScheduleDialog by remember { mutableStateOf(false) }
     var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
 
@@ -433,6 +434,13 @@ fun SettingsScreen(
         PermissionBottomSheet(
             onDismiss = { showPermissionSheet = false },
             viewModel = viewModel
+        )
+    }
+
+    if (showLastMovementSheet) {
+        LastMovementBottomSheet(
+            viewModel = viewModel,
+            onDismiss = { showLastMovementSheet = false }
         )
     }
 
@@ -1303,36 +1311,108 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            val motionSensorInfo by viewModel.motionSensorInfo.collectAsState()
-            val lastMovementInfo by viewModel.lastMovementInfo.collectAsState()
-            val distanceUnit by viewModel.distanceUnit.collectAsState()
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showLastMovementSheet = true },
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_last_movement_title))
+                        Text(
+                            stringResource(R.string.settings_last_movement_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForwardIos,
+                        contentDescription = stringResource(R.string.settings_last_movement_title)
+                    )
+                }
+            }
+
+            HorizontalDivider()
 
             Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onShowLogsDialog() },
+                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            )
+{
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.settings_logs_title), modifier = Modifier.weight(1f))
+                    Icon(
+                        Icons.Default.BugReport,
+                        contentDescription = stringResource(R.string.settings_logs_title)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LastMovementBottomSheet(
+    viewModel: TripsViewModel,
+    onDismiss: () -> Unit
+) {
+    val motionSensorInfo by viewModel.motionSensorInfo.collectAsState()
+    val lastMovementInfo by viewModel.lastMovementInfo.collectAsState()
+    val distanceUnit by viewModel.distanceUnit.collectAsState()
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = stringResource(R.string.settings_last_movement_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_last_movement_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
                     if (motionSensorInfo != null) {
                         val sensor = motionSensorInfo!!
                         val sensorTimeStr = SimpleDateFormat("HH:mm:ss", LocalLocale.current.platformLocale).format(Date(sensor.timestamp))
@@ -1340,6 +1420,7 @@ fun SettingsScreen(
                         Text(
                             text = stringResource(R.string.settings_motion_sensor_type, sensor.sensorName),
                             style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -1356,7 +1437,9 @@ fun SettingsScreen(
                     }
 
                     if (lastMovementInfo != null) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        if (motionSensorInfo != null) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        }
                         val info = lastMovementInfo!!
                         val timeStr = SimpleDateFormat("HH:mm:ss", LocalLocale.current.platformLocale).format(Date(info.timestamp))
                         val formattedDistance = DistanceFormatter.formatShort(info.distanceMeters / 1000.0, distanceUnit)
@@ -1384,31 +1467,20 @@ fun SettingsScreen(
                     } else if (motionSensorInfo == null) {
                         Text(
                             text = stringResource(R.string.settings_last_movement_none),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
 
-            HorizontalDivider()
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onShowLogsDialog() },
-                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.settings_logs_title), modifier = Modifier.weight(1f))
-                    Icon(
-                        Icons.Default.BugReport,
-                        contentDescription = stringResource(R.string.settings_logs_title)
-                    )
-                }
+                DialogDeclineButton(onClick = onDismiss)
             }
         }
     }
