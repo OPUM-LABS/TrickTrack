@@ -376,4 +376,13 @@
     <string name="favourites_companies_empty_help">Add company profiles to assign business trips to specific companies for tax and expense reports.</string>
     <string name="favourites_vehicles_empty_help">Add your vehicles with initial odometer readings to track mileage, select active vehicles for trips, and export per-vehicle reports.</string>
     <string name="favourites_header_default">Default</string>
+
+    <!-- Review Queue Undo / Discard -->
+    <string name="review_trip_discarded_single">Trip discarded</string>
+    <string name="review_trips_discarded_multiple">%d trips discarded</string>
+    <string name="action_undo">UNDO</string>
+
+    <!-- Trips Page Staged Deletion -->
+    <string name="trips_trip_deleted_single">Trip deleted</string>
+    <string name="trips_trips_deleted_multiple">%d trips deleted</string>
 </resources>

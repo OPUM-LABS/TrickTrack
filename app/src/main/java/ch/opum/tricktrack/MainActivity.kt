@@ -96,6 +96,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -368,7 +372,13 @@ fun MainScreen(
                 selectedTripToEdit = null
             },
             onDelete = {
-                tripsViewModel.deleteTrip(trip)
+                val allConfirmed = tripsViewModel.confirmedTrips.value
+                val matched = allConfirmed.find { it.trip.id == trip.id }
+                if (matched != null) {
+                    tripsViewModel.stageDeleteTrip(matched)
+                } else {
+                    tripsViewModel.deleteTrip(trip)
+                }
                 selectedTripToEdit = null
             },
             favouritesViewModel = favouritesViewModel,
@@ -662,11 +672,63 @@ fun TripScreen(
     val distanceUnit by tripsViewModel.distanceUnit.collectAsState()
     val totalDistanceFormatted by tripsViewModel.totalDistanceFormatted.collectAsState()
     val tripCount by tripsViewModel.tripCount.collectAsState()
+    val pendingDeletedTrips by tripsViewModel.pendingDeletedTrips.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    val singleDeleteText = stringResource(R.string.trips_trip_deleted_single)
+    val multipleDeleteFormat = stringResource(R.string.trips_trips_deleted_multiple)
+    val undoText = stringResource(R.string.action_undo)
+
+    // Commit any pending deletions when navigating away from TripScreen
+    DisposableEffect(Unit) {
+        onDispose {
+            tripsViewModel.commitPendingDeletions()
+        }
+    }
+
+    // Trigger Snackbar whenever pendingDeletedTrips count changes
+    LaunchedEffect(pendingDeletedTrips.size) {
+        if (pendingDeletedTrips.isNotEmpty()) {
+            val count = pendingDeletedTrips.size
+            val message = if (count == 1) {
+                singleDeleteText
+            } else {
+                String.format(Locale.getDefault(), multipleDeleteFormat, count)
+            }
+
+            snackbarHostState.currentSnackbarData?.dismiss()
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = undoText,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                tripsViewModel.undoDeleteTrips()
+            } else {
+                tripsViewModel.commitPendingDeletions()
+            }
+        }
+    }
+
     val listState = rememberLazyListState()
     var isAllCollapsed by remember { mutableStateOf(value = false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        },
+        containerColor = Color.Transparent
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
         // Fixed Top Header
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -1071,6 +1133,7 @@ fun TripScreen(
             }
         }
     }
+}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

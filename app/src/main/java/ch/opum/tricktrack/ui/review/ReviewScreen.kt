@@ -46,12 +46,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -93,90 +100,142 @@ fun ReviewScreen(viewModel: TripsViewModel) {
     val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
     val allVehicles by viewModel.allVehicles.collectAsState()
     val distanceUnit by viewModel.distanceUnit.collectAsState()
+    val pendingDiscardedTrips by viewModel.pendingDiscardedTrips.collectAsState()
 
-    if (groupedTrips.isEmpty()) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val singleDiscardText = stringResource(R.string.review_trip_discarded_single)
+    val multipleDiscardFormat = stringResource(R.string.review_trips_discarded_multiple)
+    val undoText = stringResource(R.string.action_undo)
+
+    // Commit any pending discards when navigating away from the Review screen
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.commitPendingDiscards()
+        }
+    }
+
+    // Trigger Snackbar whenever pendingDiscardedTrips count changes
+    LaunchedEffect(pendingDiscardedTrips.size) {
+        if (pendingDiscardedTrips.isNotEmpty()) {
+            val count = pendingDiscardedTrips.size
+            val message = if (count == 1) {
+                singleDiscardText
+            } else {
+                String.format(Locale.getDefault(), multipleDiscardFormat, count)
+            }
+
+            snackbarHostState.currentSnackbarData?.dismiss()
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = undoText,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoDiscardTrips()
+            } else {
+                viewModel.commitPendingDiscards()
+            }
+        }
+    }
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        },
+        containerColor = Color.Transparent
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            contentAlignment = Alignment.Center
+                .padding(innerPadding)
         ) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+            if (groupedTrips.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.FactCheck,
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = stringResource(R.string.review_no_trips),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.review_empty_help),
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            groupedTrips.forEach { group ->
-                stickyHeader {
-                    ReviewListHeader(
-                        date = group.date,
-                        tripCount = group.trips.size,
-                        totalDistance = group.totalDistance,
-                        isOdometerModeEnabled = isOdometerModeEnabled,
-                        distanceUnit = distanceUnit
-                    )
-                }
-                items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
-                    ReviewTripCard(
-                        tripWithVehicle = tripWithVehicle,
-                        allVehicles = allVehicles,
-                        isOdometerModeEnabled = isOdometerModeEnabled,
-                        distanceUnit = distanceUnit,
-                        onApprove = { finalType, selectedVehicle, endOdometer, description ->
-                            viewModel.approveTrip(
-                                trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
-                                finalType = finalType,
-                                endOdometer = endOdometer,
-                                description = description
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.FactCheck,
+                                contentDescription = null,
+                                modifier = Modifier.size(56.dp),
+                                tint = MaterialTheme.colorScheme.primary
                             )
-                        },
-                        onDiscard = {
-                            viewModel.deleteTrip(tripWithVehicle.trip)
-                        },
-                        onUpdatePolyline = { polyline ->
-                            viewModel.updateTripPolyline(tripWithVehicle.trip.id, polyline)
-                        },
-                        onResolvedCoords = { sLat, sLon, eLat, eLon, polyline ->
-                            viewModel.updateTripResolvedData(tripWithVehicle.trip.id, sLat, sLon, eLat, eLon, polyline)
-                        },
-                        onRefreshMap = {
-                            viewModel.refreshTripMap(tripWithVehicle.trip.id)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.review_no_trips),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.review_empty_help),
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                    )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    groupedTrips.forEach { group ->
+                        stickyHeader {
+                            ReviewListHeader(
+                                date = group.date,
+                                tripCount = group.trips.size,
+                                totalDistance = group.totalDistance,
+                                isOdometerModeEnabled = isOdometerModeEnabled,
+                                distanceUnit = distanceUnit
+                            )
+                        }
+                        items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
+                            ReviewTripCard(
+                                tripWithVehicle = tripWithVehicle,
+                                allVehicles = allVehicles,
+                                isOdometerModeEnabled = isOdometerModeEnabled,
+                                distanceUnit = distanceUnit,
+                                onApprove = { finalType, selectedVehicle, endOdometer, description ->
+                                    viewModel.approveTrip(
+                                        trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
+                                        finalType = finalType,
+                                        endOdometer = endOdometer,
+                                        description = description
+                                    )
+                                },
+                                onDiscard = {
+                                    viewModel.stageDiscardTrip(tripWithVehicle)
+                                },
+                                onUpdatePolyline = { polyline ->
+                                    viewModel.updateTripPolyline(tripWithVehicle.trip.id, polyline)
+                                },
+                                onResolvedCoords = { sLat, sLon, eLat, eLon, polyline ->
+                                    viewModel.updateTripResolvedData(tripWithVehicle.trip.id, sLat, sLon, eLat, eLon, polyline)
+                                },
+                                onRefreshMap = {
+                                    viewModel.refreshTripMap(tripWithVehicle.trip.id)
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -375,4 +375,13 @@
     <string name="favourites_companies_empty_help">Aggiungi aziende per assegnare viaggi di lavoro ad aziende specifiche per report fiscali e spese.</string>
     <string name="favourites_vehicles_empty_help">Aggiungi i tuoi veicoli con il chilometraggio iniziale per tracciare la percorrenza e generare report per veicolo.</string>
     <string name="favourites_header_default">Predefinito</string>
+
+    <!-- Review Queue Undo / Discard -->
+    <string name="review_trip_discarded_single">Viaggio scartato</string>
+    <string name="review_trips_discarded_multiple">%d viaggi scartati</string>
+    <string name="action_undo">ANNULLA</string>
+
+    <!-- Trips Page Staged Deletion -->
+    <string name="trips_trip_deleted_single">Viaggio eliminato</string>
+    <string name="trips_trips_deleted_multiple">%d viaggi eliminati</string>
 </resources>

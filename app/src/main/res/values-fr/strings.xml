@@ -375,4 +375,13 @@
     <string name="favourites_companies_empty_help">Ajoutez des entreprises pour attribuer des trajets professionnels à des sociétés spécifiques pour vos rapports.</string>
     <string name="favourites_vehicles_empty_help">Ajoutez vos véhicules avec le kilométrage initial pour suivre la distance et générer des rapports par véhicule.</string>
     <string name="favourites_header_default">Par défaut</string>
+
+    <!-- Review Queue Undo / Discard -->
+    <string name="review_trip_discarded_single">Trajet ignoré</string>
+    <string name="review_trips_discarded_multiple">%d trajets ignorés</string>
+    <string name="action_undo">ANNULER</string>
+
+    <!-- Trips Page Staged Deletion -->
+    <string name="trips_trip_deleted_single">Trajet supprimé</string>
+    <string name="trips_trips_deleted_multiple">%d trajets supprimés</string>
 </resources>

@@ -374,4 +374,13 @@
     <string name="favourites_companies_empty_help">Fügen Sie Firmenprofile hinzu, um geschäftliche Fahrten bestimmten Unternehmen für Steuer- und Spesenberichte zuzuordnen.</string>
     <string name="favourites_vehicles_empty_help">Fügen Sie Ihre Fahrzeuge mit Anfangskilometerstand hinzu, um Kilometerstände zu verfolgen und fahrzeugspezifische Berichte zu erstellen.</string>
     <string name="favourites_header_default">Standard</string>
+
+    <!-- Review Queue Undo / Discard -->
+    <string name="review_trip_discarded_single">Fahrt verworfen</string>
+    <string name="review_trips_discarded_multiple">%d Fahrten verworfen</string>
+    <string name="action_undo">RÜCKGÄNGIG</string>
+
+    <!-- Trips Page Staged Deletion -->
+    <string name="trips_trip_deleted_single">Fahrt gelöscht</string>
+    <string name="trips_trips_deleted_multiple">%d Fahrten gelöscht</string>
 </resources>

@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
@@ -115,8 +116,13 @@ class TripsViewModel(
         (it.type != TripType.ALL) || it.keyword.isNotEmpty() || (it.startDate != null) || (it.endDate != null) || it.vehicleIds.isNotEmpty()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = false)
 
-    val confirmedTrips = combine(repository.confirmedTrips, _filterState) { allTrips, filter ->
-        allTrips.filter { tripWithVehicle ->
+    private val _pendingDeletedTrips = MutableStateFlow<List<TripWithVehicle>>(emptyList())
+    val pendingDeletedTrips: StateFlow<List<TripWithVehicle>> = _pendingDeletedTrips.asStateFlow()
+
+    val confirmedTrips = combine(repository.confirmedTrips, _filterState, _pendingDeletedTrips) { allTrips, filter, pending ->
+        val pendingIds = pending.map { it.trip.id }.toSet()
+        val activeTrips = allTrips.filter { it.trip.id !in pendingIds }
+        activeTrips.filter { tripWithVehicle ->
             val trip = tripWithVehicle.trip
             val matchesType = when (filter.type) {
                 TripType.ALL -> true
@@ -216,13 +222,19 @@ class TripsViewModel(
             initialValue = emptyList()
         )
 
+    private val _pendingDiscardedTrips = MutableStateFlow<List<TripWithVehicle>>(emptyList())
+    val pendingDiscardedTrips: StateFlow<List<TripWithVehicle>> = _pendingDiscardedTrips.asStateFlow()
+
     val groupedReviewTrips: StateFlow<List<TripGroup>> = combine(
         unconfirmedTrips,
+        _pendingDiscardedTrips,
         userPreferencesRepository.isSmartLocationEnabled,
         userPreferencesRepository.smartLocationRadius
-    ) { trips, isSmartLocationEnabled, smartLocationRadius ->
+    ) { trips, pending, isSmartLocationEnabled, smartLocationRadius ->
+        val pendingIds = pending.map { it.trip.id }.toSet()
+        val activeTrips = trips.filter { it.trip.id !in pendingIds }
         val savedPlaces = repository.getSavedPlacesList()
-        trips.map { item ->
+        activeTrips.map { item ->
             val trip = item.trip
             val smartStart = geocoderHelper.getSmartAddress(
                 originalAddress = trip.startLoc,
@@ -830,6 +842,48 @@ class TripsViewModel(
                     routePolyline = null
                 )
                 repository.updateTrip(resetTrip)
+            }
+        }
+    }
+
+    fun stageDiscardTrip(tripWithVehicle: TripWithVehicle) {
+        _pendingDiscardedTrips.update { current -> current + tripWithVehicle }
+    }
+
+    fun undoDiscardTrips() {
+        _pendingDiscardedTrips.value = emptyList()
+    }
+
+    fun commitPendingDiscards() {
+        val toDelete = _pendingDiscardedTrips.value
+        if (toDelete.isNotEmpty()) {
+            _pendingDiscardedTrips.value = emptyList()
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.deleteTrips(toDelete)
+                toDelete.forEach {
+                    TripNotificationManager.cancelTripNotification(getApplication(), it.trip.id)
+                }
+            }
+        }
+    }
+
+    fun stageDeleteTrip(tripWithVehicle: TripWithVehicle) {
+        _pendingDeletedTrips.update { current -> current + tripWithVehicle }
+    }
+
+    fun undoDeleteTrips() {
+        _pendingDeletedTrips.value = emptyList()
+    }
+
+    fun commitPendingDeletions() {
+        val toDelete = _pendingDeletedTrips.value
+        if (toDelete.isNotEmpty()) {
+            _pendingDeletedTrips.value = emptyList()
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.deleteTrips(toDelete)
+                toDelete.forEach {
+                    TripNotificationManager.cancelTripNotification(getApplication(), it.trip.id)
+                }
             }
         }
     }
