@@ -3,6 +3,7 @@ package ch.opum.tricktrack.ui.place
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -107,6 +108,12 @@ fun PlacesListScreen(
         stringResource(R.string.favourites_tab_companies),
         stringResource(R.string.favourites_tab_vehicles)
     )
+    val tabIcons = listOf(
+        Icons.Default.LocationOn,
+        Icons.Default.Person,
+        Icons.Default.Work,
+        Icons.Default.DirectionsCar
+    )
 
     val addDriverTitle = stringResource(R.string.favourites_add_driver_title)
     val addCompanyTitle = stringResource(R.string.favourites_add_company_title)
@@ -151,7 +158,21 @@ fun PlacesListScreen(
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = { viewModel.selectTab(index) },
-                    text = { Text(title) }
+                    icon = {
+                        Icon(
+                            imageVector = tabIcons[index],
+                            contentDescription = title,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
             }
         }
