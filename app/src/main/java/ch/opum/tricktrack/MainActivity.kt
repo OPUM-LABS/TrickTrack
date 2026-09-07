@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -118,6 +119,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -303,6 +305,7 @@ fun MainScreen(
 
     // States and Launchers for TripScreen's FAB and related dialogs, moved to MainScreen
     var selectedTripToEdit by remember { mutableStateOf<Trip?>(null) }
+    var triggerAddInFavourites by remember { mutableIntStateOf(0) }
     var showBackgroundLocationDialog by remember { mutableStateOf(value = false) }
 
     // State for PlacesListScreen dialog
@@ -554,6 +557,11 @@ fun MainScreen(
                                     Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.action_about))
                                 }
                             }
+                            Screen.PlacesList.route -> {
+                                IconButton(onClick = { triggerAddInFavourites++ }) {
+                                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.favourites_add_item))
+                                }
+                            }
                         }
                     }
                 )
@@ -639,7 +647,8 @@ fun MainScreen(
                     onAddPlace = {
                         selectedPlaceToEdit = null
                         showAddEditPlaceDialog = true
-                    }
+                    },
+                    addTrigger = triggerAddInFavourites
                 )
             }
             composable(Screen.Settings.route) {
@@ -727,6 +736,7 @@ fun TripScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = Color.Transparent
     ) { innerPadding ->
         Column(

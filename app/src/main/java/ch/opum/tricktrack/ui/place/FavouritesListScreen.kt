@@ -25,7 +25,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -90,6 +89,7 @@ data class SimpleItem(
 @Composable
 fun PlacesListScreen(
     onAddPlace: () -> Unit,
+    addTrigger: Int = 0
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as TripApplication
@@ -125,34 +125,23 @@ fun PlacesListScreen(
     var placeToEdit by remember { mutableStateOf<SavedPlace?>(null) }
     var dialogTitle by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-                IconButton(
-                onClick = {
-                    dialogTitle = when (selectedTabIndex) {
-                        0 -> {
-                            onAddPlace()
-                            ""
-                        }
-                        1 -> addDriverTitle
-                        2 -> addCompanyTitle
-                        3 -> addVehicleTitle
-                        else -> ""
-                    }
-                    if (selectedTabIndex != 0) {
-                        showAddDialog = true
-                    }
-                }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.favourites_add_item))
+    LaunchedEffect(addTrigger) {
+        if (addTrigger > 0) {
+            if (selectedTabIndex == 0) {
+                onAddPlace()
+            } else {
+                dialogTitle = when (selectedTabIndex) {
+                    1 -> addDriverTitle
+                    2 -> addCompanyTitle
+                    3 -> addVehicleTitle
+                    else -> ""
+                }
+                showAddDialog = true
             }
         }
+    }
 
+    Column(modifier = Modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
             tabTitles.forEachIndexed { index, title ->
                 Tab(
