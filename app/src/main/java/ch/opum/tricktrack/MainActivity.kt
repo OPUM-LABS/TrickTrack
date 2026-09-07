@@ -20,9 +20,12 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -129,6 +132,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.DpOffset
@@ -173,6 +177,7 @@ import ch.opum.tricktrack.ui.settings.SettingsScreen
 import ch.opum.tricktrack.ui.theme.TrickTrackTheme
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 import ch.opum.tricktrack.util.DistanceFormatter
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -970,7 +975,7 @@ fun TripScreen(
                                         // Continuous lock for the duration of the unfold animation
                                         repeat(40) {
                                             listState.scrollToItem(currentHeaderIndex)
-                                            kotlinx.coroutines.delay(16.milliseconds)
+                                            delay(16.milliseconds)
                                         }
                                     }
                                 } else {
@@ -1894,9 +1899,22 @@ fun TripItem(
                     thickness = 0.5.dp
                 )
 
+                val hasMapData = !trip.startLoc.isBlank() || !trip.endLoc.isBlank() || (trip.startLat != null && trip.startLon != null)
+                var isMapExpanded by remember { mutableStateOf(false) }
+                var showFullscreenMap by remember { mutableStateOf(false) }
+                val bringIntoViewRequester = remember { BringIntoViewRequester() }
+
+                LaunchedEffect(isMapExpanded) {
+                    if (isMapExpanded) {
+                        delay(200.milliseconds)
+                        bringIntoViewRequester.bringIntoView()
+                    }
+                }
+
                 // Timeline Content Row
                 Row(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .height(IntrinsicSize.Min)
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.Top
@@ -1906,7 +1924,9 @@ fun TripItem(
 
                     // Column 2: Data
                     Column(
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         val timeFormatter = SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale)
@@ -1917,101 +1937,139 @@ fun TripItem(
                             address = trip.startLoc
                         )
 
-                        // End Point
-                        StyledAddress(
-                            time = timeFormatter.format(Date(trip.endDate)),
-                            address = trip.endLoc
-                        )
+                        // End Point Row with Inline Map Button (if no note)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                StyledAddress(
+                                    time = timeFormatter.format(Date(trip.endDate)),
+                                    address = trip.endLoc
+                                )
+                            }
+                            if (hasMapData && trip.description.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    onClick = { isMapExpanded = !isMapExpanded },
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (isMapExpanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                    contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Map,
+                                            contentDescription = stringResource(R.string.action_view_map),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Icon(
+                                            imageVector = if (isMapExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                            contentDescription = stringResource(R.string.action_view_map),
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+
                 if (!trip.description.isNullOrBlank()) {
-                    Surface(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                        shape = RoundedCornerShape(8.dp)
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Notes,
-                                contentDescription = stringResource(R.string.description_cd),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp)
-                            )
+                            Row(
+                                modifier = Modifier.padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Notes,
+                                    contentDescription = stringResource(R.string.description_cd),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = trip.description,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontStyle = FontStyle.Italic
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        if (hasMapData) {
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = trip.description,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                                ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Surface(
+                                onClick = { isMapExpanded = !isMapExpanded },
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (isMapExpanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Map,
+                                        contentDescription = stringResource(R.string.action_view_map),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Icon(
+                                        imageVector = if (isMapExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                        contentDescription = stringResource(R.string.action_view_map),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
-                val hasMapData = !trip.startLoc.isBlank() || !trip.endLoc.isBlank() || (trip.startLat != null && trip.startLon != null)
-                var isMapExpanded by remember { mutableStateOf(false) }
-                var showFullscreenMap by remember { mutableStateOf(false) }
-
-                if (hasMapData) {
-                    Surface(
-                        onClick = { isMapExpanded = !isMapExpanded },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = if (isMapExpanded) RoundedCornerShape(0.dp) else RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
-                        color = if (isMapExpanded) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Map,
-                                contentDescription = stringResource(R.string.action_view_map),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Icon(
-                                imageVector = if (isMapExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.action_view_map),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-
-                    AnimatedVisibility(
-                        visible = isMapExpanded,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        TripMapView(
-                            startLat = trip.startLat,
-                            startLon = trip.startLon,
-                            endLat = trip.endLat,
-                            endLon = trip.endLon,
-                            startAddress = trip.startLoc,
-                            endAddress = trip.endLoc,
-                            routePolyline = trip.routePolyline,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp),
-                            shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
-                            border = null,
-                            isInteractive = false,
-                            onRouteCalculated = onUpdatePolyline,
-                            onResolvedCoords = onResolvedCoords,
-                            onRefresh = onRefreshMap,
-                            onClick = { showFullscreenMap = true }
-                        )
-                    }
+                AnimatedVisibility(
+                    visible = isMapExpanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
+                    modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)
+                ) {
+                    TripMapView(
+                        startLat = trip.startLat,
+                        startLon = trip.startLon,
+                        endLat = trip.endLat,
+                        endLon = trip.endLon,
+                        startAddress = trip.startLoc,
+                        endAddress = trip.endLoc,
+                        routePolyline = trip.routePolyline,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp),
+                        shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
+                        border = null,
+                        isInteractive = false,
+                        onRouteCalculated = onUpdatePolyline,
+                        onResolvedCoords = onResolvedCoords,
+                        onRefresh = onRefreshMap,
+                        onClick = { showFullscreenMap = true }
+                    )
+                }
 
                     if (showFullscreenMap) {
                         FullscreenMapSheet(
@@ -2029,7 +2087,6 @@ fun TripItem(
                             onDismiss = { showFullscreenMap = false }
                         )
                     }
-                }
             }
         }
     }
