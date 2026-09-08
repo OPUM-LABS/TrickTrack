@@ -16,6 +16,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -1244,12 +1245,22 @@ fun SettingsScreen(
                             },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(
-                                Icons.Default.Upload,
-                                contentDescription = stringResource(R.string.settings_backup_button)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.settings_backup_button))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.Upload,
+                                    contentDescription = stringResource(R.string.settings_backup_button),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.settings_backup_button),
+                                    maxLines = 1,
+                                    modifier = Modifier.basicMarquee()
+                                )
+                            }
                         }
 
                         Button(
@@ -1258,12 +1269,22 @@ fun SettingsScreen(
                             },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(
-                                Icons.Default.Download,
-                                contentDescription = stringResource(R.string.settings_restore_button)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.settings_restore_button))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.Download,
+                                    contentDescription = stringResource(R.string.settings_restore_button),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.settings_restore_button),
+                                    maxLines = 1,
+                                    modifier = Modifier.basicMarquee()
+                                )
+                            }
                         }
                     }
 
