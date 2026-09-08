@@ -508,8 +508,14 @@ class TripsViewModel(
             initialValue = 50
         )
 
-    val distanceMonitoringSummary: StateFlow<String> = distanceMonitoringRadius.map { radius ->
-        getApplication<Application>().getString(R.string.settings_wakes_up_every_meters, radius)
+    val distanceMonitoringSummary: StateFlow<String> = combine(distanceMonitoringRadius, distanceUnit) { radius, unit ->
+        val displayRadius = DistanceFormatter.convertMetersToDisplayRadius(radius, unit)
+        val unitLabel = if (unit == DistanceUnit.KM) {
+            getApplication<Application>().getString(R.string.unit_meters)
+        } else {
+            getApplication<Application>().getString(R.string.unit_feet)
+        }
+        getApplication<Application>().getString(R.string.settings_wakes_up_every_meters, displayRadius, unitLabel)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     val themeMode: StateFlow<String> = userPreferencesRepository.themeMode

@@ -98,6 +98,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -747,8 +748,11 @@ fun SettingsScreen(
 
                         if (showDistanceDialog) {
                             val distanceMonitoringRadius by viewModel.distanceMonitoringRadius.collectAsState()
-                            var tempRadius by remember(distanceMonitoringRadius) { 
-                                mutableStateOf(distanceMonitoringRadius.toString()) 
+                            val distanceUnit by viewModel.distanceUnit.collectAsState()
+                            val displayRadius = DistanceFormatter.convertMetersToDisplayRadius(distanceMonitoringRadius, distanceUnit)
+                            val shortUnitLabel = if (distanceUnit == DistanceUnit.KM) stringResource(R.string.unit_meters) else stringResource(R.string.unit_feet)
+                            var tempRadius by remember(distanceMonitoringRadius, distanceUnit) { 
+                                mutableStateOf(displayRadius.toString()) 
                             }
                             val dSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
                             
@@ -777,10 +781,10 @@ fun SettingsScreen(
                                     OutlinedTextField(
                                         value = tempRadius,
                                         onValueChange = { newValue: String -> if (newValue.all { char: Char -> char.isDigit() }) tempRadius = newValue },
-                                        label = { Text(stringResource(R.string.settings_distance_monitoring_radius_label)) },
+                                        label = { Text(stringResource(R.string.settings_distance_monitoring_radius_label, shortUnitLabel.uppercase())) },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        suffix = { Text("m") }
+                                        suffix = { Text(if (distanceUnit == DistanceUnit.KM) "m" else "ft") }
                                     )
                                     Spacer(modifier = Modifier.height(32.dp))
                                     Row(
@@ -791,7 +795,9 @@ fun SettingsScreen(
                                         DialogDeclineButton(onClick = { showDistanceDialog = false })
                                         Spacer(modifier = Modifier.width(12.dp))
                                         DialogAcceptButton(onClick = {
-                                            viewModel.setDistanceMonitoringRadius(tempRadius.toIntOrNull() ?: 50)
+                                            val inputVal = tempRadius.toIntOrNull() ?: displayRadius
+                                            val meters = DistanceFormatter.convertDisplayRadiusToMeters(inputVal, distanceUnit)
+                                            viewModel.setDistanceMonitoringRadius(meters)
                                             scope.launch { dSheetState.hide() }.invokeOnCompletion {
                                                 if (!dSheetState.isVisible) showDistanceDialog = false
                                             }
@@ -901,7 +907,10 @@ fun SettingsScreen(
             ) {
                 Column(Modifier.padding(16.dp)) {
                     var localStillnessTimer by remember(stillnessTimer) { mutableStateOf(stillnessTimer.toString()) }
-                    var localMinSpeed by remember(minSpeed) { mutableStateOf(minSpeed.toString()) }
+                    val distanceUnit by viewModel.distanceUnit.collectAsState()
+                    val speedUnitLabel = DistanceFormatter.getSpeedUnitSuffix(distanceUnit)
+                    val displayMinSpeed = DistanceFormatter.convertSpeed(minSpeed.toDouble(), distanceUnit).roundToInt()
+                    var localMinSpeed by remember(minSpeed, distanceUnit) { mutableStateOf(displayMinSpeed.toString()) }
 
                     ClearableTextField(
                         value = localStillnessTimer,
@@ -929,16 +938,17 @@ fun SettingsScreen(
                         onValueChange = { newValue ->
                             localMinSpeed = newValue
                         },
-                        label = { Text(stringResource(R.string.settings_min_speed_label)) },
-                        placeholder = { Text("15") },
+                        label = { Text(stringResource(R.string.settings_min_speed_label, speedUnitLabel)) },
+                        placeholder = { Text(displayMinSpeed.toString()) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
                             .onFocusChanged { focusState ->
                                 if (!focusState.isFocused) {
-                                    val speed = localMinSpeed.toIntOrNull() ?: 15
-                                    viewModel.setMinSpeed(speed)
-                                    localMinSpeed = speed.toString()
+                                    val inputVal = localMinSpeed.toIntOrNull() ?: displayMinSpeed
+                                    val speedKmh = DistanceFormatter.speedToKmh(inputVal.toDouble(), distanceUnit).roundToInt()
+                                    viewModel.setMinSpeed(speedKmh)
+                                    localMinSpeed = inputVal.toString()
                                 }
                             }
                     )
@@ -1079,23 +1089,27 @@ fun SettingsScreen(
                     }
                     if (isSmartLocationEnabled) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        var localRadius by remember(smartLocationRadius) { mutableStateOf(smartLocationRadius.toString()) }
+                        val distanceUnit by viewModel.distanceUnit.collectAsState()
+                        val displayRadius = DistanceFormatter.convertMetersToDisplayRadius(smartLocationRadius, distanceUnit)
+                        val shortUnitLabel = if (distanceUnit == DistanceUnit.KM) stringResource(R.string.unit_meters) else stringResource(R.string.unit_feet)
+                        var localRadius by remember(smartLocationRadius, distanceUnit) { mutableStateOf(displayRadius.toString()) }
 
                         ClearableTextField(
                             value = localRadius,
                             onValueChange = { newValue ->
                                 localRadius = newValue
                             },
-                            label = { Text(stringResource(R.string.settings_smart_location_radius_label)) },
-                            placeholder = { Text("150") },
+                            label = { Text(stringResource(R.string.settings_smart_location_radius_label, shortUnitLabel)) },
+                            placeholder = { Text(displayRadius.toString()) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .onFocusChanged { focusState ->
                                     if (!focusState.isFocused) {
-                                        val radius = localRadius.toIntOrNull() ?: 150
-                                        viewModel.setSmartLocationRadius(radius)
-                                        localRadius = radius.toString()
+                                        val inputVal = localRadius.toIntOrNull() ?: displayRadius
+                                        val meters = DistanceFormatter.convertDisplayRadiusToMeters(inputVal, distanceUnit)
+                                        viewModel.setSmartLocationRadius(meters)
+                                        localRadius = inputVal.toString()
                                     }
                                 }
                         )
@@ -1128,6 +1142,8 @@ fun SettingsScreen(
                     if (expenseTrackingEnabled) {
                         var localRate by remember { mutableStateOf(String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)) }
                         var localCurrency by remember(expenseCurrency) { mutableStateOf(expenseCurrency) }
+                        val distanceUnit by viewModel.distanceUnit.collectAsState()
+                        val rateUnitLabel = DistanceFormatter.getUnitSuffix(distanceUnit)
 
                         LaunchedEffect(expenseRatePerKm) {
                             localRate = String.format(Locale.getDefault(), "%.2f", expenseRatePerKm)
@@ -1141,7 +1157,7 @@ fun SettingsScreen(
                             ClearableTextField(
                                 value = localRate,
                                 onValueChange = { localRate = it },
-                                label = { Text(stringResource(R.string.settings_expense_rate_label)) },
+                                label = { Text(stringResource(R.string.settings_expense_rate_label, rateUnitLabel)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier
                                     .weight(1f)
@@ -1431,6 +1447,9 @@ fun LastMovementBottomSheet(
                         val info = lastMovementInfo!!
                         val timeStr = SimpleDateFormat("HH:mm:ss", LocalLocale.current.platformLocale).format(Date(info.timestamp))
                         val formattedDistance = DistanceFormatter.formatShort(info.distanceMeters / 1000.0, distanceUnit)
+                        val speedUnit = DistanceFormatter.getSpeedUnitSuffix(distanceUnit)
+                        val displaySpeed = DistanceFormatter.convertSpeed(info.speedKmh, distanceUnit)
+                        val displayThreshold = DistanceFormatter.convertSpeed(info.speedThresholdKmh.toDouble(), distanceUnit)
 
                         Text(
                             text = stringResource(R.string.settings_last_movement_time, timeStr),
@@ -1438,7 +1457,7 @@ fun LastMovementBottomSheet(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = stringResource(R.string.settings_last_movement_details, formattedDistance, "%.1f".format(info.speedKmh)),
+                            text = stringResource(R.string.settings_last_movement_details, formattedDistance, "%.1f".format(displaySpeed), speedUnit),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1446,13 +1465,14 @@ fun LastMovementBottomSheet(
                             text = if (info.speedKmh >= info.speedThresholdKmh) {
                                 stringResource(R.string.settings_last_movement_above_threshold, info.counter)
                             } else {
-                                stringResource(R.string.settings_last_movement_below_threshold, info.speedThresholdKmh)
+                                stringResource(R.string.settings_last_movement_below_threshold, displayThreshold, speedUnit)
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = if (info.speedKmh >= info.speedThresholdKmh) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    } else if (motionSensorInfo == null) {
+                    }
+else if (motionSensorInfo == null) {
                         Text(
                             text = stringResource(R.string.settings_last_movement_none),
                             style = MaterialTheme.typography.bodyMedium,
