@@ -45,10 +45,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
@@ -262,13 +264,30 @@ fun ClearableTextField(
     prefix: @Composable (() -> Unit)? = null,
     singleLine: Boolean = true
 ) {
+    val focusManager = LocalFocusManager.current
+
+    val effectiveKeyboardOptions = if (singleLine && keyboardOptions.imeAction == ImeAction.Default) {
+        keyboardOptions.copy(imeAction = ImeAction.Done)
+    } else {
+        keyboardOptions
+    }
+
+    val effectiveKeyboardActions = if (keyboardActions == KeyboardActions.Default && singleLine) {
+        KeyboardActions(
+            onDone = { focusManager.clearFocus() },
+            onNext = { focusManager.clearFocus() }
+        )
+    } else {
+        keyboardActions
+    }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = label,
         modifier = modifier,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
+        keyboardOptions = effectiveKeyboardOptions,
+        keyboardActions = effectiveKeyboardActions,
         trailingIcon = {
             if (value.isNotEmpty()) {
                 IconButton(onClick = { onValueChange("") }) {
