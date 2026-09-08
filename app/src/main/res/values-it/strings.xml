@@ -161,6 +161,7 @@
     <string name="review_no_trips">Nessun viaggio da revisionare!</string>
     <string name="review_trip_count_and_distance">%1$d viaggi • %2$s</string>
     <string name="review_approve_trip">Approva viaggio</string>
+    <string name="review_note_placeholder">Nota…</string>
 
     <!-- Add/Edit Place Dialog -->
     <string name="add_place_title">Aggiungi luogo</string>
@@ -250,6 +251,9 @@
     <string name="notification_channel_description">Notifiche per i viaggi pronti per la revisione.</string>
     <string name="notification_title">Viaggio pronto per la revisione</string>
     <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
+    <string name="trip_too_short_not_saved">Viaggio troppo breve (%s) - non salvato.</string>
+    <string name="notification_trip_too_short_title">Viaggio non salvato</string>
+    <string name="notification_trip_too_short_text">La distanza (%1$s) era inferiore alla soglia di 100m.</string>
     <string name="background_location_required_title">Posizione in background richiesta</string>
     <string name="background_location_required_text">Per rilevare automaticamente quando inizi a guidare, questa app necessita dell\'accesso alla posizione \'Sempre\'. Seleziona \'Consenti sempre\' nella schermata successiva.</string>
     <string name="open_settings">Apri impostazioni</string>

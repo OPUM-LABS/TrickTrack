@@ -872,15 +872,23 @@ class LocationService : Service() {
                 "LocationService",
                 "Trip too short, not saving. Distance: $finalDistance meters"
             )
-            if (_currentTripTrigger.value == TripTrigger.MANUAL) {
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(
-                        applicationContext,
-                        "Trip under 100m was not saved.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            val currentUnit = currentDistanceUnit
+            val formattedDist = if (currentUnit == DistanceUnit.KM) {
+                "${finalDistance.toInt()} m"
+            } else {
+                "${DistanceFormatter.convertMetersToDisplayRadius(finalDistance.toInt(), currentUnit)} ft"
             }
+
+            val toastMessage = applicationContext.getString(R.string.trip_too_short_not_saved, formattedDist)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(
+                    applicationContext,
+                    toastMessage,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            TripNotificationManager.sendTripDiscardedNotification(applicationContext, finalDistance.toFloat(), currentUnit)
         }
     }
 

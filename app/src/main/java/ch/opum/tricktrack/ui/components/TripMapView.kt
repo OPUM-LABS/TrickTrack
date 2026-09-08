@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -163,6 +164,8 @@ fun TripMapView(
         return
     }
 
+    var isMapReady by remember { mutableStateOf(false) }
+
     Surface(
         modifier = modifier
             .clip(shape)
@@ -181,6 +184,10 @@ fun TripMapView(
                         setMultiTouchControls(isInteractive)
                         isClickable = isInteractive
                         isFocusable = isInteractive
+
+                        addOnFirstLayoutListener { _, _, _, _, _ ->
+                            isMapReady = true
+                        }
 
                         if (isInteractive) {
                             setOnTouchListener { v, event ->
@@ -269,6 +276,7 @@ fun TripMapView(
                         }
                         mapView.post {
                             mapView.zoomToBoundingBox(box, shouldAnimate)
+                            isMapReady = true
                         }
                     } else if (effectiveStart != null) {
                         if (recenterTrigger > lastHandledRecenter) {
@@ -281,8 +289,29 @@ fun TripMapView(
                     }
 
                     mapView.invalidate()
+                    mapView.post {
+                        isMapReady = true
+                    }
                 }
             )
+
+            if (!isMapReady) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(28.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.5.dp
+                        )
+                    }
+                }
+            }
 
             // Transparent overlay for non-interactive mini-maps to handle tap and list scrolling
             if (!isInteractive && onClick != null) {

@@ -11,6 +11,7 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.util.DistanceFormatter
@@ -46,7 +47,7 @@ object TripNotificationManager {
      * @param trip The trip to be reviewed.
      * @param distanceUnit The user's preferred distance unit.
      */
-    fun sendTripReviewNotification(context: Context, trip: Trip, distanceUnit: ch.opum.tricktrack.data.DistanceUnit) {
+    fun sendTripReviewNotification(context: Context, trip: Trip, distanceUnit: DistanceUnit) {
         // Ensure CHANNEL_ID is initialized before use
         if (!this::CHANNEL_ID.isInitialized) {
             // This case should ideally not happen if createNotificationChannel is called first.
@@ -127,5 +128,38 @@ object TripNotificationManager {
         AppLogger.log("TripNotificationManager", "Cancelling notification for trip ID: $tripId as notification ID: $notificationId")
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(notificationId)
+    }
+
+    /**
+     * Sends a notification when a trip was under the 100m minimum threshold and was not saved.
+     */
+    fun sendTripDiscardedNotification(context: Context, distanceMeters: Float, distanceUnit: DistanceUnit) {
+        if (!this::CHANNEL_ID.isInitialized) {
+            CHANNEL_ID = context.getString(R.string.trip_review_channel_id)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                return
+            }
+        }
+
+        val distanceKm = distanceMeters / 1000.0
+        val formattedDist = DistanceFormatter.formatShort(distanceKm, distanceUnit)
+        val title = context.getString(R.string.notification_trip_too_short_title)
+        val contentText = context.getString(R.string.notification_trip_too_short_text, formattedDist)
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.tricktrack_outline)
+            .setContentTitle(title)
+            .setContentText(contentText)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setAutoCancel(true)
+
+        with(NotificationManagerCompat.from(context)) {
+            val notificationId = 9999
+            AppLogger.log("TripNotificationManager", "Showing trip discarded notification for $formattedDist")
+            notify(notificationId, builder.build())
+        }
     }
 }

@@ -2,6 +2,7 @@ package ch.opum.tricktrack.ui.review
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.background
@@ -460,7 +461,9 @@ fun ReviewTripCard(
                     Text(
                         text = DistanceFormatter.format(trip.distance, distanceUnit),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee()
                     )
                 }
             }
@@ -618,7 +621,7 @@ fun ReviewTripCard(
                         ) {
                             if (note.isEmpty()) {
                                 Text(
-                                    text = "Note...",
+                                    text = stringResource(R.string.review_note_placeholder),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )

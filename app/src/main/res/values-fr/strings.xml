@@ -161,6 +161,7 @@
     <string name="review_no_trips">Aucun trajet à réviser !</string>
     <string name="review_trip_count_and_distance">%1$d trajets • %2$s</string>
     <string name="review_approve_trip">Approuver le trajet</string>
+    <string name="review_note_placeholder">Note…</string>
 
     <!-- Add/Edit Place Dialog -->
     <string name="add_place_title">Ajouter un lieu</string>
@@ -250,6 +251,9 @@
     <string name="notification_channel_description">Notifications pour les trajets prêts à être révisés.</string>
     <string name="notification_title">Trajet prêt pour révision</string>
     <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
+    <string name="trip_too_short_not_saved">Trajet trop court (%s) – non enregistré.</string>
+    <string name="notification_trip_too_short_title">Trajet non enregistré</string>
+    <string name="notification_trip_too_short_text">La distance (%1$s) était inférieure au seuil de 100m.</string>
     <string name="background_location_required_title">Localisation en arrière-plan requise</string>
     <string name="background_location_required_text">Pour détecter automatiquement lorsque vous commencez à conduire, cette application a besoin de l\'accès à la localisation \'Toujours\'. Veuillez sélectionner \'Toujours autoriser\' sur l\'écran suivant.</string>
     <string name="open_settings">Ouvrir les paramètres</string>

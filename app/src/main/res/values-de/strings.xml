@@ -160,6 +160,7 @@
     <string name="review_no_trips">Keine Fahrten zum Überprüfen!</string>
     <string name="review_trip_count_and_distance">%1$d Fahrten • %2$s</string>
     <string name="review_approve_trip">Fahrt genehmigen</string>
+    <string name="review_note_placeholder">Notiz…</string>
 
     <!-- Add/Edit Place Dialog -->
     <string name="add_place_title">Ort hinzufügen</string>
@@ -249,6 +250,9 @@
     <string name="notification_channel_description">Benachrichtigungen für Fahrten, die zur Überprüfung bereit sind.</string>
     <string name="notification_title">Fahrt zur Überprüfung bereit</string>
     <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
+    <string name="trip_too_short_not_saved">Fahrt zu kurz (%s) – nicht gespeichert.</string>
+    <string name="notification_trip_too_short_title">Fahrt nicht gespeichert</string>
+    <string name="notification_trip_too_short_text">Strecke (%1$s) lag unter dem 100m-Schwellenwert.</string>
     <string name="background_location_required_title">Hintergrund-Standortberechtigung erforderlich</string>
     <string name="background_location_required_text">Um automatisch zu erkennen, wann Sie losfahren, benötigt diese App den Standortzugriff \'Immer zulassen\'. Bitte wählen Sie auf dem nächsten Bildschirm \'Immer zulassen\'.</string>
     <string name="open_settings">Einstellungen öffnen</string>
