@@ -10,6 +10,7 @@
 
 ![App Screenshot](pictures/preview.png)
 
+> **Notice:** TrickTrack is currently undergoing active testing in preparation for its Google Play Store release. My primary focus during this phase is incorporating tester feedback and refining core app features, so project documentation may be temporarily out of date. Documentation will be fully updated once the launch phase stabilizes.
 ---
 
 ## 📑 Table of Contents
