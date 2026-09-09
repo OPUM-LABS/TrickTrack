@@ -254,6 +254,11 @@
     <string name="trip_too_short_not_saved">Trajet trop court (%s) – non enregistré.</string>
     <string name="notification_trip_too_short_title">Trajet non enregistré</string>
     <string name="notification_trip_too_short_text">La distance (%1$s) était inférieure au seuil de 100m.</string>
+
+    <!-- Offline Failsafe -->
+    <string name="address_pending_offline">Adresse en attente (Hors ligne)</string>
+    <string name="map_offline_placeholder">Carte indisponible hors ligne</string>
+    <string name="action_retry_address_lookup">Réessayer la recherche d\'adresse</string>
     <string name="background_location_required_title">Localisation en arrière-plan requise</string>
     <string name="background_location_required_text">Pour détecter automatiquement lorsque vous commencez à conduire, cette application a besoin de l\'accès à la localisation \'Toujours\'. Veuillez sélectionner \'Toujours autoriser\' sur l\'écran suivant.</string>
     <string name="open_settings">Ouvrir les paramètres</string>

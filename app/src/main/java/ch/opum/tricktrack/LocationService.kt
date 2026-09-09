@@ -808,13 +808,18 @@ class LocationService : Service() {
             val smartLocationRadius = userPreferencesRepository.smartLocationRadius.first()
             val savedPlaces = repository.getAllSavedPlaces().first()
 
-            val geocodedStartAddress = startLocation?.let {
-                geocoderHelper.getAddressFromLocation(it.latitude, it.longitude)
-            } ?: "Unknown Start"
+            val offlinePendingAddress = applicationContext.getString(R.string.address_pending_offline)
 
-            val geocodedEndAddress = endLocation?.let {
+            val rawStartAddress = startLocation?.let {
                 geocoderHelper.getAddressFromLocation(it.latitude, it.longitude)
-            } ?: "Unknown End"
+            } ?: offlinePendingAddress
+
+            val rawEndAddress = endLocation?.let {
+                geocoderHelper.getAddressFromLocation(it.latitude, it.longitude)
+            } ?: offlinePendingAddress
+
+            val geocodedStartAddress = if (rawStartAddress == "Unknown Start") offlinePendingAddress else rawStartAddress
+            val geocodedEndAddress = if (rawEndAddress == "Unknown End") offlinePendingAddress else rawEndAddress
 
             val startAddress = geocoderHelper.getSmartAddress(
                 originalAddress = geocodedStartAddress,

@@ -254,6 +254,11 @@
     <string name="trip_too_short_not_saved">Viaggio troppo breve (%s) - non salvato.</string>
     <string name="notification_trip_too_short_title">Viaggio non salvato</string>
     <string name="notification_trip_too_short_text">La distanza (%1$s) era inferiore alla soglia di 100m.</string>
+
+    <!-- Offline Failsafe -->
+    <string name="address_pending_offline">Indirizzo in attesa (Offline)</string>
+    <string name="map_offline_placeholder">Mappa non disponibile offline</string>
+    <string name="action_retry_address_lookup">Riprova ricerca indirizzo</string>
     <string name="background_location_required_title">Posizione in background richiesta</string>
     <string name="background_location_required_text">Per rilevare automaticamente quando inizi a guidare, questa app necessita dell\'accesso alla posizione \'Sempre\'. Seleziona \'Consenti sempre\' nella schermata successiva.</string>
     <string name="open_settings">Apri impostazioni</string>

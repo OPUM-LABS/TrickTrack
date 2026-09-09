@@ -253,6 +253,11 @@
     <string name="trip_too_short_not_saved">Fahrt zu kurz (%s) – nicht gespeichert.</string>
     <string name="notification_trip_too_short_title">Fahrt nicht gespeichert</string>
     <string name="notification_trip_too_short_text">Strecke (%1$s) lag unter dem 100m-Schwellenwert.</string>
+
+    <!-- Offline Failsafe -->
+    <string name="address_pending_offline">Adresse ausstehend (Offline)</string>
+    <string name="map_offline_placeholder">Karte offline nicht verfügbar</string>
+    <string name="action_retry_address_lookup">Adresse erneut abrufen</string>
     <string name="background_location_required_title">Hintergrund-Standortberechtigung erforderlich</string>
     <string name="background_location_required_text">Um automatisch zu erkennen, wann Sie losfahren, benötigt diese App den Standortzugriff \'Immer zulassen\'. Bitte wählen Sie auf dem nächsten Bildschirm \'Immer zulassen\'.</string>
     <string name="open_settings">Einstellungen öffnen</string>

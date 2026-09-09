@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -97,6 +101,87 @@ class TripsViewModel(
     private val distanceRepository = DistanceRepository(application)
     var isCalculating by mutableStateOf(value = false)
     var distanceInput by mutableStateOf("")
+
+    init {
+        registerNetworkCallback()
+    }
+
+    private fun registerNetworkCallback() {
+        try {
+            val connectivityManager = getApplication<Application>().getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            if (connectivityManager != null) {
+                val networkRequest = NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build()
+
+                connectivityManager.registerNetworkCallback(networkRequest, object : ConnectivityManager.NetworkCallback() {
+                    override fun onAvailable(network: Network) {
+                        super.onAvailable(network)
+                        resolvePendingOfflineAddresses()
+                    }
+                })
+            }
+        } catch (e: Exception) {
+            AppLogger.log("TripsViewModel", "Error registering network callback: ${e.message}")
+        }
+    }
+
+    suspend fun getAddressFromLocation(lat: Double?, lng: Double?): String {
+        return geocoderHelper.getAddressFromLocation(lat, lng)
+    }
+
+    fun isPendingAddress(address: String?): Boolean {
+        if (address.isNullOrBlank()) return true
+        val pendingPrefixes = listOf("Pending address", "Adresse ausstehend", "Adresse en attente", "Indirizzo in attesa", "Unknown Start", "Unknown End")
+        return pendingPrefixes.any { address.contains(it, ignoreCase = true) }
+    }
+
+    fun resolvePendingOfflineAddresses() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val confirmed = repository.confirmedTrips.first().map { it.trip }
+                val unconfirmed = repository.unconfirmedTrips.first().map { it.trip }
+                val allTrips = confirmed + unconfirmed
+                var anyUpdated = false
+
+                allTrips.forEach { trip ->
+                    val startNeedsResolution = isPendingAddress(trip.startLoc) && trip.startLat != null && trip.startLon != null
+                    val endNeedsResolution = isPendingAddress(trip.endLoc) && trip.endLat != null && trip.endLon != null
+
+                    if (startNeedsResolution || endNeedsResolution) {
+                        var newStart = trip.startLoc
+                        var newEnd = trip.endLoc
+
+                        if (startNeedsResolution) {
+                            val resolvedStart = geocoderHelper.getAddressFromLocation(trip.startLat, trip.startLon)
+                            if (resolvedStart.isNotBlank() && !isPendingAddress(resolvedStart)) {
+                                newStart = resolvedStart
+                            }
+                        }
+
+                        if (endNeedsResolution) {
+                            val resolvedEnd = geocoderHelper.getAddressFromLocation(trip.endLat, trip.endLon)
+                            if (resolvedEnd.isNotBlank() && !isPendingAddress(resolvedEnd)) {
+                                newEnd = resolvedEnd
+                            }
+                        }
+
+                        if (newStart != trip.startLoc || newEnd != trip.endLoc) {
+                            val updatedTrip = trip.copy(startLoc = newStart, endLoc = newEnd)
+                            repository.updateTrip(updatedTrip)
+                            anyUpdated = true
+                        }
+                    }
+                }
+
+                if (anyUpdated) {
+                    AppLogger.log("TripsViewModel", "Auto-resolved pending offline addresses upon network reconnect.")
+                }
+            } catch (e: Exception) {
+                AppLogger.log("TripsViewModel", "Error resolving pending offline addresses: ${e.message}")
+            }
+        }
+    }
 
     val distanceUnit: StateFlow<DistanceUnit> = userPreferencesRepository.distanceUnit
         .stateIn(

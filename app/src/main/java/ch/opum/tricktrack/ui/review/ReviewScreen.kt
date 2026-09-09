@@ -28,6 +28,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AssistChip
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Check
@@ -235,7 +237,9 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                                 },
                                 onRefreshMap = {
                                     viewModel.refreshTripMap(tripWithVehicle.trip.id)
-                                }
+                                },
+                                isPendingAddress = { viewModel.isPendingAddress(it) },
+                                onResolvePendingAddresses = { viewModel.resolvePendingOfflineAddresses() }
                             )
                         }
                     }
@@ -296,7 +300,9 @@ fun ReviewTripCard(
     modifier: Modifier = Modifier,
     onUpdatePolyline: ((String) -> Unit)? = null,
     onResolvedCoords: ((Double, Double, Double, Double, String?) -> Unit)? = null,
-    onRefreshMap: (() -> Unit)? = null
+    onRefreshMap: (() -> Unit)? = null,
+    isPendingAddress: ((String?) -> Boolean)? = null,
+    onResolvePendingAddresses: (() -> Unit)? = null
 ) {
     val trip = tripWithVehicle.trip
     var selectedType by remember { mutableStateOf(if (trip.type == "Business") TripType.BUSINESS else TripType.PERSONAL) }
@@ -544,6 +550,20 @@ fun ReviewTripCard(
                         time = timeFormatter.format(Date(trip.endDate)),
                         address = trip.endLoc
                     )
+
+                    if ((isPendingAddress?.invoke(trip.startLoc) == true) || (isPendingAddress?.invoke(trip.endLoc) == true)) {
+                        AssistChip(
+                            onClick = { onResolvePendingAddresses?.invoke() },
+                            label = { Text(stringResource(R.string.action_retry_address_lookup)) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = stringResource(R.string.action_retry_address_lookup),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        )
+                    }
                 }
             }
 

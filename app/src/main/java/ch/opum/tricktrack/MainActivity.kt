@@ -67,10 +67,12 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomSheetDefaults
@@ -1555,6 +1557,38 @@ fun EditTripDialog(
                         )
                     }
                 }
+            }
+
+            if (tripsViewModel.isPendingAddress(startText) || tripsViewModel.isPendingAddress(endText)) {
+                Spacer(modifier = Modifier.height(8.dp))
+                AssistChip(
+                    onClick = {
+                        scope.launch {
+                            val resolvedStart = if (tripsViewModel.isPendingAddress(startText) && startLat != null && startLon != null) {
+                                tripsViewModel.getAddressFromLocation(startLat, startLon)
+                            } else startText
+                            val resolvedEnd = if (tripsViewModel.isPendingAddress(endText) && endLat != null && endLon != null) {
+                                tripsViewModel.getAddressFromLocation(endLat, endLon)
+                            } else endText
+
+                            if (resolvedStart.isNotBlank() && !tripsViewModel.isPendingAddress(resolvedStart)) {
+                                startText = resolvedStart
+                            }
+                            if (resolvedEnd.isNotBlank() && !tripsViewModel.isPendingAddress(resolvedEnd)) {
+                                endText = resolvedEnd
+                            }
+                        }
+                    },
+                    label = { Text(stringResource(R.string.action_retry_address_lookup)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.action_retry_address_lookup),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
             if (isOdometerModeEnabled) {

@@ -24,6 +24,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -164,6 +170,7 @@ fun TripMapView(
         return
     }
 
+    val isOnline = rememberIsNetworkAvailable(context)
     var isMapReady by remember { mutableStateOf(false) }
 
     Surface(
@@ -295,7 +302,31 @@ fun TripMapView(
                 }
             )
 
-            if (!isMapReady) {
+            if (!isOnline) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Map,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.map_offline_placeholder),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            } else if (!isMapReady) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
@@ -369,6 +400,50 @@ fun TripMapView(
             }
         }
     }
+}
+
+@Composable
+private fun rememberIsNetworkAvailable(context: Context): Boolean {
+    var isOnline by remember { mutableStateOf(isNetworkAvailable(context)) }
+
+    DisposableEffect(context) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                isOnline = true
+            }
+
+            override fun onLost(network: Network) {
+                isOnline = isNetworkAvailable(context)
+            }
+        }
+
+        if (connectivityManager != null) {
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+            try {
+                connectivityManager.registerNetworkCallback(request, callback)
+            } catch (_: Exception) {
+                isOnline = isNetworkAvailable(context)
+            }
+        }
+
+        onDispose {
+            try {
+                connectivityManager?.unregisterNetworkCallback(callback)
+            } catch (_: Exception) {}
+        }
+    }
+
+    return isOnline
+}
+
+private fun isNetworkAvailable(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+    val network = connectivityManager.activeNetwork ?: return false
+    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
 }
 
 private fun createMapPinDrawable(context: Context, colorInt: Int): Drawable {

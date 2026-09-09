@@ -261,6 +261,11 @@
     <string name="trip_too_short_not_saved">Trip too short (%s) - not saved.</string>
     <string name="notification_trip_too_short_title">Trip Discarded</string>
     <string name="notification_trip_too_short_text">Trip distance (%1$s) was below the 100m threshold.</string>
+
+    <!-- Offline Failsafe -->
+    <string name="address_pending_offline">Pending address (Offline)</string>
+    <string name="map_offline_placeholder">Map unavailable offline</string>
+    <string name="action_retry_address_lookup">Retry Address Lookup</string>
     <string name="background_location_required_title">Background Location Required</string>
     <string name="background_location_required_text">To detect when you start driving automatically, this app needs location access \'All the time\'. Please select \'Allow all the time\' on the next screen.</string>
     <string name="open_settings">Open Settings</string>
