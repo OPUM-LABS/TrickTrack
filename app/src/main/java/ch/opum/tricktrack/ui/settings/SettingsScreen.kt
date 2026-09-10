@@ -19,6 +19,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -54,7 +56,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -1886,15 +1887,17 @@ fun ScheduleBottomSheet(
 
                 // Day Selector Row
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     DayOfWeek.entries.forEach { day ->
                         val isEnabled = tempSchedule[day]?.isEnabled == true
                         val dayLabel = day.getDisplayName(TextStyle.SHORT, LocalLocale.current.platformLocale)
                         Surface(
                             modifier = Modifier
-                                .weight(1f)
+                                .widthIn(min = 42.dp)
                                 .height(40.dp)
                                 .clickable {
                                     tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = !isEnabled)
@@ -1904,7 +1907,10 @@ fun ScheduleBottomSheet(
                             contentColor = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                             border = if (isEnabled) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
                                     text = dayLabel,
                                     style = MaterialTheme.typography.labelSmall,
@@ -2047,20 +2053,54 @@ fun IndividualDayRow(
     ) {
         Text(
             text = stringResource(dayToResId(day)),
-            modifier = Modifier.width(80.dp),
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            modifier = Modifier
+                .weight(1f)
+                .basicMarquee()
         )
-        ElevatedAssistChip(
-            onClick = onStartTimeClick,
-            label = { Text(String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.startHour, schedule.startMinute)) },
-            modifier = Modifier.weight(1f)
+        IndividualTimeButton(
+            timeText = String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.startHour, schedule.startMinute),
+            onClick = onStartTimeClick
         )
-        Text("–")
-        ElevatedAssistChip(
-            onClick = onEndTimeClick,
-            label = { Text(String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.endHour, schedule.endMinute)) },
-            modifier = Modifier.weight(1f)
+        Text(
+            text = "–",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        IndividualTimeButton(
+            timeText = String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.endHour, schedule.endMinute),
+            onClick = onEndTimeClick
+        )
+    }
+}
+
+@Composable
+private fun IndividualTimeButton(
+    timeText: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = timeText,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
