@@ -2057,12 +2057,13 @@ fun IndividualDayRow(
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             modifier = Modifier
-                .weight(1f)
+                .widthIn(min = 90.dp, max = 115.dp)
                 .basicMarquee()
         )
         IndividualTimeButton(
             timeText = String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.startHour, schedule.startMinute),
-            onClick = onStartTimeClick
+            onClick = onStartTimeClick,
+            modifier = Modifier.weight(1f)
         )
         Text(
             text = "–",
@@ -2072,7 +2073,8 @@ fun IndividualDayRow(
         )
         IndividualTimeButton(
             timeText = String.format(LocalLocale.current.platformLocale, "%02d:%02d", schedule.endHour, schedule.endMinute),
-            onClick = onEndTimeClick
+            onClick = onEndTimeClick,
+            modifier = Modifier.weight(1f)
         )
     }
 }
