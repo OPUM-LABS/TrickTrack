@@ -31,6 +31,7 @@ import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
+import ch.opum.tricktrack.data.ScheduleTypeTarget
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.data.TripWithVehicle
 import ch.opum.tricktrack.data.TripRepository
@@ -64,6 +65,7 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.LocalTime
 import java.util.Calendar
 import java.util.Currency
@@ -433,8 +435,8 @@ class TripsViewModel(
             val timeRange = "${formatTime(settings.globalStartHour, settings.globalStartMinute)}–${formatTime(settings.globalEndHour, settings.globalEndMinute)}"
             when (enabledDays.size) {
                 7 -> getApplication<Application>().getString(R.string.settings_schedule_daily, timeRange)
-                5 -> if (enabledDays.containsKey(java.time.DayOfWeek.MONDAY) &&
-                        enabledDays.containsKey(java.time.DayOfWeek.FRIDAY)) {
+                5 -> if (enabledDays.containsKey(DayOfWeek.MONDAY) &&
+                        enabledDays.containsKey(DayOfWeek.FRIDAY)) {
                     getApplication<Application>().getString(R.string.settings_schedule_mon_fri, timeRange)
                 } else {
                     getApplication<Application>().getString(R.string.settings_schedule_days_count, enabledDays.size, timeRange)
@@ -617,34 +619,51 @@ class TripsViewModel(
         }
     }
 
-    val isScheduleActive: StateFlow<Boolean> = combine(
+    val activeScheduleTypeTarget: StateFlow<ScheduleTypeTarget> = combine(
         isScheduleEnabled,
         scheduleSettings,
         scheduleTicker
     ) { enabled, settings, _ ->
-        if (!enabled) return@combine true
-        
+        if (!enabled) return@combine ScheduleTypeTarget.NONE
+
         val now = Calendar.getInstance()
-    val dayOfWeek = when (now[Calendar.DAY_OF_WEEK]) {
-            Calendar.MONDAY -> java.time.DayOfWeek.MONDAY
-            Calendar.TUESDAY -> java.time.DayOfWeek.TUESDAY
-            Calendar.WEDNESDAY -> java.time.DayOfWeek.WEDNESDAY
-            Calendar.THURSDAY -> java.time.DayOfWeek.THURSDAY
-            Calendar.FRIDAY -> java.time.DayOfWeek.FRIDAY
-            Calendar.SATURDAY -> java.time.DayOfWeek.SATURDAY
-            Calendar.SUNDAY -> java.time.DayOfWeek.SUNDAY
-            else -> return@combine true
+        val dayOfWeek = when (now[Calendar.DAY_OF_WEEK]) {
+            Calendar.MONDAY -> DayOfWeek.MONDAY
+            Calendar.TUESDAY -> DayOfWeek.TUESDAY
+            Calendar.WEDNESDAY -> DayOfWeek.WEDNESDAY
+            Calendar.THURSDAY -> DayOfWeek.THURSDAY
+            Calendar.FRIDAY -> DayOfWeek.FRIDAY
+            Calendar.SATURDAY -> DayOfWeek.SATURDAY
+            Calendar.SUNDAY -> DayOfWeek.SUNDAY
+            else -> return@combine ScheduleTypeTarget.NONE
         }
-        
-        val daySchedule = settings.dailySchedules[dayOfWeek] ?: return@combine true
-        if (!daySchedule.isEnabled) return@combine false
-        
+
+        val daySchedule = settings.dailySchedules[dayOfWeek] ?: return@combine ScheduleTypeTarget.NONE
+        if (!daySchedule.isEnabled) return@combine settings.outsideTarget
+
         val currentTime = LocalTime.of(now[Calendar.HOUR_OF_DAY], now[Calendar.MINUTE])
-        val startTime = LocalTime.of(daySchedule.startHour, daySchedule.startMinute)
-        val endTime = LocalTime.of(daySchedule.endHour, daySchedule.endMinute)
-        
-        !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+        val (startH, startM) = if (settings.isCustomizeIndividualDays) {
+            daySchedule.startHour to daySchedule.startMinute
+        } else {
+            settings.globalStartHour to settings.globalStartMinute
+        }
+        val (endH, endM) = if (settings.isCustomizeIndividualDays) {
+            daySchedule.endHour to daySchedule.endMinute
+        } else {
+            settings.globalEndHour to settings.globalEndMinute
+        }
+
+        val startTime = LocalTime.of(startH, startM)
+        val endTime = LocalTime.of(endH, endM)
+
+        val isWithinTime = if (startTime.isBefore(endTime) || startTime == endTime) {
+            !currentTime.isBefore(startTime) && !currentTime.isAfter(endTime)
+        } else {
+            !currentTime.isBefore(startTime) || !currentTime.isAfter(endTime)
+        }
+
+        if (isWithinTime) settings.insideTarget else settings.outsideTarget
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ScheduleTypeTarget.NONE)
 
     // New: Total Expense for the entire filtered list
     val totalExpense: StateFlow<Float> = combine(

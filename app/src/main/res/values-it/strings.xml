@@ -139,6 +139,10 @@
     <string name="schedule_weekend">Fine settimana</string>
     <string name="schedule_all_days">Tutti i giorni</string>
     <string name="schedule_customize_individual_days">Personalizza singoli giorni</string>
+    <string name="schedule_during_hours_label">Durante gli orari pianificati</string>
+    <string name="schedule_outside_hours_label">Fuori dagli orari pianificati</string>
+    <string name="schedule_target_none">Non tracciare</string>
+    <string name="settings_default_type_overridden_by_schedule">Sostituito dalla pianificazione attiva</string>
 
     <!-- Menu Navigation -->
 

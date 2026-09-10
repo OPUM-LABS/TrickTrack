@@ -39,6 +39,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
@@ -113,6 +114,7 @@ import ch.opum.tricktrack.TripApplication
 import ch.opum.tricktrack.data.DaySchedule
 import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.ScheduleSettings
+import ch.opum.tricktrack.data.ScheduleTypeTarget
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.DialogAcceptButton
@@ -861,7 +863,7 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        val isScheduleActive by viewModel.isScheduleActive.collectAsState()
+                        val activeScheduleTarget by viewModel.activeScheduleTypeTarget.collectAsState()
                         val scheduleSummary by viewModel.scheduleSummary.collectAsState()
 
                         Column(
@@ -878,24 +880,36 @@ fun SettingsScreen(
                                 )
                                 if (isScheduleEnabled) {
                                     Spacer(modifier = Modifier.width(8.dp))
+                                    val (badgeText, containerColor, contentColor) = when (activeScheduleTarget) {
+                                        ScheduleTypeTarget.BUSINESS -> Triple(
+                                            stringResource(R.string.trip_type_business),
+                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                        ScheduleTypeTarget.PERSONAL -> Triple(
+                                            stringResource(R.string.trip_type_personal),
+                                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                                            MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                        ScheduleTypeTarget.NONE -> Triple(
+                                            stringResource(R.string.schedule_status_inactive),
+                                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                                            MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+
                                     Surface(
                                         shape = RoundedCornerShape(4.dp),
-                                        color = if (isScheduleActive)
-                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                                        else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                                        color = containerColor
                                     ) {
                                         Text(
-                                            text = if (isScheduleActive)
-                                                stringResource(R.string.schedule_status_active)
-                                            else stringResource(R.string.schedule_status_inactive),
+                                            text = badgeText,
                                             modifier = Modifier.padding(
                                                 horizontal = 6.dp,
                                                 vertical = 2.dp
                                             ),
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = if (isScheduleActive)
-                                                MaterialTheme.colorScheme.onPrimaryContainer
-                                            else MaterialTheme.colorScheme.onErrorContainer,
+                                            color = contentColor,
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
@@ -986,23 +1000,40 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.settings_default_type_title),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_default_type_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (isScheduleEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface
+                        )
+                        if (isScheduleEnabled) {
+                            Text(
+                                text = stringResource(R.string.settings_default_type_overridden_by_schedule),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     val tripTypes = listOf(stringResource(R.string.trip_type_business), stringResource(R.string.trip_type_personal))
                     val icons = listOf(Icons.Default.Work, Icons.Default.Person)
 
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         tripTypes.forEachIndexed { index, label ->
                             SegmentedButton(
                                 shape = SegmentedButtonDefaults.itemShape(
                                     index = index,
                                     count = tripTypes.size
                                 ),
-                                onClick = { viewModel.setDefaultTripType(index == 0) },
+                                onClick = { if (!isScheduleEnabled) viewModel.setDefaultTripType(index == 0) },
                                 selected = (index == 0) == defaultIsBusiness,
+                                enabled = !isScheduleEnabled,
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -1574,8 +1605,12 @@ fun ScheduleBottomSheet(
     var globalStartTime by remember { mutableStateOf(8 to 0) }
     var globalEndTime by remember { mutableStateOf(17 to 0) }
     var customizeIndividualDays by remember { mutableStateOf(false) }
+    var insideTarget by remember { mutableStateOf(scheduleSettings.insideTarget) }
+    var outsideTarget by remember { mutableStateOf(scheduleSettings.outsideTarget) }
 
     LaunchedEffect(scheduleSettings) {
+        insideTarget = scheduleSettings.insideTarget
+        outsideTarget = scheduleSettings.outsideTarget
         if (scheduleSettings.dailySchedules.isNotEmpty()) {
             tempSchedule.clear()
             tempSchedule.putAll(scheduleSettings.dailySchedules)
@@ -1664,7 +1699,121 @@ fun ScheduleBottomSheet(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.Start)
             )
-            
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // During Scheduled Hours Target
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = stringResource(R.string.schedule_during_hours_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val targets = listOf(
+                    Triple(ScheduleTypeTarget.NONE, stringResource(R.string.schedule_target_none), Icons.Default.Block),
+                    Triple(ScheduleTypeTarget.BUSINESS, stringResource(R.string.trip_type_business), Icons.Default.Work),
+                    Triple(ScheduleTypeTarget.PERSONAL, stringResource(R.string.trip_type_personal), Icons.Default.Person)
+                )
+
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    targets.forEachIndexed { index, (target, label, icon) ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = targets.size),
+                            onClick = { insideTarget = target },
+                            selected = insideTarget == target,
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                                inactiveContainerColor = Color.Transparent,
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                inactiveBorderColor = MaterialTheme.colorScheme.outline
+                            ),
+                            icon = {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .size(ButtonDefaults.IconSize)
+                                )
+                            }
+                        ) {
+                            Text(
+                                text = label,
+                                maxLines = 1,
+                                modifier = Modifier.basicMarquee()
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Outside Scheduled Hours Target
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = stringResource(R.string.schedule_outside_hours_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val targets = listOf(
+                    Triple(ScheduleTypeTarget.NONE, stringResource(R.string.schedule_target_none), Icons.Default.Block),
+                    Triple(ScheduleTypeTarget.BUSINESS, stringResource(R.string.trip_type_business), Icons.Default.Work),
+                    Triple(ScheduleTypeTarget.PERSONAL, stringResource(R.string.trip_type_personal), Icons.Default.Person)
+                )
+
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    targets.forEachIndexed { index, (target, label, icon) ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = targets.size),
+                            onClick = { outsideTarget = target },
+                            selected = outsideTarget == target,
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                                inactiveContainerColor = Color.Transparent,
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                inactiveBorderColor = MaterialTheme.colorScheme.outline
+                            ),
+                            icon = {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .size(ButtonDefaults.IconSize)
+                                )
+                            }
+                        ) {
+                            Text(
+                                text = label,
+                                maxLines = 1,
+                                modifier = Modifier.basicMarquee()
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(16.dp))
+
             Spacer(modifier = Modifier.height(24.dp))
 
             if (!customizeIndividualDays) {
@@ -1842,7 +1991,9 @@ fun ScheduleBottomSheet(
                                 globalStartMinute = globalStartTime.second,
                                 globalEndHour = globalEndTime.first,
                                 globalEndMinute = globalEndTime.second,
-                                dailySchedules = tempSchedule.toMap()
+                                dailySchedules = tempSchedule.toMap(),
+                                insideTarget = insideTarget,
+                                outsideTarget = outsideTarget
                             )
                         )
                         scope.launch { sheetState.hide() }.invokeOnCompletion {

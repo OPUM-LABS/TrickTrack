@@ -141,6 +141,10 @@
     <string name="schedule_weekend">Weekend</string>
     <string name="schedule_all_days">All Days</string>
     <string name="schedule_customize_individual_days">Customize individual days</string>
+    <string name="schedule_during_hours_label">During Scheduled Hours</string>
+    <string name="schedule_outside_hours_label">Outside Scheduled Hours</string>
+    <string name="schedule_target_none">Do Not Track</string>
+    <string name="settings_default_type_overridden_by_schedule">Overridden by active schedule</string>
 
     <!-- Menu Navigation -->
 

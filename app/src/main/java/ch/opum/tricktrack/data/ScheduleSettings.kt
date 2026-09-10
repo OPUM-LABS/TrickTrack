@@ -9,7 +9,9 @@ data class ScheduleSettings(
     val globalStartMinute: Int = 0,
     val globalEndHour: Int = 17,
     val globalEndMinute: Int = 0,
-    val dailySchedules: Map<DayOfWeek, DaySchedule> = emptyMap()
+    val dailySchedules: Map<DayOfWeek, DaySchedule> = emptyMap(),
+    val insideTarget: ScheduleTypeTarget = ScheduleTypeTarget.BUSINESS,
+    val outsideTarget: ScheduleTypeTarget = ScheduleTypeTarget.NONE
 )
 
 data class DaySchedule(

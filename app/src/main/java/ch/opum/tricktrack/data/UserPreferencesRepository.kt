@@ -69,6 +69,8 @@ class UserPreferencesRepository(private val context: Context) {
         val GLOBAL_START_MINUTE = intPreferencesKey("global_start_minute")
         val GLOBAL_END_HOUR = intPreferencesKey("global_end_hour")
         val GLOBAL_END_MINUTE = intPreferencesKey("global_end_minute")
+        val SCHEDULE_INSIDE_TARGET = stringPreferencesKey("schedule_inside_target")
+        val SCHEDULE_OUTSIDE_TARGET = stringPreferencesKey("schedule_outside_target")
 
 
         fun trackingDayEnabled(day: DayOfWeek) = booleanPreferencesKey("tracking_day_enabled_${day.name}")
@@ -230,6 +232,11 @@ class UserPreferencesRepository(private val context: Context) {
                 endMinute = preferences[PreferencesKeys.trackingEndMinute(day)] ?: 0
             )
         }
+        val insideTargetStr = preferences[PreferencesKeys.SCHEDULE_INSIDE_TARGET]
+        val insideTarget = insideTargetStr?.let { try { ScheduleTypeTarget.valueOf(it) } catch (_: Exception) { null } } ?: ScheduleTypeTarget.BUSINESS
+        val outsideTargetStr = preferences[PreferencesKeys.SCHEDULE_OUTSIDE_TARGET]
+        val outsideTarget = outsideTargetStr?.let { try { ScheduleTypeTarget.valueOf(it) } catch (_: Exception) { null } } ?: ScheduleTypeTarget.NONE
+
         ScheduleSettings(
             target = target,
             isCustomizeIndividualDays = isCustomize,
@@ -237,7 +244,9 @@ class UserPreferencesRepository(private val context: Context) {
             globalStartMinute = globalStartM,
             globalEndHour = globalEndH,
             globalEndMinute = globalEndM,
-            dailySchedules = dailySchedules
+            dailySchedules = dailySchedules,
+            insideTarget = insideTarget,
+            outsideTarget = outsideTarget
         )
     }
 
@@ -249,6 +258,8 @@ class UserPreferencesRepository(private val context: Context) {
             preferences[PreferencesKeys.GLOBAL_START_MINUTE] = settings.globalStartMinute
             preferences[PreferencesKeys.GLOBAL_END_HOUR] = settings.globalEndHour
             preferences[PreferencesKeys.GLOBAL_END_MINUTE] = settings.globalEndMinute
+            preferences[PreferencesKeys.SCHEDULE_INSIDE_TARGET] = settings.insideTarget.name
+            preferences[PreferencesKeys.SCHEDULE_OUTSIDE_TARGET] = settings.outsideTarget.name
 
             settings.dailySchedules.forEach { (day, schedule) ->
                 preferences[PreferencesKeys.trackingDayEnabled(day)] = schedule.isEnabled

@@ -19,8 +19,8 @@ android {
         applicationId = "ch.opum.tricktrack"
         minSdk = 26
         targetSdk = 37
-        versionCode = 19
-        versionName = "2.3.4"
+        versionCode = 20
+        versionName = "2.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -27,6 +27,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.data.DistanceUnit
+import ch.opum.tricktrack.data.ScheduleTypeTarget
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.util.DistanceFormatter
@@ -216,11 +217,11 @@ class LocationService : Service() {
         val isCarMode = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_CAR
         val isAnySelectedDeviceConnected = selectedDevices.any { bluetoothRepository.isDeviceConnected(it) } || isCarMode
         
-        // Determine if Bluetooth or Auto tracking should be active based on schedule or direct settings
-        val isWithinSchedule = if (isScheduleEnabled) isWithinSchedule() else true
+        val activeScheduleTarget = getActiveScheduleTarget()
+        val isTrackingAllowed = !isScheduleEnabled || activeScheduleTarget != ScheduleTypeTarget.NONE
 
-        val shouldBluetoothBeActive = isBtTriggerEnabled && isWithinSchedule
-        val shouldAutoTrackBeActive = isAutoTrackingEnabled && isWithinSchedule
+        val shouldBluetoothBeActive = isBtTriggerEnabled && isTrackingAllowed
+        val shouldAutoTrackBeActive = isAutoTrackingEnabled && isTrackingAllowed
 
         AppLogger.log("LocationService", "Evaluating tracking state:")
         AppLogger.log("LocationService", "  shouldBluetoothBeActive: $shouldBluetoothBeActive")
@@ -254,6 +255,18 @@ class LocationService : Service() {
             AppLogger.log("LocationService", "No tracking conditions met. Stopping all tracking.")
             stopMonitoring() // This stops the service entirely
         }
+    }
+
+    private suspend fun getActiveScheduleTarget(): ScheduleTypeTarget {
+        val isScheduleEnabled = userPreferencesRepository.isScheduleEnabled.first()
+        if (!isScheduleEnabled) {
+            val isBusinessDefault = userPreferencesRepository.defaultIsBusiness.first()
+            return if (isBusinessDefault) ScheduleTypeTarget.BUSINESS else ScheduleTypeTarget.PERSONAL
+        }
+
+        val scheduleSettings = userPreferencesRepository.scheduleSettings.first()
+        val isWithinTime = isWithinSchedule()
+        return if (isWithinTime) scheduleSettings.insideTarget else scheduleSettings.outsideTarget
     }
 
     private suspend fun isWithinSchedule(): Boolean {
@@ -839,9 +852,16 @@ class LocationService : Service() {
                 radius = smartLocationRadius
             )
 
-            val isBusinessDefault = userPreferencesRepository.defaultIsBusiness.first()
+            val activeScheduleTarget = getActiveScheduleTarget()
             val defaultVehicleId = userPreferencesRepository.defaultVehicleId.first().takeIf { it != -1 }
-            val tripType = if (isBusinessDefault) "Business" else "Personal"
+            val tripType = when (activeScheduleTarget) {
+                ScheduleTypeTarget.BUSINESS -> "Business"
+                ScheduleTypeTarget.PERSONAL -> "Personal"
+                ScheduleTypeTarget.NONE -> {
+                    val isBusinessDefault = userPreferencesRepository.defaultIsBusiness.first()
+                    if (isBusinessDefault) "Business" else "Personal"
+                }
+            }
 
             val isConfirmed = false // All live-tracked trips require review before confirmation
             val encodedPolyline = if (recordedWaypoints.size >= 2) PolylineUtils.encode(recordedWaypoints) else null

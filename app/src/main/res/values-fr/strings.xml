@@ -139,6 +139,10 @@
     <string name="schedule_weekend">Week-end</string>
     <string name="schedule_all_days">Tous les jours</string>
     <string name="schedule_customize_individual_days">Personnaliser les jours individuels</string>
+    <string name="schedule_during_hours_label">Pendant les heures planifiées</string>
+    <string name="schedule_outside_hours_label">En dehors des heures planifiées</string>
+    <string name="schedule_target_none">Ne pas suivre</string>
+    <string name="settings_default_type_overridden_by_schedule">Remplacé par le planning actif</string>
 
     <!-- Menu Navigation -->
 
