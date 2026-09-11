@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -1842,45 +1841,40 @@ fun ScheduleBottomSheet(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Presets
-                LazyRow(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    item {
-                        FilterChip(
-                            selected = false,
-                            onClick = {
-                                val weekdays = listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)
-                                tempSchedule.keys.forEach { day ->
-                                    tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekdays.contains(day))
-                                }
-                            },
-                            label = { Text(stringResource(R.string.schedule_weekdays)) }
-                        )
-                    }
-                    item {
-                        FilterChip(
-                            selected = false,
-                            onClick = {
-                                val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
-                                tempSchedule.keys.forEach { day ->
-                                    tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekend.contains(day))
-                                }
-                            },
-                            label = { Text(stringResource(R.string.schedule_weekend)) }
-                        )
-                    }
-                    item {
-                        FilterChip(
-                            selected = false,
-                            onClick = {
-                                tempSchedule.keys.forEach { day ->
-                                    tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = true)
-                                }
-                            },
-                            label = { Text(stringResource(R.string.schedule_all_days)) }
-                        )
-                    }
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            val weekdays = listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)
+                            tempSchedule.keys.forEach { day ->
+                                tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekdays.contains(day))
+                            }
+                        },
+                        label = { Text(stringResource(R.string.schedule_weekdays)) }
+                    )
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+                            tempSchedule.keys.forEach { day ->
+                                tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = weekend.contains(day))
+                            }
+                        },
+                        label = { Text(stringResource(R.string.schedule_weekend)) }
+                    )
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            tempSchedule.keys.forEach { day ->
+                                tempSchedule[day] = tempSchedule[day]!!.copy(isEnabled = true)
+                            }
+                        },
+                        label = { Text(stringResource(R.string.schedule_all_days)) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -1890,7 +1884,8 @@ fun ScheduleBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     DayOfWeek.entries.forEach { day ->
                         val isEnabled = tempSchedule[day]?.isEnabled == true
