@@ -64,7 +64,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -616,11 +615,14 @@ fun SettingsScreen(
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    activeBorderColor = MaterialTheme.colorScheme.primary,
-                                    inactiveContainerColor = Color.Transparent,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                                     inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    inactiveBorderColor = MaterialTheme.colorScheme.outline
-                                )
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    disabledActiveBorderColor = Color.Transparent,
+                                    disabledInactiveBorderColor = Color.Transparent
+                                ),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                             ) {
                                 Text(label)
                             }
@@ -798,13 +800,14 @@ fun SettingsScreen(
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                     Spacer(modifier = Modifier.height(24.dp))
-                                    OutlinedTextField(
+                                    ClearableTextField(
                                         value = tempRadius,
                                         onValueChange = { newValue: String -> if (newValue.all { char: Char -> char.isDigit() }) tempRadius = newValue },
                                         label = { Text(stringResource(R.string.settings_distance_monitoring_radius_label, shortUnitLabel.uppercase())) },
                                         modifier = Modifier.fillMaxWidth(),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        suffix = { Text(if (distanceUnit == DistanceUnit.KM) "m" else "ft") }
+                                        suffix = { Text(if (distanceUnit == DistanceUnit.KM) "m" else "ft") },
+                                        isFilled = true
                                     )
                                     Spacer(modifier = Modifier.height(32.dp))
                                     Row(
@@ -960,7 +963,8 @@ fun SettingsScreen(
                                     viewModel.setStillnessTimer(seconds)
                                     localStillnessTimer = seconds.toString()
                                 }
-                            }
+                            },
+                        isFilled = true
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -982,7 +986,8 @@ fun SettingsScreen(
                                     viewModel.setMinSpeed(speedKmh)
                                     localMinSpeed = inputVal.toString()
                                 }
-                            }
+                            },
+                        isFilled = true
                     )
                 }
             }
@@ -1037,11 +1042,14 @@ fun SettingsScreen(
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    activeBorderColor = MaterialTheme.colorScheme.primary,
-                                    inactiveContainerColor = Color.Transparent,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                                     inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    inactiveBorderColor = MaterialTheme.colorScheme.outline
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    disabledActiveBorderColor = Color.Transparent,
+                                    disabledInactiveBorderColor = Color.Transparent
                                 ),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                                 icon = {
                                     Icon(
                                         imageVector = icons[index],
@@ -1086,11 +1094,14 @@ fun SettingsScreen(
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    activeBorderColor = MaterialTheme.colorScheme.primary,
-                                    inactiveContainerColor = Color.Transparent,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                                     inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    inactiveBorderColor = MaterialTheme.colorScheme.outline
-                                )
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    disabledActiveBorderColor = Color.Transparent,
+                                    disabledInactiveBorderColor = Color.Transparent
+                                ),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                             ) {
                                 Text(
                                     text = when(unit) {
@@ -1160,7 +1171,8 @@ fun SettingsScreen(
                                         viewModel.setSmartLocationRadius(meters)
                                         localRadius = inputVal.toString()
                                     }
-                                }
+                                },
+                            isFilled = true
                         )
                     }
                 }
@@ -1216,7 +1228,8 @@ fun SettingsScreen(
                                             localRate = String.format(Locale.getDefault(), "%.2f", rate)
                                             viewModel.setExpenseRate(rate)
                                         }
-                                    }
+                                    },
+                                isFilled = true
                             )
                             ClearableTextField(
                                 value = localCurrency,
@@ -1228,7 +1241,8 @@ fun SettingsScreen(
                                         if (!it.isFocused) {
                                             viewModel.setExpenseCurrency(localCurrency)
                                         }
-                                    }
+                                    },
+                                isFilled = true
                             )
                         }
                     }
@@ -1730,11 +1744,14 @@ fun ScheduleBottomSheet(
                             colors = SegmentedButtonDefaults.colors(
                                 activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                 activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                activeBorderColor = MaterialTheme.colorScheme.primary,
-                                inactiveContainerColor = Color.Transparent,
+                                activeBorderColor = Color.Transparent,
+                                inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                                 inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                inactiveBorderColor = MaterialTheme.colorScheme.outline
+                                inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                disabledActiveBorderColor = Color.Transparent,
+                                disabledInactiveBorderColor = Color.Transparent
                             ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                             icon = {
                                 Icon(
                                     imageVector = icon,
@@ -1785,11 +1802,14 @@ fun ScheduleBottomSheet(
                             colors = SegmentedButtonDefaults.colors(
                                 activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                 activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                activeBorderColor = MaterialTheme.colorScheme.primary,
-                                inactiveContainerColor = Color.Transparent,
+                                activeBorderColor = Color.Transparent,
+                                inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                                 inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                inactiveBorderColor = MaterialTheme.colorScheme.outline
+                                inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                disabledActiveBorderColor = Color.Transparent,
+                                disabledInactiveBorderColor = Color.Transparent
                             ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                             icon = {
                                 Icon(
                                     imageVector = icon,

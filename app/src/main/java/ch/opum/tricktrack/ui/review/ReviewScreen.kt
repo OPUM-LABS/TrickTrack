@@ -504,11 +504,14 @@ fun ReviewTripCard(
                         colors = SegmentedButtonDefaults.colors(
                             activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            activeBorderColor = MaterialTheme.colorScheme.primary,
-                            inactiveContainerColor = Color.Transparent,
+                            activeBorderColor = Color.Transparent,
+                            inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                             inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            inactiveBorderColor = MaterialTheme.colorScheme.outline
+                            inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            disabledActiveBorderColor = Color.Transparent,
+                            disabledInactiveBorderColor = Color.Transparent
                         ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                         icon = {
                             Icon(
                                 imageVector = icons[index],

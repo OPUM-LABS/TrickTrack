@@ -44,13 +44,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -328,7 +330,7 @@ fun BrandSelectionField(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            OutlinedTextField(
+            TextField(
                 value = brandQuery,
                 onValueChange = {
                     viewModel.updateBrandQuery(it)
@@ -339,6 +341,14 @@ fun BrandSelectionField(
                 modifier = Modifier
                     .weight(1f)
                     .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true),
+                shape = RoundedCornerShape(16.dp),
+                colors = ExposedDropdownMenuDefaults.textFieldColors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                    focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
                 trailingIcon = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (brandQuery.isNotEmpty()) {
@@ -354,8 +364,7 @@ fun BrandSelectionField(
                         }
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                     }
-                },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                }
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -472,7 +481,8 @@ fun AddSimpleItemBottomSheet(
                 onValueChange = { text = it },
                 label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
                 modifier = Modifier.fillMaxWidth(),
-                isError = text.isBlank()
+                isError = text.isBlank(),
+                isFilled = true
             )
             if (isVehicle && viewModel != null) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -485,10 +495,11 @@ fun AddSimpleItemBottomSheet(
                     value = subtitle,
                     onValueChange = { subtitle = it },
                     label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isFilled = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
+                TextField(
                     value = odometer,
                     onValueChange = { 
                         if (it.length <= 8 && it.all { char -> char.isDigit() }) {
@@ -497,6 +508,14 @@ fun AddSimpleItemBottomSheet(
                     },
                     label = { Text(stringResource(R.string.odometer_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandsSeparatorTransformation(),
                     suffix = { Text(ch.opum.tricktrack.util.DistanceFormatter.getUnitSuffix(distanceUnit)) },
@@ -517,7 +536,8 @@ fun AddSimpleItemBottomSheet(
                     value = subtitle,
                     onValueChange = { subtitle = it },
                     label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isFilled = true
                 )
             }
 
@@ -610,7 +630,8 @@ fun EditSimpleItemBottomSheet(
                 onValueChange = { text = it },
                 label = { Text(if (isVehicle) stringResource(R.string.favourites_license_plate_label) else stringResource(R.string.name)) },
                 modifier = Modifier.fillMaxWidth(),
-                isError = text.isBlank()
+                isError = text.isBlank(),
+                isFilled = true
             )
             if (isVehicle && viewModel != null) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -624,10 +645,11 @@ fun EditSimpleItemBottomSheet(
                     value = subtitle,
                     onValueChange = { subtitle = it },
                     label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isFilled = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
+                TextField(
                     value = odometer,
                     onValueChange = { 
                         if (it.length <= 8 && it.all { char -> char.isDigit() }) {
@@ -636,6 +658,14 @@ fun EditSimpleItemBottomSheet(
                     },
                     label = { Text(stringResource(R.string.odometer_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandsSeparatorTransformation(),
                     suffix = { Text(ch.opum.tricktrack.util.DistanceFormatter.getUnitSuffix(distanceUnit)) },
@@ -656,7 +686,8 @@ fun EditSimpleItemBottomSheet(
                     value = subtitle,
                     onValueChange = { subtitle = it },
                     label = { Text(stringResource(R.string.favourites_car_model_label)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isFilled = true
                 )
             }
 

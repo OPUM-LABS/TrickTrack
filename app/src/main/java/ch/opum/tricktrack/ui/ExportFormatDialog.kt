@@ -35,7 +35,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -43,6 +42,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -54,6 +54,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -166,7 +167,16 @@ fun ExportFormatDialog(
                             SegmentedButton(
                                 selected = !exportAll,
                                 onClick = { exportAll = false },
-                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = Color.Transparent
+                                ),
+                                border = BorderStroke(0.dp, Color.Transparent)
                             ) {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -187,7 +197,16 @@ fun ExportFormatDialog(
                             SegmentedButton(
                                 selected = exportAll,
                                 onClick = { exportAll = true },
-                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = Color.Transparent
+                                ),
+                                border = BorderStroke(0.dp, Color.Transparent)
                             ) {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -384,7 +403,7 @@ fun ExportFormatDialog(
                                         onExpandedChange = { if (includeDriver) driverExpanded = !driverExpanded },
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        OutlinedTextField(
+                                        TextField(
                                             value = viewModel.selectedDriver?.name ?: "",
                                             onValueChange = {},
                                             readOnly = true,
@@ -392,7 +411,14 @@ fun ExportFormatDialog(
                                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = driverExpanded) },
                                             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                                             enabled = includeDriver && hasDrivers,
-                                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                                focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                disabledIndicatorColor = Color.Transparent
+                                            )
                                         )
                                         ExposedDropdownMenu(
                                             expanded = driverExpanded,
@@ -426,7 +452,7 @@ fun ExportFormatDialog(
                                         onExpandedChange = { if (includeCompany) companyExpanded = !companyExpanded },
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        OutlinedTextField(
+                                        TextField(
                                             value = viewModel.selectedCompany?.name ?: "",
                                             onValueChange = {},
                                             readOnly = true,
@@ -434,7 +460,14 @@ fun ExportFormatDialog(
                                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = companyExpanded) },
                                             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                                             enabled = includeCompany && hasCompanies,
-                                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                                focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                disabledIndicatorColor = Color.Transparent
+                                            )
                                         )
                                         ExposedDropdownMenu(
                                             expanded = companyExpanded,
@@ -468,7 +501,7 @@ fun ExportFormatDialog(
                                         onExpandedChange = { if (includeVehicle) vehicleExpanded = !vehicleExpanded },
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        OutlinedTextField(
+                                        TextField(
                                             value = viewModel.selectedVehicle?.licensePlate ?: "",
                                             onValueChange = {},
                                             readOnly = true,
@@ -476,7 +509,14 @@ fun ExportFormatDialog(
                                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded) },
                                             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                                             enabled = includeVehicle && hasVehicles,
-                                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                                focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                disabledIndicatorColor = Color.Transparent
+                                            )
                                         )
                                         ExposedDropdownMenu(
                                             expanded = vehicleExpanded,

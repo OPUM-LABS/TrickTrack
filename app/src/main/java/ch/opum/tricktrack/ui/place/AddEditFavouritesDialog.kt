@@ -139,7 +139,8 @@ fun AddEditPlaceDialog(
                     label = { Text(stringResource(R.string.place_name_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onGloballyPositioned { nameTextFieldSize = it.size.toSize() }
+                        .onGloballyPositioned { nameTextFieldSize = it.size.toSize() },
+                    isFilled = true
                 )
                 SuggestionDropdown(
                     expanded = nameSuggestions.isNotEmpty(),
@@ -154,7 +155,7 @@ fun AddEditPlaceDialog(
 
             // --- Address Field with Autocomplete ---
             Box(modifier = Modifier.fillMaxWidth()) {
-                ClearableTextField( // Using ClearableTextField
+                ClearableTextField(
                     value = addressText,
                     onValueChange = {
                         addressText = it
@@ -163,7 +164,8 @@ fun AddEditPlaceDialog(
                     label = { Text(stringResource(R.string.place_address_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onGloballyPositioned { addressTextFieldSize = it.size.toSize() }
+                        .onGloballyPositioned { addressTextFieldSize = it.size.toSize() },
+                    isFilled = true
                 )
                 SuggestionDropdown(
                     expanded = addressSuggestions.isNotEmpty(),

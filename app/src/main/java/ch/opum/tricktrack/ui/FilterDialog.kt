@@ -1,11 +1,11 @@
 package ch.opum.tricktrack.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,9 +13,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AllInclusive
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -25,25 +32,25 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DateRangePickerDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,21 +59,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.VehicleEntity
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import androidx.compose.ui.platform.LocalLocale
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,50 +117,45 @@ fun FilterDialog(
                 value = keyword,
                 onValueChange = { keyword = it },
                 label = { Text(stringResource(R.string.filter_keyword_label)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isFilled = true
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(stringResource(R.string.filter_trip_type_label), style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                val cornerRadius = 50.dp
+            val tripTypes = listOf(
+                Triple(null, stringResource(R.string.filter_trip_type_all), Icons.Default.AllInclusive),
+                Triple(TripType.BUSINESS, stringResource(R.string.trip_type_business), Icons.Default.Work),
+                Triple(TripType.PERSONAL, stringResource(R.string.trip_type_personal), Icons.Default.Person)
+            )
 
-                // "All" Button
-                TripTypeButton(
-                    text = stringResource(R.string.filter_trip_type_all),
-                    isSelected = selectedType == null,
-                    onClick = { selectedType = null },
-                    shape = RoundedCornerShape(
-                        topStart = cornerRadius,
-                        bottomStart = cornerRadius
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .then(if (selectedType == null) Modifier.zIndex(1f) else Modifier)
-                )
-
-                // "Business" Button
-                TripTypeButton(
-                    text = stringResource(R.string.trip_type_business),
-                    isSelected = selectedType == TripType.BUSINESS,
-                    onClick = { selectedType = TripType.BUSINESS },
-                    shape = RectangleShape,
-                    modifier = Modifier
-                        .weight(1f)
-                        .then(if (selectedType == TripType.BUSINESS) Modifier.zIndex(1f) else Modifier)
-                )
-
-                // "Personal" Button
-                TripTypeButton(
-                    text = stringResource(R.string.trip_type_personal),
-                    isSelected = selectedType == TripType.PERSONAL,
-                    onClick = { selectedType = TripType.PERSONAL },
-                    shape = RoundedCornerShape(topEnd = cornerRadius, bottomEnd = cornerRadius),
-                    modifier = Modifier
-                        .weight(1f)
-                        .then(if (selectedType == TripType.PERSONAL) Modifier.zIndex(1f) else Modifier)
-                )
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                tripTypes.forEachIndexed { index, (type, label, icon) ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = tripTypes.size),
+                        onClick = { selectedType = type },
+                        selected = selectedType == type,
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            activeBorderColor = Color.Transparent,
+                            inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                            inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            disabledActiveBorderColor = Color.Transparent,
+                            disabledInactiveBorderColor = Color.Transparent
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                        icon = {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = label,
+                                modifier = Modifier.padding(start = 4.dp).size(ButtonDefaults.IconSize)
+                            )
+                        }
+                    ) {
+                        Text(label, maxLines = 1, modifier = Modifier.basicMarquee())
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -172,7 +172,7 @@ fun FilterDialog(
                     stringResource(R.string.vehicles_selected_count, selectedVehicleIds.size)
                 }
 
-                OutlinedTextField(
+                TextField(
                     value = displayText,
                     onValueChange = {},
                     readOnly = true,
@@ -180,6 +180,14 @@ fun FilterDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
                     trailingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (selectedVehicleIds.isNotEmpty()) {
@@ -192,8 +200,7 @@ fun FilterDialog(
                     },
                     leadingIcon = {
                         Icon(Icons.Default.DirectionsCar, contentDescription = null)
-                    },
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    }
                 )
                 ExposedDropdownMenu(
                     expanded = vehicleExpanded,
@@ -367,44 +374,32 @@ fun DateRangeSelectionField(
     }
 
     Box {
-        OutlinedTextField(
+        TextField(
             value = dateText,
             onValueChange = {},
             label = { Text(stringResource(R.string.filter_date_range_label)) },
             readOnly = true,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = stringResource(R.string.filter_date_range_label),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         )
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .clickable(onClick = onClick)
         )
-    }
-}
-
-@Composable
-fun TripTypeButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    shape: androidx.compose.ui.graphics.Shape,
-    modifier: Modifier = Modifier
-) {
-    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-
-    OutlinedButton(
-        onClick = onClick,
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = containerColor,
-            contentColor = contentColor
-        ),
-        border = BorderStroke(1.dp, borderColor),
-        shape = shape,
-        contentPadding = PaddingValues(horizontal = 4.dp),
-        modifier = modifier
-    ) {
-        Text(text)
     }
 }

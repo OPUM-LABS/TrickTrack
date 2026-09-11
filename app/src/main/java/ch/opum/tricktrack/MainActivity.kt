@@ -19,15 +19,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.material.icons.filled.Route
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +31,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,14 +41,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Calculate
@@ -68,6 +66,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Work
@@ -99,7 +98,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -111,6 +109,8 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -132,6 +132,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -142,6 +143,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -1387,12 +1390,20 @@ fun EditTripDialog(
 
             val dateFormat = remember { SimpleDateFormat("EEE, d MMM yy", Locale.getDefault()) }
             Box {
-                OutlinedTextField(
+                TextField(
                     value = dateFormat.format(selectedStartDate.value.time),
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(R.string.date_label)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    )
                 )
                 Box(
                     modifier = Modifier
@@ -1403,12 +1414,20 @@ fun EditTripDialog(
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.weight(1f)) {
-                    OutlinedTextField(
+                    TextField(
                         value = timeFormatter.format(selectedStartDate.value.time),
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.start_time_label)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                            focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
+                        )
                     )
                     Box(
                         modifier = Modifier
@@ -1418,12 +1437,20 @@ fun EditTripDialog(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(modifier = Modifier.weight(1f)) {
-                    OutlinedTextField(
+                    TextField(
                         value = timeFormatter.format(selectedEndDate.value.time),
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.end_time_label)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                            focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
+                        )
                     )
                     Box(
                         modifier = Modifier
@@ -1446,7 +1473,8 @@ fun EditTripDialog(
                         .fillMaxWidth()
                         .onGloballyPositioned { coordinates ->
                             startTextFieldSize = coordinates.size.toSize()
-                        }
+                        },
+                    isFilled = true
                 )
                 DropdownMenu(
                     expanded = addressSuggestions.isNotEmpty() && activeDropdown == "start",
@@ -1509,7 +1537,8 @@ fun EditTripDialog(
                         .fillMaxWidth()
                         .onGloballyPositioned { coordinates ->
                             endTextFieldSize = coordinates.size.toSize()
-                        }
+                        },
+                    isFilled = true
                 )
                 DropdownMenu(
                     expanded = addressSuggestions.isNotEmpty() && activeDropdown == "end",
@@ -1592,7 +1621,7 @@ fun EditTripDialog(
             }
             Spacer(modifier = Modifier.height(8.dp))
             if (isOdometerModeEnabled) {
-                OutlinedTextField(
+                TextField(
                     value = odometerText,
                     onValueChange = { newValue ->
                         if ((newValue.length <= 8) && newValue.all { char -> char.isDigit() }) {
@@ -1601,6 +1630,14 @@ fun EditTripDialog(
                     },
                     label = { Text(stringResource(R.string.end_odometer_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandsSeparatorTransformation(),
                     suffix = { Text(DistanceFormatter.getUnitSuffix(distanceUnit)) },
@@ -1617,8 +1654,10 @@ fun EditTripDialog(
                 )
             } else {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     ClearableTextField(
                         value = distanceText,
@@ -1635,26 +1674,51 @@ fun EditTripDialog(
                         placeholder = { Text("0.0") },
                         isError = isError,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                        suffix = { Text(DistanceFormatter.getUnitSuffix(distanceUnit)) }
+                        modifier = Modifier.weight(0.68f),
+                        suffix = { Text(DistanceFormatter.getUnitSuffix(distanceUnit)) },
+                        isFilled = true,
+                        shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp, topEnd = 0.dp, bottomEnd = 0.dp)
                     )
                     if (tripsViewModel.isCalculating) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    } else {
-                        FilledTonalButton(
-                            onClick = { tripsViewModel.calculateDistance(startText, endText) },
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        Box(
+                            modifier = Modifier
+                                .weight(0.32f)
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Calculate,
-                                contentDescription = stringResource(R.string.calculate_distance_button),
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                stringResource(R.string.calculate_distance_button),
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    } else {
+                        Surface(
+                            onClick = { tripsViewModel.calculateDistance(startText, endText) },
+                            modifier = Modifier
+                                .weight(0.32f)
+                                .fillMaxHeight(),
+                            shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp, topStart = 0.dp, bottomStart = 0.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Calculate,
+                                    contentDescription = stringResource(R.string.calculate_distance_button),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.calculate_distance_button),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    modifier = Modifier.basicMarquee()
+                                )
+                            }
                         }
                     }
                 }
@@ -1675,11 +1739,14 @@ fun EditTripDialog(
                         colors = SegmentedButtonDefaults.colors(
                             activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            activeBorderColor = MaterialTheme.colorScheme.primary,
-                            inactiveContainerColor = Color.Transparent,
+                            activeBorderColor = Color.Transparent,
+                            inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                             inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            inactiveBorderColor = MaterialTheme.colorScheme.outline
+                            inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            disabledActiveBorderColor = Color.Transparent,
+                            disabledInactiveBorderColor = Color.Transparent
                         ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                         icon = {
                             Icon(
                                 imageVector = icons[index],
@@ -1699,7 +1766,7 @@ fun EditTripDialog(
                 onExpandedChange = { vehicleExpanded = it }
             ) {
                 val context = LocalContext.current
-                OutlinedTextField(
+                TextField(
                     value = selectedVehicle?.licensePlate ?: "",
                     onValueChange = {},
                     readOnly = true,
@@ -1707,6 +1774,14 @@ fun EditTripDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
                     trailingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (selectedVehicle != null) {
@@ -1732,8 +1807,7 @@ fun EditTripDialog(
                         } else {
                             Icon(Icons.Default.DirectionsCar, contentDescription = null)
                         }
-                    },
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    }
                 )
                 ExposedDropdownMenu(
                     expanded = vehicleExpanded,
@@ -1766,12 +1840,13 @@ fun EditTripDialog(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            ClearableTextField( // Using ClearableTextField
+            ClearableTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text(stringResource(R.string.description_optional_label)) },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = false
+                singleLine = false,
+                isFilled = true
             )
 
             Spacer(modifier = Modifier.height(32.dp))

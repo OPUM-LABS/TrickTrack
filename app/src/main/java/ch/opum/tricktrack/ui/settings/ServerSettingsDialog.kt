@@ -26,7 +26,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.AppPreferences
 import ch.opum.tricktrack.data.ServerValidator
+import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.DialogResetButton
@@ -215,13 +215,13 @@ fun ServerConfigCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(
+            ClearableTextField(
                 value = url,
                 onValueChange = onUrlChange,
                 label = { Text(label) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodySmall
+                isFilled = true
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(
