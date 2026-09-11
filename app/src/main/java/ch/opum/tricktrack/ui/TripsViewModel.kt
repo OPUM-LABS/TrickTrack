@@ -1130,11 +1130,14 @@ class TripsViewModel(
             val includeVehicle = exportIncludeVehicle.first()
             val filter = filterState.first()
 
-            val activeVehicleName = if (includeVehicle) {
-                selectedVehicle?.licensePlate ?: if (filter.vehicleIds.size == 1) {
-                    allVehicles.first().find { it.id == filter.vehicleIds.first() }?.licensePlate
+            val selectedVeh = if (includeVehicle) {
+                selectedVehicle ?: if (filter.vehicleIds.size == 1) {
+                    allVehicles.first().find { it.id == filter.vehicleIds.first() }
                 } else null
             } else null
+
+            val activeVehicleName = selectedVeh?.licensePlate
+            val activeVehicleBrand = selectedVeh?.brand
 
             val pdfFile = withContext(Dispatchers.IO) {
                 PdfGenerator().generateTripReport(
@@ -1147,6 +1150,7 @@ class TripsViewModel(
                     driverName = if (includeDriver) selectedDriver?.name else null,
                     companyName = if (includeCompany) selectedCompany?.name else null,
                     vehicleName = activeVehicleName,
+                    vehicleBrand = activeVehicleBrand,
                     distanceUnit = distanceUnit.value
                 )
             }

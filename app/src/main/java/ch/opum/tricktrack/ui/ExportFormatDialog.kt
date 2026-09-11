@@ -18,7 +18,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import ch.opum.tricktrack.data.CarBrandHelper
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -501,11 +505,25 @@ fun ExportFormatDialog(
                                         onExpandedChange = { if (includeVehicle) vehicleExpanded = !vehicleExpanded },
                                         modifier = Modifier.weight(1f)
                                     ) {
+                                        val context = LocalContext.current
                                         TextField(
                                             value = viewModel.selectedVehicle?.licensePlate ?: "",
                                             onValueChange = {},
                                             readOnly = true,
                                             label = { Text(stringResource(R.string.export_column_vehicle)) },
+                                            leadingIcon = {
+                                                val iconResId = viewModel.selectedVehicle?.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                                                if (iconResId != 0) {
+                                                    Icon(
+                                                        painter = painterResource(id = iconResId),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                        tint = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                } else {
+                                                    Icon(Icons.Default.DirectionsCar, contentDescription = null)
+                                                }
+                                            },
                                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vehicleExpanded) },
                                             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                                             enabled = includeVehicle && hasVehicles,
@@ -524,7 +542,21 @@ fun ExportFormatDialog(
                                         ) {
                                             vehicles.forEach { vehicle ->
                                                 DropdownMenuItem(
-                                                    text = { Text(vehicle.licensePlate) },
+                                                    text = {
+                                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                                            val itemIconResId = vehicle.brand?.let { CarBrandHelper.getBrandIconResId(context, it) } ?: 0
+                                                            if (itemIconResId != 0) {
+                                                                Icon(
+                                                                    painter = painterResource(id = itemIconResId),
+                                                                    contentDescription = null,
+                                                                    modifier = Modifier.size(24.dp),
+                                                                    tint = MaterialTheme.colorScheme.onSurface
+                                                                )
+                                                                Spacer(modifier = Modifier.width(8.dp))
+                                                            }
+                                                            Text(vehicle.licensePlate)
+                                                        }
+                                                    },
                                                     onClick = {
                                                         viewModel.selectedVehicle = vehicle
                                                         vehicleExpanded = false

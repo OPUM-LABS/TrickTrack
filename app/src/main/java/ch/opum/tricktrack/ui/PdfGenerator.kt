@@ -14,6 +14,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
 import androidx.core.graphics.withTranslation
 import ch.opum.tricktrack.R
+import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.TripWithVehicle
 import ch.opum.tricktrack.util.DistanceFormatter
@@ -51,6 +52,7 @@ class PdfGenerator {
         driverName: String?,
         companyName: String?,
         vehicleName: String?,
+        vehicleBrand: String? = null,
         distanceUnit: DistanceUnit
     ): File? {
         if (tripsWithVehicle.isEmpty()) return null
@@ -66,7 +68,8 @@ class PdfGenerator {
             expenseCurrency = expenseCurrency,
             driverName = driverName,
             companyName = companyName,
-            vehicleName = vehicleName
+            vehicleName = vehicleName,
+            vehicleBrand = vehicleBrand
         )
 
         // Pass 2: Actual rendering with exact totalPages
@@ -79,6 +82,7 @@ class PdfGenerator {
             driverName = driverName,
             companyName = companyName,
             vehicleName = vehicleName,
+            vehicleBrand = vehicleBrand,
             isDryRun = false
         )
     }
@@ -91,7 +95,8 @@ class PdfGenerator {
         expenseCurrency: String,
         driverName: String?,
         companyName: String?,
-        vehicleName: String?
+        vehicleName: String?,
+        vehicleBrand: String? = null
     ): Int {
         buildPdf(
             tripsWithVehicle = tripsWithVehicle,
@@ -102,6 +107,7 @@ class PdfGenerator {
             driverName = driverName,
             companyName = companyName,
             vehicleName = vehicleName,
+            vehicleBrand = vehicleBrand,
             isDryRun = true
         )
         return totalPages
@@ -116,6 +122,7 @@ class PdfGenerator {
         driverName: String?,
         companyName: String?,
         vehicleName: String?,
+        vehicleBrand: String? = null,
         isDryRun: Boolean
     ): File? {
         document = PdfDocument()
@@ -144,6 +151,7 @@ class PdfGenerator {
             driverName = driverName,
             companyName = companyName,
             vehicleName = vehicleName,
+            vehicleBrand = vehicleBrand,
             isDryRun = isDryRun
         )
 
@@ -238,6 +246,7 @@ class PdfGenerator {
         driverName: String?,
         companyName: String?,
         vehicleName: String?,
+        vehicleBrand: String? = null,
         isDryRun: Boolean
     ) {
         startNewPage(isDryRun = isDryRun)
@@ -326,9 +335,19 @@ class PdfGenerator {
                 canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
                 summaryY += lineSpacing
             }
-            vehicleName?.let {
+            vehicleName?.let { vName ->
                 canvas?.drawText(context.getString(R.string.pdf_label_vehicle), leftTextMargin, summaryY, labelPaint)
-                canvas?.drawText(it, valueTextMargin, summaryY, valuePaint)
+                val iconResId = vehicleBrand?.let { brand -> CarBrandHelper.getBrandIconResId(context, brand) } ?: 0
+                if (iconResId != 0) {
+                    val drawable = ContextCompat.getDrawable(context, iconResId)
+                    drawable?.let { d ->
+                        val brandBitmap = d.toBitmap(18, 18, Bitmap.Config.ARGB_8888)
+                        canvas?.drawBitmap(brandBitmap, valueTextMargin, summaryY - 12f, null)
+                        canvas?.drawText(vName, valueTextMargin + 24f, summaryY, valuePaint)
+                    } ?: canvas?.drawText(vName, valueTextMargin, summaryY, valuePaint)
+                } else {
+                    canvas?.drawText(vName, valueTextMargin, summaryY, valuePaint)
+                }
                 summaryY += lineSpacing
             }
 
