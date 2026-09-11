@@ -191,6 +191,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -911,9 +912,9 @@ fun TripScreen(
                                 )
                             }
                             if (currentFilterState.startDate != null) {
-                                val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
-                                    Date(currentFilterState.startDate!!)
-                                )
+                                val locale = LocalLocale.current.platformLocale
+                                val formatter = DateFormat.getDateInstance(DateFormat.MEDIUM, locale)
+                                val date = formatter.format(Date(currentFilterState.startDate!!))
                                 InputChip(
                                     selected = true,
                                     onClick = {
@@ -933,9 +934,9 @@ fun TripScreen(
                                 )
                             }
                             if (currentFilterState.endDate != null) {
-                                val date = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale).format(
-                                    Date(currentFilterState.endDate!!)
-                                )
+                                val locale = LocalLocale.current.platformLocale
+                                val formatter = DateFormat.getDateInstance(DateFormat.MEDIUM, locale)
+                                val date = formatter.format(Date(currentFilterState.endDate!!))
                                 InputChip(
                                     selected = true,
                                     onClick = { tripsViewModel.removeFilter(currentFilterState.copy(endDate = null)) },

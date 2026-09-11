@@ -69,7 +69,7 @@ import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.VehicleEntity
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
+import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
 
@@ -364,9 +364,11 @@ fun DateRangeSelectionField(
     endDate: Long?,
     onClick: () -> Unit
 ) {
-    val formatter = SimpleDateFormat("dd/MM/yyyy", LocalLocale.current.platformLocale)
+    val locale = LocalLocale.current.platformLocale
+    val formatter = remember(locale) { DateFormat.getDateInstance(DateFormat.MEDIUM, locale) }
+
     val dateText = if ((startDate != null) && (endDate != null)) {
-        "${formatter.format(Date(startDate))} - ${formatter.format(Date(endDate))}"
+        "${formatter.format(Date(startDate))} – ${formatter.format(Date(endDate))}"
     } else if (startDate != null) {
         formatter.format(Date(startDate))
     } else {
