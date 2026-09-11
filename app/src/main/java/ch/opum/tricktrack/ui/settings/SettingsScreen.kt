@@ -1218,10 +1218,10 @@ fun SettingsScreen(
                             ClearableTextField(
                                 value = localRate,
                                 onValueChange = { localRate = it },
-                                label = { Text(stringResource(R.string.settings_expense_rate_label, rateUnitLabel)) },
+                                label = { Text(stringResource(R.string.settings_expense_rate_label, rateUnitLabel), maxLines = 1, modifier = Modifier.basicMarquee()) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .weight(0.62f)
                                     .onFocusChanged { focusState ->
                                         if (!focusState.isFocused) {
                                             val rate = localRate.toFloatOrNull() ?: 0f
@@ -1234,9 +1234,9 @@ fun SettingsScreen(
                             ClearableTextField(
                                 value = localCurrency,
                                 onValueChange = { localCurrency = it },
-                                label = { Text(stringResource(R.string.settings_expense_currency_label)) },
+                                label = { Text(stringResource(R.string.settings_expense_currency_label), maxLines = 1, modifier = Modifier.basicMarquee()) },
                                 modifier = Modifier
-                                    .width(100.dp)
+                                    .weight(0.38f)
                                     .onFocusChanged {
                                         if (!it.isFocused) {
                                             viewModel.setExpenseCurrency(localCurrency)
