@@ -1455,19 +1455,21 @@ fun EditTripDialog(
                         .height(IntrinsicSize.Min),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Start Time Column (~28%)
+                    // Start Time Column (~22%)
                     Column(
                         modifier = Modifier
-                            .weight(0.28f)
+                            .weight(0.22f)
                             .fillMaxHeight()
                             .clickable { showStartTimePicker.value = true }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = stringResource(R.string.start_time_label),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            modifier = Modifier.basicMarquee()
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
@@ -1479,10 +1481,10 @@ fun EditTripDialog(
 
                     VerticalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                    // Start Address Column (~72%)
+                    // Start Address Column (~78%)
                     Box(
                         modifier = Modifier
-                            .weight(0.72f)
+                            .weight(0.78f)
                             .padding(4.dp)
                     ) {
                         ClearableTextField(
@@ -1567,19 +1569,21 @@ fun EditTripDialog(
                         .height(IntrinsicSize.Min),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // End Time Column (~28%)
+                    // End Time Column (~22%)
                     Column(
                         modifier = Modifier
-                            .weight(0.28f)
+                            .weight(0.22f)
                             .fillMaxHeight()
                             .clickable { showEndTimePicker.value = true }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = stringResource(R.string.end_time_label),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            modifier = Modifier.basicMarquee()
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
@@ -1591,10 +1595,10 @@ fun EditTripDialog(
 
                     VerticalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                    // End Address Column (~72%)
+                    // End Address Column (~78%)
                     Box(
                         modifier = Modifier
-                            .weight(0.72f)
+                            .weight(0.78f)
                             .padding(4.dp)
                     ) {
                         ClearableTextField(
