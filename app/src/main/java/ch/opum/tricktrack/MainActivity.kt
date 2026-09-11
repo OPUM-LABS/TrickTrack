@@ -1022,23 +1022,33 @@ fun TripScreen(
                             Spacer(modifier = Modifier.weight(1f)) // Pushes content to the right
 
                             // Right side: Trip count, total distance, and optional total expense
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.End // Explicitly align to end
-                            ) {
+                            if (expenseTrackingEnabled && dailyTotalCost > 0f) {
+                                Column(
+                                    horizontalAlignment = Alignment.End,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
+                                    Text(
+                                        text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = String.format(LocalLocale.current.platformLocale, "%.2f %s", dailyTotalCost, expenseCurrency),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else {
                                 val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
                                 Text(
                                     text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
                                     style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
                                 )
-                                if (expenseTrackingEnabled) {
-                                    Text(
-                                        text = stringResource(R.string.daily_total_cost_label, dailyTotalCost, expenseCurrency),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
                             }
                         }
                     }
@@ -2012,21 +2022,32 @@ fun TripItem(
                         }
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (expenseTrackingEnabled) {
+                        val tripCost = trip.distance.toFloat() * expenseRatePerKm
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = DistanceFormatter.format(trip.distance, distanceUnit),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = String.format(LocalLocale.current.platformLocale, "%.2f %s", tripCost, expenseCurrency),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
                         Text(
                             text = DistanceFormatter.format(trip.distance, distanceUnit),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        if (expenseTrackingEnabled) {
-                            val tripCost = trip.distance.toFloat() * expenseRatePerKm
-                            Text(
-                                text = stringResource(R.string.trip_cost_label, tripCost, expenseCurrency),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
                     }
                 }
 
