@@ -55,7 +55,9 @@ import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -1404,10 +1406,12 @@ fun EditTripDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             val dateFormat = remember { SimpleDateFormat("EEE, d MMM yy", Locale.getDefault()) }
-            Box {
+
+            // Card 1: Date Card
+            Box(modifier = Modifier.fillMaxWidth()) {
                 TextField(
                     value = dateFormat.format(selectedStartDate.value.time),
                     onValueChange = {},
@@ -1421,7 +1425,13 @@ fun EditTripDialog(
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent
-                    )
+                    ),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = stringResource(R.string.date_label)
+                        )
+                    }
                 )
                 Box(
                     modifier = Modifier
@@ -1429,179 +1439,227 @@ fun EditTripDialog(
                         .clickable { showDatePicker.value = true }
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth()) {
-                Box(modifier = Modifier.weight(1f)) {
-                    TextField(
-                        value = timeFormatter.format(selectedStartDate.value.time),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.start_time_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                            focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
-                        )
-                    )
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clickable { showStartTimePicker.value = true }
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(modifier = Modifier.weight(1f)) {
-                    TextField(
-                        value = timeFormatter.format(selectedEndDate.value.time),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.end_time_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                            focusedContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
-                        )
-                    )
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clickable { showEndTimePicker.value = true }
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Box(modifier = Modifier.fillMaxWidth()) {
-                ClearableTextField(
-                    value = startText,
-                    onValueChange = {
-                        startText = it
-                        favouritesViewModel.searchAddress(it) // Pass String directly
-                        activeDropdown = "start"
-                    },
-                    label = { Text(stringResource(R.string.start_address_label)) },
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Card 2: Departure Card (Start Time + Start Address)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+            ) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onGloballyPositioned { coordinates ->
-                            startTextFieldSize = coordinates.size.toSize()
-                        },
-                    isFilled = true
-                )
-                DropdownMenu(
-                    expanded = addressSuggestions.isNotEmpty() && activeDropdown == "start",
-                    onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
-                    properties = PopupProperties(focusable = false),
-                    offset = DpOffset(x = 0.dp, y = 4.dp),
-                    modifier = Modifier
-                        .width(with(LocalDensity.current) { startTextFieldSize.width.toDp() })
-                        .requiredSizeIn(maxHeight = 200.dp)
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    addressSuggestions.forEach { suggestion ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (suggestion.isFavorite) {
-                                        Icon(
-                                            Icons.Default.Star,
-                                            contentDescription = stringResource(R.string.place_favorite_cd),
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                    }
-                                    Column {
-                                        Text(
-                                            suggestion.title,
-                                            fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                        if (suggestion.subtitle.isNotEmpty()) {
-                                            Text(
-                                                suggestion.subtitle,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    }
-                                }
-                            },
-                            onClick = {
-                                startText = suggestion.fullAddress // Assign String directly
-                                startLat = suggestion.latitude
-                                startLon = suggestion.longitude
-                                favouritesViewModel.clearAddressSuggestions()
-                                activeDropdown = null
-                            }
+                    // Start Time Column (~28%)
+                    Column(
+                        modifier = Modifier
+                            .weight(0.28f)
+                            .fillMaxHeight()
+                            .clickable { showStartTimePicker.value = true }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.start_time_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = timeFormatter.format(selectedStartDate.value.time),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    VerticalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    // Start Address Column (~72%)
+                    Box(
+                        modifier = Modifier
+                            .weight(0.72f)
+                            .padding(4.dp)
+                    ) {
+                        ClearableTextField(
+                            value = startText,
+                            onValueChange = {
+                                startText = it
+                                favouritesViewModel.searchAddress(it)
+                                activeDropdown = "start"
+                            },
+                            label = { Text(stringResource(R.string.start_address_label)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coordinates ->
+                                    startTextFieldSize = coordinates.size.toSize()
+                                },
+                            singleLine = false,
+                            isFilled = true,
+                            shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
+                        )
+                        DropdownMenu(
+                            expanded = addressSuggestions.isNotEmpty() && activeDropdown == "start",
+                            onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
+                            properties = PopupProperties(focusable = false),
+                            offset = DpOffset(x = 0.dp, y = 4.dp),
+                            modifier = Modifier
+                                .width(with(LocalDensity.current) { startTextFieldSize.width.toDp() })
+                                .requiredSizeIn(maxHeight = 200.dp)
+                        ) {
+                            addressSuggestions.forEach { suggestion ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (suggestion.isFavorite) {
+                                                Icon(
+                                                    Icons.Default.Star,
+                                                    contentDescription = stringResource(R.string.place_favorite_cd),
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                            }
+                                            Column {
+                                                Text(
+                                                    suggestion.title,
+                                                    fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
+                                                )
+                                                if (suggestion.subtitle.isNotEmpty()) {
+                                                    Text(
+                                                        suggestion.subtitle,
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onClick = {
+                                        startText = suggestion.fullAddress
+                                        startLat = suggestion.latitude
+                                        startLon = suggestion.longitude
+                                        favouritesViewModel.clearAddressSuggestions()
+                                        activeDropdown = null
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Box(modifier = Modifier.fillMaxWidth()) {
-                ClearableTextField( // Using ClearableTextField
-                    value = endText,
-                    onValueChange = {
-                        endText = it
-                        favouritesViewModel.searchAddress(it) // Pass String directly
-                        activeDropdown = "end"
-                    },
-                    label = { Text(stringResource(R.string.end_address_label)) },
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Card 3: Arrival Card (End Time + End Address)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+            ) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onGloballyPositioned { coordinates ->
-                            endTextFieldSize = coordinates.size.toSize()
-                        },
-                    isFilled = true
-                )
-                DropdownMenu(
-                    expanded = addressSuggestions.isNotEmpty() && activeDropdown == "end",
-                    onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
-                    properties = PopupProperties(focusable = false),
-                    offset = DpOffset(x = 0.dp, y = 4.dp),
-                    modifier = Modifier
-                        .width(with(LocalDensity.current) { endTextFieldSize.width.toDp() })
-                        .requiredSizeIn(maxHeight = 200.dp)
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    addressSuggestions.forEach { suggestion ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (suggestion.isFavorite) {
-                                        Icon(
-                                            Icons.Default.Star,
-                                            contentDescription = stringResource(R.string.place_favorite_cd),
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                    }
-                                    Column {
-                                        Text(
-                                            suggestion.title,
-                                            fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                        if (suggestion.subtitle.isNotEmpty()) {
-                                            Text(
-                                                suggestion.subtitle,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    }
-                                }
-                            },
-                            onClick = {
-                                endText = suggestion.fullAddress // Assign String directly
-                                endLat = suggestion.latitude
-                                endLon = suggestion.longitude
-                                favouritesViewModel.clearAddressSuggestions()
-                                activeDropdown = null
-                            }
+                    // End Time Column (~28%)
+                    Column(
+                        modifier = Modifier
+                            .weight(0.28f)
+                            .fillMaxHeight()
+                            .clickable { showEndTimePicker.value = true }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.end_time_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = timeFormatter.format(selectedEndDate.value.time),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    VerticalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    // End Address Column (~72%)
+                    Box(
+                        modifier = Modifier
+                            .weight(0.72f)
+                            .padding(4.dp)
+                    ) {
+                        ClearableTextField(
+                            value = endText,
+                            onValueChange = {
+                                endText = it
+                                favouritesViewModel.searchAddress(it)
+                                activeDropdown = "end"
+                            },
+                            label = { Text(stringResource(R.string.end_address_label)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coordinates ->
+                                    endTextFieldSize = coordinates.size.toSize()
+                                },
+                            singleLine = false,
+                            isFilled = true,
+                            shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
+                        )
+                        DropdownMenu(
+                            expanded = addressSuggestions.isNotEmpty() && activeDropdown == "end",
+                            onDismissRequest = { favouritesViewModel.clearAddressSuggestions() },
+                            properties = PopupProperties(focusable = false),
+                            offset = DpOffset(x = 0.dp, y = 4.dp),
+                            modifier = Modifier
+                                .width(with(LocalDensity.current) { endTextFieldSize.width.toDp() })
+                                .requiredSizeIn(maxHeight = 200.dp)
+                        ) {
+                            addressSuggestions.forEach { suggestion ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (suggestion.isFavorite) {
+                                                Icon(
+                                                    Icons.Default.Star,
+                                                    contentDescription = stringResource(R.string.place_favorite_cd),
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                            }
+                                            Column {
+                                                Text(
+                                                    suggestion.title,
+                                                    fontWeight = if (suggestion.isFavorite) FontWeight.Bold else FontWeight.Normal
+                                                )
+                                                if (suggestion.subtitle.isNotEmpty()) {
+                                                    Text(
+                                                        suggestion.subtitle,
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onClick = {
+                                        endText = suggestion.fullAddress
+                                        endLat = suggestion.latitude
+                                        endLon = suggestion.longitude
+                                        favouritesViewModel.clearAddressSuggestions()
+                                        activeDropdown = null
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -1637,7 +1695,7 @@ fun EditTripDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             if (isOdometerModeEnabled) {
                 TextField(
                     value = odometerText,
