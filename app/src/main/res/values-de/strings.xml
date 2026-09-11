@@ -56,6 +56,10 @@
     <string name="import_failed">Fehler beim Importieren der Sicherung. Bitte überprüfen Sie die Datei.</string>
     <string name="settings_auto_backup_enable">Automatische Sicherungen aktivieren</string>
     <string name="settings_auto_backup_folder">Sicherungsordner auswählen</string>
+    <string name="settings_no_folder_selected">Tippen, um Ordner auszuwählen…</string>
+    <string name="settings_auto_backup_time">Sicherungszeit</string>
+    <string name="settings_auto_backup_time_approx">Ungefähre Sicherungszeit</string>
+    <string name="settings_auto_backup_time_sub">Sicherungen werden etwa um %s ausgeführt</string>
     <string name="settings_auto_backup_folder_selected">Ausgewählter Ordner: %1$s</string>
     <string name="settings_auto_backup_frequency">Sicherungshäufigkeit</string>
     <string name="settings_auto_backup_frequency_daily">Täglich</string>

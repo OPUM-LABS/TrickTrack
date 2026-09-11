@@ -57,6 +57,10 @@
     <string name="import_failed">Échec de l\'importation de la sauvegarde. Veuillez vérifier le fichier.</string>
     <string name="settings_auto_backup_enable">Activer les sauvegardes automatiques</string>
     <string name="settings_auto_backup_folder">Sélectionner le dossier de sauvegarde</string>
+    <string name="settings_no_folder_selected">Appuyer pour choisir un dossier…</string>
+    <string name="settings_auto_backup_time">Heure de sauvegarde</string>
+    <string name="settings_auto_backup_time_approx">Heure de sauvegarde approximative</string>
+    <string name="settings_auto_backup_time_sub">Les sauvegardes seront exécutées vers %s</string>
     <string name="settings_auto_backup_folder_selected">Dossier sélectionné : %1$s</string>
     <string name="settings_auto_backup_frequency">Fréquence de sauvegarde</string>
     <string name="settings_auto_backup_frequency_daily">Quotidien</string>

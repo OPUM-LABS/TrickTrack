@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -51,6 +52,9 @@ class UserPreferencesRepository(private val context: Context) {
         val BACKUP_DAY_OF_WEEK = intPreferencesKey("backup_day_of_week")
         val BACKUP_DAY_OF_MONTH = intPreferencesKey("backup_day_of_month")
         val BACKUP_FOLDER_URI = stringPreferencesKey("backup_folder_uri")
+        val BACKUP_TIME_HOUR = intPreferencesKey("backup_time_hour")
+        val BACKUP_TIME_MINUTE = intPreferencesKey("backup_time_minute")
+        val LAST_AUTO_BACKUP_TIMESTAMP = longPreferencesKey("last_auto_backup_timestamp")
         val EXPORT_INCLUDE_DRIVER = booleanPreferencesKey("export_include_driver")
         val EXPORT_INCLUDE_COMPANY = booleanPreferencesKey("export_include_company")
         val EXPORT_INCLUDE_VEHICLE = booleanPreferencesKey("export_include_vehicle")
@@ -400,6 +404,34 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setBackupFolderUri(uri: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.BACKUP_FOLDER_URI] = uri
+        }
+    }
+
+    val backupTimeHour: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.BACKUP_TIME_HOUR] ?: 2
+        }
+
+    val backupTimeMinute: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.BACKUP_TIME_MINUTE] ?: 0
+        }
+
+    suspend fun setBackupTime(hour: Int, minute: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BACKUP_TIME_HOUR] = hour
+            preferences[PreferencesKeys.BACKUP_TIME_MINUTE] = minute
+        }
+    }
+
+    val lastAutoBackupTimestamp: Flow<Long> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.LAST_AUTO_BACKUP_TIMESTAMP] ?: 0L
+        }
+
+    suspend fun setLastAutoBackupTimestamp(timestamp: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_AUTO_BACKUP_TIMESTAMP] = timestamp
         }
     }
 

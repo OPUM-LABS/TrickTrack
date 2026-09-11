@@ -56,6 +56,10 @@
     <string name="import_failed">Failed to import backup. Please check the file.</string>
     <string name="settings_auto_backup_enable">Enable Automatic Backups</string>
     <string name="settings_auto_backup_folder">Select Backup Folder</string>
+    <string name="settings_no_folder_selected">Tap to select folder…</string>
+    <string name="settings_auto_backup_time">Backup Time</string>
+    <string name="settings_auto_backup_time_approx">Approximate Backup Time</string>
+    <string name="settings_auto_backup_time_sub">Backups will run around %s</string>
     <string name="settings_auto_backup_folder_selected">Selected folder: %1$s</string>
     <string name="settings_auto_backup_frequency">Backup Frequency</string>
     <string name="settings_auto_backup_frequency_daily">Daily</string>

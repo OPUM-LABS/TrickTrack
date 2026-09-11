@@ -57,6 +57,10 @@
     <string name="import_failed">Impossibile importare il backup. Controlla il file.</string>
     <string name="settings_auto_backup_enable">Abilita backup automatici</string>
     <string name="settings_auto_backup_folder">Seleziona cartella di backup</string>
+    <string name="settings_no_folder_selected">Tocca per selezionare la cartella…</string>
+    <string name="settings_auto_backup_time">Ora del backup</string>
+    <string name="settings_auto_backup_time_approx">Ora indicativa del backup</string>
+    <string name="settings_auto_backup_time_sub">I backup verranno eseguiti verso le %s</string>
     <string name="settings_auto_backup_folder_selected">Cartella selezionata: %1$s</string>
     <string name="settings_auto_backup_frequency">Frequenza di backup</string>
     <string name="settings_auto_backup_frequency_daily">Giornaliero</string>
