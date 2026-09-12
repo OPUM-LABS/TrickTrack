@@ -1,4 +1,12 @@
-> **Notice:** TrickTrack is currently undergoing active testing in preparation for its Google Play Store release. My primary focus during this phase is incorporating tester feedback and refining core app features, so project documentation may be temporarily out of date. Documentation will be fully updated once the launch phase stabilizes.
+> [!NOTE]
+> TrickTrack is currently undergoing active testing in preparation 
+> for its Google Play Store release. My primary focus during this phase is 
+> incorporating tester feedback and refining core app features, so project 
+> documentation may be temporarily out of date. Documentation will be fully 
+> updated once the launch phase stabilizes.
+> 
+> From version 2.5.2 on i've implemented an inline help (at least in the settings at the moment) 
+> which, in my opinion, is more intuitive than a wiki anyway.
 
 <div align="center">
     <a href="https://buymeacoffee.com/opum_labs" target="_blank">
