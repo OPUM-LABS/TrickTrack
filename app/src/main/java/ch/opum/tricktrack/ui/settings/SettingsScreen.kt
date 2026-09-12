@@ -118,6 +118,7 @@ import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
+import ch.opum.tricktrack.ui.components.SettingHelpBox
 import ch.opum.tricktrack.ui.DialogResetButton
 import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TripsViewModel
@@ -589,7 +590,6 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_appearance_title),
             description = stringResource(R.string.settings_appearance_description),
-            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_appearance) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(
@@ -628,6 +628,9 @@ fun SettingsScreen(
                             }
                         }
                     }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_theme))
+                    }
                 }
             }
         }
@@ -635,42 +638,14 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_settings_title),
             description = stringResource(R.string.settings_tracking_settings_description),
-            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_tracking) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // Tracking Settings
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.settings_odometer_mode_title),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = if (isOdometerModeEnabled) MaterialTheme.colorScheme.onSurface 
-                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            )
-                            Text(
-                                text = stringResource(R.string.settings_odometer_mode_description),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (isOdometerModeEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                            )
-                        }
-                        Switch(
-                            checked = isOdometerModeEnabled,
-                            onCheckedChange = { viewModel.setOdometerModeEnabled(it) }
-                        )
-                    }
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -702,20 +677,17 @@ fun SettingsScreen(
                             }
                         )
                     }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_auto_tracking))
+                    }
                     if (isAutoTrackingEnabled && !isBatteryOptimizationIgnored) {
                         Spacer(modifier = Modifier.height(8.dp))
                         BatteryWarningCard {
                             openAppSettings(context)
                         }
                     }
-                }
-            }
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -753,15 +725,12 @@ fun SettingsScreen(
                             }
                         )
                     }
-                }
-            }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_bluetooth_trigger))
+                    }
 
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -854,14 +823,12 @@ fun SettingsScreen(
                             onCheckedChange = { viewModel.setDistanceMonitoringEnabled(it) }
                         )
                     }
-                }
-            }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_distance_monitoring))
+                    }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -933,14 +900,12 @@ fun SettingsScreen(
                             }
                         )
                     }
-                }
-            }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_schedule))
+                    }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
                     var localStillnessTimer by remember(stillnessTimer) { mutableStateOf(stillnessTimer.toString()) }
                     val distanceUnit by viewModel.distanceUnit.collectAsState()
                     val speedUnitLabel = DistanceFormatter.getSpeedUnitSuffix(distanceUnit)
@@ -966,8 +931,11 @@ fun SettingsScreen(
                             },
                         isFilled = true
                     )
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_stillness_timer))
+                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                     ClearableTextField(
                         value = localMinSpeed,
@@ -989,6 +957,9 @@ fun SettingsScreen(
                             },
                         isFilled = true
                     )
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_min_speed))
+                    }
                 }
             }
         }
@@ -996,7 +967,6 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_defaults_title),
             description = stringResource(R.string.settings_tracking_defaults_description),
-            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_defaults) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // Trip Defaults
@@ -1005,6 +975,36 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_odometer_mode_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isOdometerModeEnabled) MaterialTheme.colorScheme.onSurface 
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_odometer_mode_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isOdometerModeEnabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            )
+                        }
+                        Switch(
+                            checked = isOdometerModeEnabled,
+                            onCheckedChange = { viewModel.setOdometerModeEnabled(it) }
+                        )
+                    }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_odometer_mode))
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -1062,14 +1062,12 @@ fun SettingsScreen(
                             }
                         }
                     }
-                }
-            }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_default_type))
+                    }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
                     Text(
                         text = stringResource(R.string.settings_distance_unit_title),
                         style = MaterialTheme.typography.bodyLarge
@@ -1114,14 +1112,12 @@ fun SettingsScreen(
                             }
                         }
                     }
-                }
-            }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_distance_unit))
+                    }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -1146,6 +1142,9 @@ fun SettingsScreen(
                                 viewModel.setSmartLocationEnabled(enabled)
                             }
                         )
+                    }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_smart_location))
                     }
                     if (isSmartLocationEnabled) {
                         Spacer(modifier = Modifier.height(8.dp))
@@ -1174,15 +1173,13 @@ fun SettingsScreen(
                                 },
                             isFilled = true
                         )
+                        if (showSettingsHelp) {
+                            SettingHelpBox(helpText = stringResource(R.string.settings_help_smart_location_radius))
+                        }
                     }
-                }
-            }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-            ) {
-                Column(Modifier.padding(16.dp)) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -1198,6 +1195,9 @@ fun SettingsScreen(
                             checked = expenseTrackingEnabled,
                             onCheckedChange = { viewModel.setExpenseTracking(it) }
                         )
+                    }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_calculate_expenses))
                     }
 
                     if (expenseTrackingEnabled) {
@@ -1245,6 +1245,9 @@ fun SettingsScreen(
                                 isFilled = true
                             )
                         }
+                        if (showSettingsHelp) {
+                            SettingHelpBox(helpText = stringResource(R.string.settings_help_expense_rate_currency))
+                        }
                     }
                 }
             }
@@ -1253,7 +1256,6 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_backup_restore_title),
             description = stringResource(R.string.settings_backup_restore_description),
-            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_backup) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(
@@ -1332,10 +1334,13 @@ fun SettingsScreen(
                             }
                         }
                     }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_manual_backup_restore))
+                    }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
-                    BackupSettingsSection(viewModel = settingsViewModel)
+                    BackupSettingsSection(viewModel = settingsViewModel, showSettingsHelp = showSettingsHelp)
                 }
             }
         }
@@ -1343,7 +1348,6 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_advanced_settings_title),
             description = stringResource(R.string.settings_advanced_settings_description),
-            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_api) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // New Card for Server Settings
@@ -1373,7 +1377,6 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_diagnostics_title),
             description = stringResource(R.string.settings_diagnostics_description),
-            helpText = if (showSettingsHelp) stringResource(R.string.settings_help_diagnostics) else null,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(

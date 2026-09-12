@@ -15,8 +15,8 @@
     <string name="settings_permissions_all_granted_cd">Toutes accordées</string>
     <string name="settings_permissions_action_needed_cd">Action requise</string>
     <string name="settings_permissions_action_needed_text">Action requise</string>
-    <string name="settings_tracking_settings_title">Paramètres de suivi</string>
-    <string name="settings_tracking_settings_description">Configurer le suivi automatique et les déclencheurs</string>
+    <string name="settings_tracking_settings_title">Enregistrement et déclencheurs</string>
+    <string name="settings_tracking_settings_description">Suivi automatique, démarrage Bluetooth et capteurs de mouvement.</string>
     <string name="settings_automatic_tracking_title">Suivi automatique</string>
     <string name="settings_automatic_tracking_description">Enregistre automatiquement les trajets lorsque vous commencez à conduire.</string>
     <string name="settings_odometer_mode_title">Mode Odomètre</string>
@@ -44,8 +44,8 @@
     <string name="settings_min_speed_label">Vitesse minimale (%s)</string>
     <string name="settings_backup_restore_title">Sauvegarde et restauration</string>
     <string name="settings_backup_restore_description">Gérez vos sauvegardes de données.</string>
-    <string name="settings_tracking_defaults_title">Réglages par défaut</string>
-    <string name="settings_tracking_defaults_description">Configurer les valeurs par défaut pour les trajets.</string>
+    <string name="settings_tracking_defaults_title">Unités, frais et valeurs par défaut</string>
+    <string name="settings_tracking_defaults_description">Classification par défaut, unités de mesure et calcul des frais.</string>
     <string name="settings_distance_unit_title">Unité de distance</string>
     <string name="settings_unit_km">Kilomètres (km)</string>
     <string name="settings_unit_miles">Miles (mi)</string>
@@ -404,4 +404,27 @@
     <!-- Trips Page Staged Deletion -->
     <string name="trips_trip_deleted_single">Trajet supprimé</string>
     <string name="trips_trips_deleted_multiple">%d trajets supprimés</string>
+    <!-- Settings Help Messages -->
+    <string name="settings_help_theme">Choisissez entre le mode système, clair ou sombre.</string>
+    <string name="settings_help_odometer_mode">Utilise le compteur pour calculer la distance. Les données GPS sont conservées et l\'itinéraire reste enregistré en arrière-plan.</string>
+    <string name="settings_help_auto_tracking">Détecte les trajets automatiquement via les capteurs de mouvement.</string>
+    <string name="settings_help_bluetooth_trigger">Démarre l\'enregistrement lors de la connexion Bluetooth au véhicule.</string>
+    <string name="settings_help_bluetooth_devices">Sélectionnez vos appareils Bluetooth appairés.</string>
+    <string name="settings_help_stillness_timer">Durée d\'inactivité avant la fin automatique du trajet.</string>
+    <string name="settings_help_min_speed">Vitesse minimale requise pour classer le mouvement comme trajet.</string>
+    <string name="settings_help_distance_monitoring">Économise la batterie à l\'arrêt en utilisant la détection de mouvement basse consommation au lieu du GPS continu.</string>
+    <string name="settings_help_default_type">Classification par défaut des nouveaux trajets.</string>
+    <string name="settings_help_distance_unit">Unité préférée pour les distances et vitesses (km, miles, milles marins). Les valeurs existantes sont automatiquement converties.</string>
+    <string name="settings_help_smart_location">Remplace automatiquement les adresses par vos lieux favoris proches.</string>
+    <string name="settings_help_smart_location_radius">Rayon de recherche pour la correspondance des lieux favoris.</string>
+    <string name="settings_help_calculate_expenses">Calcule automatiquement les frais de trajet selon votre tarif.</string>
+    <string name="settings_help_expense_rate_currency">Définissez le taux de remboursement par unité de distance et devise.</string>
+    <string name="settings_help_schedule">Définissez les heures planifiées de suivi et classification.</string>
+    <string name="settings_help_server_settings">Configurez des serveurs personnalisés OSRM et Photon.</string>
+    <string name="settings_help_backup_restore">Créez ou restaurez des sauvegardes JSON manuelles et automatiques.</string>
+    <string name="settings_help_manual_backup_restore">Crée une sauvegarde JSON manuelle de vos données ou restaure un fichier existant.</string>
+    <string name="settings_help_auto_backup_toggle">Active les sauvegardes automatiques en arrière-plan selon un calendrier.</string>
+    <string name="settings_help_auto_backup_folder_select">Sélectionnez le dossier cible où les sauvegardes automatiques seront enregistrées.</string>
+    <string name="settings_help_auto_backup_frequency">Définissez la fréquence des sauvegardes automatiques (Quotidienne, Hebdomadaire ou Mensuelle).</string>
+    <string name="settings_help_auto_backup_time_schedule">Définit l\'heure cible. L\'exécution exacte peut varier légèrement en raison de l\'optimisation de la batterie Android.</string>
 </resources>

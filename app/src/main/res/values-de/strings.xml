@@ -14,8 +14,8 @@
     <string name="settings_permissions_all_granted_cd">Alle gewährt</string>
     <string name="settings_permissions_action_needed_cd">Aktion erforderlich</string>
     <string name="settings_permissions_action_needed_text">Aktion erforderlich</string>
-    <string name="settings_tracking_settings_title">Tracking-Einstellungen</string>
-    <string name="settings_tracking_settings_description">Automatische Nachverfolgung und Auslöser konfigurieren</string>
+    <string name="settings_tracking_settings_title">Aufzeichnung &amp; Auslöser</string>
+    <string name="settings_tracking_settings_description">Automatische Erfassung, Bluetooth-Kopplung und Sensoren.</string>
     <string name="settings_automatic_tracking_title">Automatische Verfolgung</string>
     <string name="settings_automatic_tracking_description">Zeichnet Fahrten automatisch auf, wenn Sie losfahren.</string>
     <string name="settings_odometer_mode_title">Kilometerzähler-Modus</string>
@@ -43,8 +43,8 @@
     <string name="settings_min_speed_label">Mindestgeschwindigkeit (%s)</string>
     <string name="settings_backup_restore_title">Sicherung und Wiederherstellung</string>
     <string name="settings_backup_restore_description">Verwalten Sie Ihre Datensicherungen.</string>
-    <string name="settings_tracking_defaults_title">Tracking-Standardeinstellungen</string>
-    <string name="settings_tracking_defaults_description">Standardwerte für Fahrten konfigurieren.</string>
+    <string name="settings_tracking_defaults_title">Einheiten, Kosten &amp; Standards</string>
+    <string name="settings_tracking_defaults_description">Standard-Fahrttyp, Einheiten (km/mi) und Kostenberechnung.</string>
     <string name="settings_distance_unit_title">Distanzeinheit</string>
     <string name="settings_unit_km">Kilometer (km)</string>
     <string name="settings_unit_miles">Meilen (mi)</string>
@@ -403,4 +403,27 @@
     <!-- Trips Page Staged Deletion -->
     <string name="trips_trip_deleted_single">Fahrt gelöscht</string>
     <string name="trips_trips_deleted_multiple">%d Fahrten gelöscht</string>
+    <!-- Settings Help Messages -->
+    <string name="settings_help_theme">Wählen Sie zwischen Systemstandard, Hell- oder Dunkelmodus.</string>
+    <string name="settings_help_odometer_mode">Verwendet Kilometerstände zur Distanzberechnung. GPS-Daten bleiben erhalten und die Strecke wird weiterhin im Hintergrund aufgezeichnet.</string>
+    <string name="settings_help_auto_tracking">Erkennt Fahrten automatisch anhand von Bewegungssensoren im Hintergrund.</string>
+    <string name="settings_help_bluetooth_trigger">Startet die Aufzeichnung automatisch bei Bluetooth-Verbindung mit dem Fahrzeug.</string>
+    <string name="settings_help_bluetooth_devices">Wählen Sie Ihre gespeicherten Fahrzeug-Bluetooth-Geräte aus.</string>
+    <string name="settings_help_stillness_timer">Zeitdauer im Stillstand, nach der eine Fahrt automatisch beendet wird.</string>
+    <string name="settings_help_min_speed">Mindestgeschwindigkeit, ab der eine Bewegung als Fahrt gewertet wird.</string>
+    <string name="settings_help_distance_monitoring">Spart Akku im Stillstand: Verwendet die stromsparende Android-Bewegungserkennung statt dauerhaftem GPS.</string>
+    <string name="settings_help_default_type">Standardtyp für neue Fahrten (Geschäftlich oder Privat).</string>
+    <string name="settings_help_distance_unit">Einheit für Entfernungen und Geschwindigkeiten (km, Meilen, Seemeilen). Bestehende Werte werden automatisch umgerechnet.</string>
+    <string name="settings_help_smart_location">Ersetzt Adressen automatisch durch Namen aus Ihren Favoriten im Umkreis.</string>
+    <string name="settings_help_smart_location_radius">Suchradius für das automatische Zuordnen von Favoritenorten.</string>
+    <string name="settings_help_calculate_expenses">Berechnet Fahrtkosten automatisch anhand des festgelegten Kilometersatzes.</string>
+    <string name="settings_help_expense_rate_currency">Legen Sie den Erstattungssatz pro Kilometer und die Währung fest.</string>
+    <string name="settings_help_schedule">Legen Sie Betriebszeiten fest, in denen Fahrten aufgezeichnet oder klassifiziert werden.</string>
+    <string name="settings_help_server_settings">Konfigurieren Sie eigene OSRM-Routing- und Photon-Geocoder-Server.</string>
+    <string name="settings_help_backup_restore">Erstellen oder wiederherstellen Sie manuelle und automatische JSON-Sicherungen.</string>
+    <string name="settings_help_manual_backup_restore">Erstellt eine manuelle JSON-Sicherung aller Fahrten und Einstellungen oder stellt eine bestehende Datei wieder her.</string>
+    <string name="settings_help_auto_backup_toggle">Aktiviert automatische Hintergrund-Sicherungen nach einem festen Zeitplan.</string>
+    <string name="settings_help_auto_backup_folder_select">Wählen Sie den Zielordner, in dem automatische Sicherungen gespeichert werden.</string>
+    <string name="settings_help_auto_backup_frequency">Legen Sie fest, wie oft eine Sicherung erstellt werden soll (Täglich, Wöchentlich oder Monatlich).</string>
+    <string name="settings_help_auto_backup_time_schedule">Legt die Zieluhrzeit fest. Der genaue Zeitpunkt kann durch Android-Akkusparfunktionen (Doze-Modus) leicht abweichen.</string>
 </resources>

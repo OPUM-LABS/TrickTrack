@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -53,13 +54,15 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.ui.TimePickerDialog
+import ch.opum.tricktrack.ui.components.SettingHelpBox
 import java.net.URLDecoder
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupSettingsSection(
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    showSettingsHelp: Boolean = false
 ) {
     val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsState(initial = false)
     val backupFrequency by viewModel.backupFrequency.collectAsState(initial = "DAILY")
@@ -123,9 +126,12 @@ fun BackupSettingsSection(
                 onCheckedChange = { viewModel.setAutoBackupEnabled(it) }
             )
         }
+        if (showSettingsHelp) {
+            SettingHelpBox(helpText = stringResource(R.string.settings_help_auto_backup_toggle))
+        }
 
         if (autoBackupEnabled) {
-            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
             val isFolderMissing = backupFolderUri.isNullOrBlank()
             val cardBorderColor = if (isFolderMissing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -173,8 +179,11 @@ fun BackupSettingsSection(
                     )
                 }
             }
+            if (showSettingsHelp) {
+                SettingHelpBox(helpText = stringResource(R.string.settings_help_auto_backup_folder_select))
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
             // Frequency Segmented Button Row
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -215,6 +224,9 @@ fun BackupSettingsSection(
                     }
                 }
             }
+            if (showSettingsHelp) {
+                SettingHelpBox(helpText = stringResource(R.string.settings_help_auto_backup_frequency))
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -251,11 +263,14 @@ fun BackupSettingsSection(
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.Default.AccessTime,
-                        contentDescription = stringResource(R.string.settings_auto_backup_time),
+                        contentDescription = stringResource(R.string.settings_auto_backup_time_approx),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
+            }
+            if (showSettingsHelp) {
+                SettingHelpBox(helpText = stringResource(R.string.settings_help_auto_backup_time_schedule))
             }
 
             when (backupFrequency) {

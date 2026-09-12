@@ -14,8 +14,8 @@
     <string name="settings_permissions_all_granted_cd">All granted</string>
     <string name="settings_permissions_action_needed_cd">Action Needed</string>
     <string name="settings_permissions_action_needed_text">Action Needed</string>
-    <string name="settings_tracking_settings_title">Tracking Settings</string>
-    <string name="settings_tracking_settings_description">Configure automatic tracking and triggers.</string>
+    <string name="settings_tracking_settings_title">Recording &amp; Triggers</string>
+    <string name="settings_tracking_settings_description">Automatic tracking, Bluetooth auto-start, and motion sensors.</string>
     <string name="settings_automatic_tracking_title">Automatic Tracking</string>
     <string name="settings_automatic_tracking_description">Automatically records trips when you start driving.</string>
     <string name="settings_odometer_mode_title">Odometer Mode</string>
@@ -43,8 +43,8 @@
     <string name="settings_min_speed_label">Minimum Speed (%s)</string>
     <string name="settings_backup_restore_title">Backup and Restore</string>
     <string name="settings_backup_restore_description">Manage your data backups.</string>
-    <string name="settings_tracking_defaults_title">Tracking defaults</string>
-    <string name="settings_tracking_defaults_description">Configure default values for trips.</string>
+    <string name="settings_tracking_defaults_title">Units, Expenses &amp; Defaults</string>
+    <string name="settings_tracking_defaults_description">Default trip classification, measurement units, and expense calculation.</string>
     <string name="settings_distance_unit_title">Distance Unit</string>
     <string name="settings_unit_km">Kilometers (km)</string>
     <string name="settings_unit_miles">Miles (mi)</string>
@@ -405,4 +405,27 @@
     <!-- Trips Page Staged Deletion -->
     <string name="trips_trip_deleted_single">Trip deleted</string>
     <string name="trips_trips_deleted_multiple">%d trips deleted</string>
+    <!-- Settings Help Messages -->
+    <string name="settings_help_theme">Choose between system default, light, or dark mode.</string>
+    <string name="settings_help_odometer_mode">Uses odometer readings to calculate distance. Existing GPS data remains intact, and routes continue to be recorded in the background.</string>
+    <string name="settings_help_auto_tracking">Detects trips automatically using background motion sensors.</string>
+    <string name="settings_help_bluetooth_trigger">Starts recording automatically when connected to your vehicle\'s Bluetooth.</string>
+    <string name="settings_help_bluetooth_devices">Select your paired vehicle Bluetooth devices.</string>
+    <string name="settings_help_stillness_timer">Duration of inactivity before a trip is automatically ended.</string>
+    <string name="settings_help_min_speed">Minimum speed threshold required to classify movement as a trip.</string>
+    <string name="settings_help_distance_monitoring">Saves battery while stationary by using Android\'s low-power motion detection instead of continuous GPS.</string>
+    <string name="settings_help_default_type">Default classification for new trips (Business or Personal).</string>
+    <string name="settings_help_distance_unit">Preferred unit for distances and speeds (km, miles, nautical miles). Existing values are automatically converted.</string>
+    <string name="settings_help_smart_location">Automatically replaces addresses with favorite location names nearby.</string>
+    <string name="settings_help_smart_location_radius">Search radius for automatic favorite location matching.</string>
+    <string name="settings_help_calculate_expenses">Automatically calculates trip expenses based on your set rate.</string>
+    <string name="settings_help_expense_rate_currency">Set the expense reimbursement rate per distance unit and currency.</string>
+    <string name="settings_help_schedule">Set scheduled hours during which trips are tracked or classified.</string>
+    <string name="settings_help_server_settings">Configure custom OSRM routing and Photon geocoding servers.</string>
+    <string name="settings_help_backup_restore">Create or restore manual and automatic JSON backups.</string>
+    <string name="settings_help_manual_backup_restore">Create a manual JSON backup of all trips and settings or restore a previous backup file.</string>
+    <string name="settings_help_auto_backup_toggle">Enables automatic background backups on a fixed schedule.</string>
+    <string name="settings_help_auto_backup_folder_select">Select the target folder where automatic backups will be saved.</string>
+    <string name="settings_help_auto_backup_frequency">Set how often automatic backups are generated (Daily, Weekly, or Monthly).</string>
+    <string name="settings_help_auto_backup_time_schedule">Sets the target time. Exact execution may vary slightly due to Android battery optimization (Doze mode).</string>
 </resources>
