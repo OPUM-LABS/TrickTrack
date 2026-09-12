@@ -565,9 +565,9 @@ class LocationService : Service() {
                 val speed = distance / timeDifference // m/s
                 val speedKmh = speed * 3.6
 
-                // Sanity check: Ignore impossible speeds (> 250 km/h) or poor accuracy caused by cell tower jumps / GPS glitches
-                if (speedKmh > 250.0 || (location.hasAccuracy() && location.accuracy > 100f)) {
-                    AppLogger.log("LocationService", "Ignoring GPS glitch/teleportation. Speed: $speedKmh km/h, Accuracy: ${location.accuracy}")
+                // Sanity check: Ignore impossible speeds (> 250 km/h) or poor initial GPS accuracy (> 35m) caused by cell tower jumps or initial lock settling
+                if (speedKmh > 250.0 || (location.hasAccuracy() && location.accuracy > 35f)) {
+                    AppLogger.log("LocationService", "Ignoring inaccurate GPS fix/teleportation. Speed: $speedKmh km/h, Accuracy: ${location.accuracy}")
                     return@let
                 }
 
@@ -897,23 +897,27 @@ class LocationService : Service() {
                 "LocationService",
                 "Trip too short, not saving. Distance: $finalDistance meters"
             )
-            val currentUnit = currentDistanceUnit
-            val formattedDist = if (currentUnit == DistanceUnit.KM) {
-                "${finalDistance.toInt()} m"
-            } else {
-                "${DistanceFormatter.convertMetersToDisplayRadius(finalDistance.toInt(), currentUnit)} ft"
-            }
 
-            val toastMessage = applicationContext.getString(R.string.trip_too_short_not_saved, formattedDist)
-            Handler(Looper.getMainLooper()).post {
-                Toast.makeText(
-                    applicationContext,
-                    toastMessage,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            // Silently discard phantom 0m/jitter trips without disturbing the user with notifications
+            if (finalDistance >= 15.0) {
+                val currentUnit = currentDistanceUnit
+                val formattedDist = if (currentUnit == DistanceUnit.KM) {
+                    "${finalDistance.toInt()} m"
+                } else {
+                    "${DistanceFormatter.convertMetersToDisplayRadius(finalDistance.toInt(), currentUnit)} ft"
+                }
 
-            TripNotificationManager.sendTripDiscardedNotification(applicationContext, finalDistance.toFloat(), currentUnit)
+                val toastMessage = applicationContext.getString(R.string.trip_too_short_not_saved, formattedDist)
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        applicationContext,
+                        toastMessage,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                TripNotificationManager.sendTripDiscardedNotification(applicationContext, finalDistance.toFloat(), currentUnit)
+            }
         }
     }
 
