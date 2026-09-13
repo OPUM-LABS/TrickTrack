@@ -49,6 +49,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -498,4 +501,19 @@ fun ClearableTextFieldPreview() {
         label = { Text(stringResource(R.string.name)) },
         placeholder = { Text(stringResource(R.string.enter_the_name)) }
     )
+}
+
+@Composable
+fun Modifier.clearFocusOnTap(): Modifier {
+    val focusManager = LocalFocusManager.current
+    return this.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                if (event.type == PointerEventType.Press) {
+                    focusManager.clearFocus()
+                }
+            }
+        }
+    }
 }

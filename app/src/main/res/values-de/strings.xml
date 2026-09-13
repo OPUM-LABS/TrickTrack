@@ -106,6 +106,9 @@
     <string name="onboarding_grant_permission">Berechtigung erteilen</string>
     <string name="onboarding_open_settings">Einstellungen öffnen</string>
     <string name="onboarding_permission_granted">Berechtigung erteilt</string>
+    <string name="onboarding_permission_required">Erforderlich</string>
+    <string name="onboarding_permission_optional">Optional</string>
+    <string name="onboarding_permission_granted_chip">Erteilt</string>
     <string name="onboarding_skip">Überspringen</string>
     <string name="onboarding_privacy_note">🔒 100% Lokal &amp; Privat: Alle Daten bleiben auf Ihrem Gerät. Keine Cloud, kein Tracking, keine Registrierung.</string>
     <string name="onboarding_welcome_steps_overview">In 3 kurzen Schritten richten wir Ihr Fahrtenbuch ein:</string>

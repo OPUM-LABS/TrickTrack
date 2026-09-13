@@ -118,11 +118,12 @@ import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
-import ch.opum.tricktrack.ui.components.SettingHelpBox
 import ch.opum.tricktrack.ui.DialogResetButton
 import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TripsViewModel
+import ch.opum.tricktrack.ui.clearFocusOnTap
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
+import ch.opum.tricktrack.ui.components.SettingHelpBox
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
 import ch.opum.tricktrack.util.DistanceFormatter
 import kotlinx.coroutines.launch
@@ -755,6 +756,7 @@ fun SettingsScreen(
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .clearFocusOnTap()
                                         .padding(horizontal = 24.dp)
                                         .padding(bottom = 32.dp)
                                 ) {

@@ -50,6 +50,7 @@ import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
 import ch.opum.tricktrack.ui.LocationSuggestion
+import ch.opum.tricktrack.ui.clearFocusOnTap
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,6 +103,7 @@ fun AddEditPlaceDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .clearFocusOnTap()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp)
                 .verticalScroll(rememberScrollState())

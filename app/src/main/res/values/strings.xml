@@ -106,6 +106,9 @@
     <string name="onboarding_grant_permission">Grant Permission</string>
     <string name="onboarding_open_settings">Open Settings</string>
     <string name="onboarding_permission_granted">Permission Granted</string>
+    <string name="onboarding_permission_required">Required</string>
+    <string name="onboarding_permission_optional">Optional</string>
+    <string name="onboarding_permission_granted_chip">Granted</string>
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_privacy_note">🔒 100% Local &amp; Private: All data stays on your device. No cloud, no tracking, no account needed.</string>
     <string name="onboarding_welcome_steps_overview">Set up your logbook in 3 quick steps:</string>

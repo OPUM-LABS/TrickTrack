@@ -107,6 +107,9 @@
     <string name="onboarding_grant_permission">Accorder l\'autorisation</string>
     <string name="onboarding_open_settings">Ouvrir les paramètres</string>
     <string name="onboarding_permission_granted">Autorisation accordée</string>
+    <string name="onboarding_permission_required">Requis</string>
+    <string name="onboarding_permission_optional">Optionnel</string>
+    <string name="onboarding_permission_granted_chip">Accordé</string>
     <string name="onboarding_skip">Passer</string>
     <string name="onboarding_privacy_note">🔒 100% Local et privé : Toutes vos données restent sur votre appareil. Pas de cloud ni de compte.</string>
     <string name="onboarding_welcome_steps_overview">Configurez votre carnet de route en 3 étapes rapides :</string>

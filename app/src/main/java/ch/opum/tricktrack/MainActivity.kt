@@ -178,6 +178,7 @@ import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
+import ch.opum.tricktrack.ui.clearFocusOnTap
 import ch.opum.tricktrack.ui.components.FullscreenMapSheet
 import ch.opum.tricktrack.ui.components.TripMapView
 import ch.opum.tricktrack.ui.navigation.Screen
@@ -631,7 +632,9 @@ fun MainScreen(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .clearFocusOnTap()
         ) {
             composable(Screen.Onboarding.route) {
                 OnboardingScreen(
@@ -1420,7 +1423,7 @@ fun EditTripDialog(
             val dateFormat = remember { SimpleDateFormat("EEE, d MMM yy", Locale.getDefault()) }
 
             // Card 1: Date Card
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.fillMaxWidth().clearFocusOnTap()) {
                 TextField(
                     value = dateFormat.format(selectedStartDate.value.time),
                     onValueChange = {},
@@ -1453,7 +1456,7 @@ fun EditTripDialog(
 
             // Card 2: Departure Card (Start Time + Start Address)
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().clearFocusOnTap(),
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
@@ -1567,7 +1570,7 @@ fun EditTripDialog(
 
             // Card 3: Arrival Card (End Time + End Address)
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().clearFocusOnTap(),
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))

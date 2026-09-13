@@ -44,6 +44,7 @@ import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.TripsViewModel
+import ch.opum.tricktrack.ui.clearFocusOnTap
 import ch.opum.tricktrack.ui.place.FavouritesViewModel
 
 enum class OnboardingStep {
@@ -84,6 +85,7 @@ fun OnboardingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .clearFocusOnTap()
                 .padding(padding)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -381,6 +383,7 @@ fun PermissionsStep(
                         title = stringResource(R.string.onboarding_precise_location_title),
                         description = stringResource(R.string.permission_precise_location_desc),
                         isGranted = isLocationGranted,
+                        isRequired = true,
                         onGrant = {
                             locationLauncher.launch(
                                 arrayOf(
@@ -399,6 +402,7 @@ fun PermissionsStep(
                         title = stringResource(R.string.onboarding_background_location_title),
                         description = stringResource(R.string.onboarding_background_location_instruction),
                         isGranted = isBackgroundGranted,
+                        isRequired = true,
                         onGrant = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                                 backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
@@ -416,6 +420,7 @@ fun PermissionsStep(
                         title = stringResource(R.string.onboarding_battery_title),
                         description = stringResource(R.string.onboarding_battery_desc),
                         isGranted = isBatteryGranted,
+                        isRequired = true,
                         onGrant = {
                             try {
                                 @SuppressLint("BatteryLife")
@@ -438,6 +443,7 @@ fun PermissionsStep(
                         title = stringResource(R.string.onboarding_notifications_title),
                         description = stringResource(R.string.onboarding_notifications_desc),
                         isGranted = isNotificationsGranted,
+                        isRequired = true,
                         onGrant = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -455,6 +461,7 @@ fun PermissionsStep(
                         title = stringResource(R.string.permission_bluetooth),
                         description = stringResource(R.string.permission_bluetooth_desc),
                         isGranted = isBluetoothGranted,
+                        isRequired = false,
                         onGrant = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 bluetoothLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
@@ -507,6 +514,7 @@ fun PermissionCheckRow(
     title: String,
     description: String,
     isGranted: Boolean,
+    isRequired: Boolean = true,
     onGrant: () -> Unit
 ) {
     Row(
@@ -521,7 +529,55 @@ fun PermissionCheckRow(
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                if (isGranted) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color(0xFF2E7D32).copy(alpha = 0.2f)
+                    ) {
+                        Text(
+                            text = "✓ " + stringResource(R.string.onboarding_permission_granted_chip),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF2E7D32),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                } else if (isRequired) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.onboarding_permission_required),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                } else {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.onboarding_permission_optional),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(2.dp))
             Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(modifier = Modifier.width(12.dp))
@@ -540,18 +596,29 @@ fun PermissionCheckRow(
                 )
             }
         } else {
-            IconButton(
-                onClick = onGrant,
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = stringResource(R.string.onboarding_grant_permission),
-                    modifier = Modifier.size(24.dp)
+            Box(contentAlignment = Alignment.TopEnd) {
+                IconButton(
+                    onClick = onGrant,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = stringResource(R.string.onboarding_grant_permission),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .offset(x = 2.dp, y = (-2).dp)
+                        .background(
+                            if (isRequired) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+                            shape = CircleShape
+                        )
                 )
             }
         }
@@ -572,6 +639,7 @@ fun AddFavouritesStep(
     var companyName by remember { mutableStateOf("") }
     var licensePlate by remember { mutableStateOf("") }
     var vehicleBrand by remember { mutableStateOf("Volkswagen") }
+    var carModel by remember { mutableStateOf("") }
     var initialOdometer by remember { mutableStateOf("") }
     var brandExpanded by remember { mutableStateOf(false) }
 
@@ -639,7 +707,7 @@ fun AddFavouritesStep(
                     ClearableTextField(
                         value = licensePlate,
                         onValueChange = { licensePlate = it },
-                        label = { Text(stringResource(R.string.export_column_vehicle)) },
+                        label = { Text(stringResource(R.string.favourites_license_plate_label)) },
                         placeholder = { Text("ZH 766767") },
                         trailingIcon = { Icon(Icons.Default.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         modifier = Modifier.fillMaxWidth(),
@@ -657,7 +725,7 @@ fun AddFavouritesStep(
                             value = vehicleBrand,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text(stringResource(R.string.export_column_vehicle)) },
+                            label = { Text(stringResource(R.string.favourites_car_brand_label)) },
                             leadingIcon = {
                                 if (iconResId != 0) {
                                     Icon(
@@ -712,6 +780,17 @@ fun AddFavouritesStep(
                         }
                     }
 
+                    // Car Model Field
+                    ClearableTextField(
+                        value = carModel,
+                        onValueChange = { carModel = it },
+                        label = { Text(stringResource(R.string.favourites_car_model_label)) },
+                        placeholder = { Text("Golf 8") },
+                        trailingIcon = { Icon(Icons.Default.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        modifier = Modifier.fillMaxWidth(),
+                        isFilled = true
+                    )
+
                     // Initial Odometer
                     ClearableTextField(
                         value = initialOdometer,
@@ -753,7 +832,7 @@ fun AddFavouritesStep(
                         val odoDouble = initialOdometer.toDoubleOrNull() ?: 0.0
                         favouritesViewModel.addVehicle(
                             licensePlate = licensePlate,
-                            carModel = null,
+                            carModel = carModel.ifBlank { null },
                             brand = vehicleBrand,
                             odometer = odoDouble
                         )
