@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Work
@@ -114,6 +115,7 @@ import ch.opum.tricktrack.data.DaySchedule
 import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTypeTarget
+import ch.opum.tricktrack.logging.DebugExporter
 import ch.opum.tricktrack.ui.ClearableTextField
 import ch.opum.tricktrack.ui.ConfirmationBottomSheet
 import ch.opum.tricktrack.ui.DialogAcceptButton
@@ -1445,9 +1447,8 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onShowLogsDialog() },
-                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
-            )
-{
+                shape = RoundedCornerShape(0.dp)
+            ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -1456,6 +1457,42 @@ fun SettingsScreen(
                     Icon(
                         Icons.Default.BugReport,
                         contentDescription = stringResource(R.string.settings_logs_title)
+                    )
+                }
+            }
+
+            HorizontalDivider()
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        scope.launch {
+                            DebugExporter.createAndShareDebugPackage(context)
+                        }
+                    },
+                shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.settings_export_debug),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_export_debug_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        Icons.Default.Share,
+                        contentDescription = stringResource(R.string.settings_export_debug),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }

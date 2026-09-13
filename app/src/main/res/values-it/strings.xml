@@ -140,6 +140,9 @@
     <string name="button_decline">Rifiuta</string>
     <string name="onboarding_tracking_requires_location">Disattivato: Richiede l\'autorizzazione per la posizione (concedi al passaggio 1).</string>
     <string name="onboarding_tracking_requires_bluetooth">Disattivato: Richiede l\'autorizzazione Bluetooth (concedi al passaggio 1).</string>
+    <string name="settings_export_debug">Esporta pacchetto di diagnostica (.zip)</string>
+    <string name="settings_export_debug_desc">Crea un file ZIP con info di sistema, autorizzazioni e log. Precompila app@opum.ch per il supporto.</string>
+    <string name="debug_export_chooser_title">Condividi pacchetto di diagnostica (app@opum.ch)</string>
     <string name="unknown_device">Dispositivo sconosciuto</string>
 
     <!-- New strings for SettingsScreen.kt -->

@@ -139,6 +139,9 @@
     <string name="button_decline">Ablehnen</string>
     <string name="onboarding_tracking_requires_location">Deaktiviert: Erfordert Standort-Berechtigung (in Schritt 1 erteilen).</string>
     <string name="onboarding_tracking_requires_bluetooth">Deaktiviert: Erfordert Bluetooth-Berechtigung (in Schritt 1 erteilen).</string>
+    <string name="settings_export_debug">Diagnosepaket exportieren (.zip)</string>
+    <string name="settings_export_debug_desc">Erstellt eine ZIP-Datei mit System-Info, Berechtigungsstatus, Einstellungen und Protokollen. Beim E-Mail-Versand wird app@opum.ch vorausgefüllt.</string>
+    <string name="debug_export_chooser_title">Diagnosepaket senden (app@opum.ch)</string>
     <string name="unknown_device">Unbekanntes Gerät</string>
 
     <!-- New strings for SettingsScreen.kt -->

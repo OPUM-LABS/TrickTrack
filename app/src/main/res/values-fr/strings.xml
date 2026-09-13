@@ -140,6 +140,9 @@
     <string name="button_decline">Refuser</string>
     <string name="onboarding_tracking_requires_location">Désactivé : Nécessite l\'autorisation de localisation (accordez à l\'étape 1).</string>
     <string name="onboarding_tracking_requires_bluetooth">Désactivé : Nécessite l\'autorisation Bluetooth (accordez à l\'étape 1).</string>
+    <string name="settings_export_debug">Exporter le package de diagnostic (.zip)</string>
+    <string name="settings_export_debug_desc">Crée un fichier ZIP avec les infos système, autorisations et journaux. Pré-remplit app@opum.ch pour le support.</string>
+    <string name="debug_export_chooser_title">Partager le package de diagnostic (app@opum.ch)</string>
     <string name="unknown_device">Appareil inconnu</string>
 
     <!-- New strings for SettingsScreen.kt -->

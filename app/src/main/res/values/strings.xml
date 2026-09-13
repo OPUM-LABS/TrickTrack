@@ -139,6 +139,9 @@
     <string name="button_decline">Decline</string>
     <string name="onboarding_tracking_requires_location">Disabled: Requires Location permission (grant in Step 1).</string>
     <string name="onboarding_tracking_requires_bluetooth">Disabled: Requires Bluetooth permission (grant in Step 1).</string>
+    <string name="settings_export_debug">Export Debug Package (.zip)</string>
+    <string name="settings_export_debug_desc">Creates a ZIP file with system info, permission status, settings, and logs. Pre-fills app@opum.ch for email support.</string>
+    <string name="debug_export_chooser_title">Share Debug Package (app@opum.ch)</string>
     <string name="unknown_device">Unknown Device</string>
 
     <!-- New strings for SettingsScreen.kt -->
