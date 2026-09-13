@@ -509,9 +509,12 @@ fun Modifier.clearFocusOnTap(): Modifier {
     return this.pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
-                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val event = awaitPointerEvent(PointerEventPass.Main)
                 if (event.type == PointerEventType.Press) {
-                    focusManager.clearFocus()
+                    val isConsumed = event.changes.any { it.isConsumed }
+                    if (!isConsumed) {
+                        focusManager.clearFocus()
+                    }
                 }
             }
         }
