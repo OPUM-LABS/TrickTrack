@@ -19,8 +19,8 @@ android {
         applicationId = "ch.opum.tricktrack"
         minSdk = 26
         targetSdk = 37
-        versionCode = 26
-        versionName = "2.5.6"
+        versionCode = 27
+        versionName = "2.5.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -98,6 +98,9 @@ dependencies {
 
     // OkHttp
     implementation(libs.okhttp)
+
+    // Material Components
+    implementation(libs.material.components)
 
     // osmdroid (OpenStreetMap)
     implementation(libs.osmdroid.android)
