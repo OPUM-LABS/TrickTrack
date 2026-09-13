@@ -197,6 +197,7 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import androidx.activity.SystemBarStyle
 import java.util.Date
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
@@ -208,10 +209,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            )
+        )
 
         _currentIntent.value = intent // Set initial intent
 
@@ -633,7 +640,9 @@ fun MainScreen(
                         navController.navigate(Screen.TripList.route) {
                             popUpTo(Screen.Onboarding.route) { inclusive = true }
                         }
-                    }
+                    },
+                    tripsViewModel = tripsViewModel,
+                    favouritesViewModel = favouritesViewModel
                 )
             }
             composable(Screen.Review.route) {

@@ -94,7 +94,7 @@
     <!-- Onboarding -->
     <string name="screen_title_onboarding">Benvenuto</string>
     <string name="onboarding_welcome_title">Benvenuto in TrickTrack</string>
-    <string name="onboarding_welcome_desc">Il compagno intelligente per i tuoi registri di bordo. Configuriamo tutto per il tracciamento automatico.</string>
+    <string name="onboarding_welcome_desc">Il compagno intelligente per i tuoi registri di bordo.\nConfiguriamo tutto per il tracciamento automatico.</string>
     <string name="onboarding_precise_location_title">Posizione precisa</string>
     <string name="onboarding_background_location_title">Posizione in background</string>
     <string name="onboarding_background_location_instruction">Nella schermata successiva, seleziona \"Consenti sempre\" per abilitare il rilevamento automatico dei viaggi.</string>
@@ -108,15 +108,35 @@
     <string name="onboarding_open_settings">Apri impostazioni</string>
     <string name="onboarding_permission_granted">Autorizzazione concessa</string>
     <string name="onboarding_skip">Salta</string>
+    <string name="onboarding_privacy_note">🔒 100% Locale e privato: Tutti i dati rimangono sul tuo dispositivo. Nessun cloud o account.</string>
+    <string name="onboarding_welcome_steps_overview">Configura il tuo registro in 3 rapidi passaggi:</string>
+    <string name="onboarding_step_1_summary">1. Autorizzazioni per il tracciamento automatico</string>
+    <string name="onboarding_step_2_summary">2. Preferiti (Conducente, Azienda e Veicolo)</string>
+    <string name="onboarding_step_3_summary">3. Modalità di tracciamento preferita</string>
+    <string name="onboarding_start_setup">Avvia configurazione</string>
+    <string name="onboarding_step_permissions_title">Concedi autorizzazioni</string>
+    <string name="onboarding_step_permissions_desc">TrickTrack richiede le autorizzazioni per tracciare i viaggi in background.</string>
+    <string name="onboarding_step_favorites_title">Imposta i preferiti</string>
+    <string name="onboarding_step_favorites_desc">Aggiungi nome, azienda e veicolo per compilare automaticamente i report.</string>
+    <string name="onboarding_step_tracking_title">Configura tracciamento</string>
+    <string name="onboarding_step_tracking_desc">Scegli come TrickTrack deve registrare i tuoi viaggi.</string>
+    <string name="onboarding_driver_label">Nome conducente (opzionale)</string>
+    <string name="onboarding_company_label">Nome azienda (opzionale)</string>
+    <string name="onboarding_save_and_continue">Salva e continua</string>
+    <string name="onboarding_spotlight_title">Tutto pronto!</string>
+    <string name="onboarding_spotlight_desc">TrickTrack è pronto per registrare i tuoi viaggi. Tocca in qualsiasi momento per regolare le impostazioni.</string>
 
     <!-- General -->
     <string name="button_save">Salva</string>
     <string name="button_cancel">Annulla</string>
+    <string name="button_back">Indietro</string>
     <string name="button_ok">OK</string>
     <string name="button_done">Fatto</string>
     <string name="button_close">Chiudi</string>
     <string name="button_accept">Accetta</string>
     <string name="button_decline">Rifiuta</string>
+    <string name="onboarding_tracking_requires_location">Disattivato: Richiede l\'autorizzazione per la posizione (concedi al passaggio 1).</string>
+    <string name="onboarding_tracking_requires_bluetooth">Disattivato: Richiede l\'autorizzazione Bluetooth (concedi al passaggio 1).</string>
     <string name="unknown_device">Dispositivo sconosciuto</string>
 
     <!-- New strings for SettingsScreen.kt -->
