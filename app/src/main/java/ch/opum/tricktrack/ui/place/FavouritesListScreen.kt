@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,10 +42,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -148,19 +149,21 @@ fun PlacesListScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().clearFocusOnTap()) {
-        PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
+        NavigationBar(
+            modifier = Modifier.fillMaxWidth(),
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        ) {
             tabTitles.forEachIndexed { index, title ->
-                Tab(
+                NavigationBarItem(
                     selected = selectedTabIndex == index,
                     onClick = { viewModel.selectTab(index) },
                     icon = {
                         Icon(
                             imageVector = tabIcons[index],
-                            contentDescription = title,
-                            modifier = Modifier.size(20.dp)
+                            contentDescription = title
                         )
                     },
-                    text = {
+                    label = {
                         Text(
                             text = title,
                             style = MaterialTheme.typography.labelSmall,
