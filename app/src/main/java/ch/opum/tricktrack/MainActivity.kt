@@ -1169,24 +1169,27 @@ fun TripScreen(
                     enter = fadeIn() + expandVertically(),
                     exit = fadeOut() + shrinkVertically()
                 ) {
-                    FilledTonalButton(
+                    Button(
                         onClick = {
                             scope.launch {
                                 listState.animateScrollToItem(0)
                             }
                         },
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
                             contentDescription = null
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.scroll_to_top))
+                        Text(
+                            text = stringResource(R.string.scroll_to_top),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
