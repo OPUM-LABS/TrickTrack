@@ -3,6 +3,7 @@
 package ch.opum.tricktrack.data
 
 import android.content.Context
+import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -233,7 +234,7 @@ class UserPreferencesRepository(private val context: Context) {
 
     val isDynamicColorEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.IS_DYNAMIC_COLOR_ENABLED] ?: false
+            preferences[PreferencesKeys.IS_DYNAMIC_COLOR_ENABLED] ?: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
         }
 
     suspend fun setIsDynamicColorEnabled(enabled: Boolean) {

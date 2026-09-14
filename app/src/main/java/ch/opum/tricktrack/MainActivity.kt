@@ -1045,7 +1045,7 @@ fun TripScreen(
                                     horizontalAlignment = Alignment.End,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
+                                    val formattedDistance = DistanceFormatter.format(group.totalDistance, distanceUnit)
                                     Text(
                                         text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
                                         style = MaterialTheme.typography.titleMedium,
@@ -1060,7 +1060,7 @@ fun TripScreen(
                                     )
                                 }
                             } else {
-                                val formattedDistance = DistanceFormatter.formatShort(group.totalDistance, distanceUnit)
+                                val formattedDistance = DistanceFormatter.format(group.totalDistance, distanceUnit)
                                 Text(
                                     text = stringResource(R.string.trip_count_and_distance_label, group.trips.size, formattedDistance),
                                     style = MaterialTheme.typography.titleMedium,

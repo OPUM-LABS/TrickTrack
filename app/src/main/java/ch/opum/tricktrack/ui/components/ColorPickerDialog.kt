@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -177,7 +178,9 @@ fun ColorPickerDialog(
             // Real-time Gradient Brightness / Value Slider
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(if (isDynamicSelected) 0.38f else 1.0f)
             ) {
                 Text(
                     text = stringResource(R.string.accent_color_brightness_label),
@@ -215,11 +218,15 @@ fun ColorPickerDialog(
                             value = it
                             isDynamicSelected = false
                         },
+                        enabled = !isDynamicSelected,
                         valueRange = 0.3f..1.0f,
                         colors = SliderDefaults.colors(
                             thumbColor = currentColor,
+                            disabledThumbColor = currentColor,
                             activeTrackColor = Color.Transparent,
-                            inactiveTrackColor = Color.Transparent
+                            inactiveTrackColor = Color.Transparent,
+                            disabledActiveTrackColor = Color.Transparent,
+                            disabledInactiveTrackColor = Color.Transparent
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )

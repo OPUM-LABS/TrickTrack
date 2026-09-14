@@ -623,7 +623,7 @@ class TripsViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
+            initialValue = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         )
 
     private val scheduleTicker = flow {

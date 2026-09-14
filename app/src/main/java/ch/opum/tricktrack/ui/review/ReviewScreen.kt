@@ -2,7 +2,6 @@ package ch.opum.tricktrack.ui.review
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.background
@@ -105,6 +104,9 @@ fun ReviewScreen(viewModel: TripsViewModel) {
     val allVehicles by viewModel.allVehicles.collectAsState()
     val distanceUnit by viewModel.distanceUnit.collectAsState()
     val pendingDiscardedTrips by viewModel.pendingDiscardedTrips.collectAsState()
+    val expenseTrackingEnabled by viewModel.expenseTrackingEnabled.collectAsState()
+    val expenseRatePerKm by viewModel.expenseRatePerKm.collectAsState()
+    val expenseCurrency by viewModel.expenseCurrency.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val singleDiscardText = stringResource(R.string.review_trip_discarded_single)
@@ -203,13 +205,20 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     groupedTrips.forEach { group ->
+                        val dailyTotalCost = if (expenseTrackingEnabled) {
+                            group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
+                        } else {
+                            0.0f
+                        }
                         stickyHeader {
                             ReviewListHeader(
                                 date = group.date,
                                 tripCount = group.trips.size,
                                 totalDistance = group.totalDistance,
-                                isOdometerModeEnabled = isOdometerModeEnabled,
-                                distanceUnit = distanceUnit
+                                distanceUnit = distanceUnit,
+                                dailyTotalCost = dailyTotalCost,
+                                expenseTrackingEnabled = expenseTrackingEnabled,
+                                expenseCurrency = expenseCurrency
                             )
                         }
                         items(group.trips, key = { it.trip.id }) { tripWithVehicle ->
@@ -218,6 +227,9 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                                 allVehicles = allVehicles,
                                 isOdometerModeEnabled = isOdometerModeEnabled,
                                 distanceUnit = distanceUnit,
+                                expenseTrackingEnabled = expenseTrackingEnabled,
+                                expenseRatePerKm = expenseRatePerKm,
+                                expenseCurrency = expenseCurrency,
                                 onApprove = { finalType, selectedVehicle, endOdometer, description ->
                                     viewModel.approveTrip(
                                         trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
@@ -254,12 +266,16 @@ fun ReviewListHeader(
     date: Long,
     tripCount: Int,
     totalDistance: Double,
-    isOdometerModeEnabled: Boolean,
-    distanceUnit: DistanceUnit
+    distanceUnit: DistanceUnit,
+    modifier: Modifier = Modifier,
+    dailyTotalCost: Float = 0f,
+    expenseTrackingEnabled: Boolean = false,
+    expenseCurrency: String = ""
 ) {
-    val dateFormatter = remember { SimpleDateFormat("EEE, d MMM yy", Locale.getDefault()) }
+    val locale = LocalLocale.current.platformLocale
+    val dateFormatter = remember(locale) { SimpleDateFormat("EEE, d MMM yy", locale) }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
             .padding(vertical = 16.dp, horizontal = 16.dp),
@@ -271,19 +287,33 @@ fun ReviewListHeader(
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.weight(1f))
-        val formattedDistance = DistanceFormatter.formatShort(totalDistance, distanceUnit)
-        val distanceText = if (isOdometerModeEnabled) {
-            // In odometer mode, total distance might be slightly different if user hasn't entered all yet
-            // But we display what we have.
-            stringResource(R.string.review_trip_count_and_distance, tripCount, formattedDistance)
+        val formattedDistance = DistanceFormatter.format(totalDistance, distanceUnit)
+        val distanceText = stringResource(R.string.review_trip_count_and_distance, tripCount, formattedDistance)
+        if (expenseTrackingEnabled && dailyTotalCost > 0f) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = distanceText,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = String.format(LocalLocale.current.platformLocale, "%.2f %s", dailyTotalCost, expenseCurrency),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         } else {
-            stringResource(R.string.review_trip_count_and_distance, tripCount, formattedDistance)
+            Text(
+                text = distanceText,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-        Text(
-            text = distanceText,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
     }
 }
 
@@ -295,6 +325,9 @@ fun ReviewTripCard(
     allVehicles: List<VehicleEntity>,
     isOdometerModeEnabled: Boolean,
     distanceUnit: DistanceUnit,
+    expenseTrackingEnabled: Boolean,
+    expenseRatePerKm: Float,
+    expenseCurrency: String,
     onApprove: (TripType, VehicleEntity?, Double?, String?) -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier,
@@ -464,13 +497,33 @@ fun ReviewTripCard(
                         textStyle = MaterialTheme.typography.bodySmall
                     )
                 } else {
-                    Text(
-                        text = DistanceFormatter.format(trip.distance, distanceUnit),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        modifier = Modifier.basicMarquee()
-                    )
+                    if (expenseTrackingEnabled) {
+                        val tripCost = trip.distance.toFloat() * expenseRatePerKm
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = DistanceFormatter.format(trip.distance, distanceUnit),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = String.format(LocalLocale.current.platformLocale, "%.2f %s", tripCost, expenseCurrency),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = DistanceFormatter.format(trip.distance, distanceUnit),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 

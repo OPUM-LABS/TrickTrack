@@ -1,10 +1,8 @@
 package ch.opum.tricktrack.ui.theme
 
-import android.graphics.Color as AndroidColor
+import android.app.Activity
 import android.os.Build
-import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -87,19 +85,10 @@ fun TrickTrackTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val activity = view.context as? ComponentActivity
-            activity?.enableEdgeToEdge(
-                statusBarStyle = SystemBarStyle.auto(
-                    AndroidColor.TRANSPARENT,
-                    AndroidColor.TRANSPARENT,
-                    detectDarkMode = { isHeaderBackgroundDark }
-                ),
-                navigationBarStyle = SystemBarStyle.auto(
-                    AndroidColor.TRANSPARENT,
-                    AndroidColor.TRANSPARENT,
-                    detectDarkMode = { darkTheme }
-                )
-            )
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = !isHeaderBackgroundDark
+            insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
