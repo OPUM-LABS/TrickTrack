@@ -215,17 +215,21 @@ fun TimelineNode() {
             .width(24.dp)
     ) {
         val circleRadius = 6.dp
-        val strokeWidth = 2.dp
-        val lineColor = MaterialTheme.colorScheme.outlineVariant
+        val strokeWidth = 2.5.dp
+        val themeColor = MaterialTheme.colorScheme.primary
         val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
 
         Spacer(modifier = Modifier.height(4.dp))
         // Start Circle
         Canvas(modifier = Modifier.size(circleRadius * 2)) {
             drawCircle(
-                color = lineColor,
+                color = themeColor,
                 radius = size.minDimension / 2,
                 style = Stroke(width = strokeWidth.toPx())
+            )
+            drawCircle(
+                color = themeColor,
+                radius = size.minDimension / 4
             )
         }
 
@@ -236,7 +240,7 @@ fun TimelineNode() {
                 .width(strokeWidth)
         ) {
             drawLine(
-                color = lineColor,
+                color = themeColor,
                 start = center.copy(y = 0f),
                 end = center.copy(y = size.height),
                 strokeWidth = strokeWidth.toPx(),
@@ -247,9 +251,13 @@ fun TimelineNode() {
         // End Circle
         Canvas(modifier = Modifier.size(circleRadius * 2)) {
             drawCircle(
-                color = lineColor,
+                color = themeColor,
                 radius = size.minDimension / 2,
                 style = Stroke(width = strokeWidth.toPx())
+            )
+            drawCircle(
+                color = themeColor,
+                radius = size.minDimension / 4
             )
         }
         Spacer(modifier = Modifier.height(4.dp))

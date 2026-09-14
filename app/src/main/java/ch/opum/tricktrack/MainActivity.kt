@@ -225,8 +225,14 @@ class MainActivity : ComponentActivity() {
                 ),
             )
             val themeMode by tripsViewModel.themeMode.collectAsState()
+            val accentColorHex by tripsViewModel.accentColorHex.collectAsState()
+            val isDynamicColorEnabled by tripsViewModel.isDynamicColorEnabled.collectAsState()
 
-            TrickTrackTheme(themeMode = themeMode) {
+            TrickTrackTheme(
+                themeMode = themeMode,
+                accentColorHex = accentColorHex,
+                dynamicColor = isDynamicColorEnabled
+            ) {
                 val context = LocalContext.current
                 val application = context.applicationContext as TripApplication
                 MainScreen(
@@ -262,6 +268,7 @@ fun MainScreen(
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
     val hasCompletedOnboarding by tripsViewModel.hasCompletedOnboarding.collectAsState()
+    val isDynamicColorEnabled by tripsViewModel.isDynamicColorEnabled.collectAsState()
 
     val startDestination = remember(hasCompletedOnboarding) {
         if (hasCompletedOnboarding) Screen.TripList.route else Screen.Onboarding.route
@@ -453,8 +460,11 @@ fun MainScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                        containerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
+                        scrolledContainerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
+                        titleContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
                     ),
                     actions = {
                         when (currentRoute) {
@@ -563,7 +573,7 @@ fun MainScreen(
                                     Icon(
                                         imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
                                         contentDescription = stringResource(R.string.action_toggle_help),
-                                        tint = if (showSettingsHelp) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                        tint = LocalContentColor.current
                                     )
                                 }
                                 IconButton(onClick = { showAboutDialog = true }) {
@@ -2049,8 +2059,7 @@ fun TripItem(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     val isBusiness = trip.type == "Business"
-                    val typeColor =
-                        if (isBusiness) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    val typeColor = MaterialTheme.colorScheme.primary
                     val typeIcon = if (isBusiness) Icons.Default.Work else Icons.Default.Person
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2174,8 +2183,9 @@ fun TripItem(
                                 Surface(
                                     onClick = { isMapExpanded = !isMapExpanded },
                                     shape = RoundedCornerShape(8.dp),
-                                    color = if (isMapExpanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                                    contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = if (isMapExpanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+                                    contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
@@ -2209,26 +2219,28 @@ fun TripItem(
                     ) {
                         Surface(
                             modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                            shape = RoundedCornerShape(8.dp)
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                            shape = RoundedCornerShape(10.dp)
                         ) {
                             Row(
-                                modifier = Modifier.padding(8.dp),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.Notes,
                                     contentDescription = stringResource(R.string.description_cd),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = trip.description,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontStyle = FontStyle.Italic
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontStyle = FontStyle.Italic,
+                                        fontWeight = FontWeight.SemiBold
                                     ),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -2239,8 +2251,9 @@ fun TripItem(
                             Surface(
                                 onClick = { isMapExpanded = !isMapExpanded },
                                 shape = RoundedCornerShape(8.dp),
-                                color = if (isMapExpanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                                contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isMapExpanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+                                contentColor = if (isMapExpanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),

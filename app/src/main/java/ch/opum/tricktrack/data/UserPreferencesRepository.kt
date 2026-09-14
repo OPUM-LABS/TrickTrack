@@ -65,6 +65,8 @@ class UserPreferencesRepository(private val context: Context) {
         val IS_DISTANCE_MONITORING_ENABLED = booleanPreferencesKey("is_distance_monitoring_enabled")
         val DISTANCE_MONITORING_RADIUS = intPreferencesKey("distance_monitoring_radius")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val ACCENT_COLOR_HEX = longPreferencesKey("accent_color_hex")
+        val IS_DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("is_dynamic_color_enabled")
         val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
         val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
         val SHOW_SETTINGS_HELP = booleanPreferencesKey("show_settings_help")
@@ -215,6 +217,28 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setScheduleEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_SCHEDULE_ENABLED] = enabled
+        }
+    }
+
+    val accentColorHex: Flow<Long> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.ACCENT_COLOR_HEX] ?: 0xFF6750A4L
+        }
+
+    suspend fun setAccentColorHex(colorLong: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ACCENT_COLOR_HEX] = colorLong
+        }
+    }
+
+    val isDynamicColorEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.IS_DYNAMIC_COLOR_ENABLED] ?: false
+        }
+
+    suspend fun setIsDynamicColorEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_DYNAMIC_COLOR_ENABLED] = enabled
         }
     }
 

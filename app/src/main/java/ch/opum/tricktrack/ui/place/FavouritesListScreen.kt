@@ -796,14 +796,13 @@ fun GenericGroupedList(
                             ) {
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                                    color = MaterialTheme.colorScheme.primary
                                 ) {
                                     Text(
                                         text = header.toString(),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = MaterialTheme.colorScheme.onPrimary,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
                                     )
                                 }
@@ -819,13 +818,13 @@ fun GenericGroupedList(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Surface(
                                         shape = RoundedCornerShape(6.dp),
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                        color = MaterialTheme.colorScheme.primary
                                     ) {
                                         Text(
                                             text = stringResource(R.string.favourites_header_default),
                                             style = MaterialTheme.typography.labelMedium,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                                         )
                                     }
@@ -1003,14 +1002,13 @@ fun SavedPlaceList(
                             ) {
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                                    color = MaterialTheme.colorScheme.primary
                                 ) {
                                     Text(
                                         text = header.toString(),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = MaterialTheme.colorScheme.onPrimary,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
                                     )
                                 }

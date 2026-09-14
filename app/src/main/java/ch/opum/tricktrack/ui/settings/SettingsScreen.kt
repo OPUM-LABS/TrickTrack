@@ -16,8 +16,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +38,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -124,6 +128,7 @@ import ch.opum.tricktrack.ui.DialogResetButton
 import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.clearFocusOnTap
+import ch.opum.tricktrack.ui.components.ColorPickerDialog
 import ch.opum.tricktrack.ui.components.ExpandableSettingsGroup
 import ch.opum.tricktrack.ui.components.SettingHelpBox
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
@@ -588,7 +593,23 @@ fun SettingsScreen(
         }
 
         val themeMode by viewModel.themeMode.collectAsState()
+        val accentColorHex by viewModel.accentColorHex.collectAsState()
+        val isDynamicColorEnabled by viewModel.isDynamicColorEnabled.collectAsState()
         val showSettingsHelp by viewModel.showSettingsHelp.collectAsState()
+        var showColorPickerDialog by remember { mutableStateOf(false) }
+
+        if (showColorPickerDialog) {
+            ColorPickerDialog(
+                initialColorLong = accentColorHex,
+                initialIsDynamic = isDynamicColorEnabled,
+                onDismiss = { showColorPickerDialog = false },
+                onSave = { selectedColor, isDynamic ->
+                    viewModel.setAccentColorHex(selectedColor)
+                    viewModel.setIsDynamicColorEnabled(isDynamic)
+                    showColorPickerDialog = false
+                }
+            )
+        }
 
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_appearance_title),
@@ -633,6 +654,34 @@ fun SettingsScreen(
                     }
                     if (showSettingsHelp) {
                         SettingHelpBox(helpText = stringResource(R.string.settings_help_theme))
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showColorPickerDialog = true }
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_accent_color_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(if (isDynamicColorEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MaterialTheme.colorScheme.primary else Color(accentColorHex.toInt()))
+                                .border(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), CircleShape)
+                        )
+                    }
+
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_accent_color))
                     }
                 }
             }

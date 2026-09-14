@@ -612,6 +612,20 @@ class TripsViewModel(
             initialValue = "SYSTEM"
         )
 
+    val accentColorHex: StateFlow<Long> = userPreferencesRepository.accentColorHex
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0xFF6750A4L
+        )
+
+    val isDynamicColorEnabled: StateFlow<Boolean> = userPreferencesRepository.isDynamicColorEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     private val scheduleTicker = flow {
         while (true) {
             emit(Unit)
@@ -1312,6 +1326,18 @@ class TripsViewModel(
     fun setThemeMode(mode: String) {
         viewModelScope.launch {
             userPreferencesRepository.setThemeMode(mode)
+        }
+    }
+
+    fun setAccentColorHex(colorLong: Long) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAccentColorHex(colorLong)
+        }
+    }
+
+    fun setIsDynamicColorEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setIsDynamicColorEnabled(enabled)
         }
     }
 }

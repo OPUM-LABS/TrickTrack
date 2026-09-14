@@ -342,7 +342,7 @@ fun ReviewTripCard(
                     Icon(
                         imageVector = if (selectedType == TripType.BUSINESS) Icons.Default.Work else Icons.Default.Person,
                         contentDescription = null,
-                        tint = if (selectedType == TripType.BUSINESS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -629,31 +629,33 @@ fun ReviewTripCard(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Notes,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Surface(
-                        modifier = Modifier.weight(1f).height(36.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                        modifier = Modifier.weight(1f).height(40.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     ) {
                         Box(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp),
                             contentAlignment = Alignment.CenterStart
                         ) {
                             if (note.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.review_note_placeholder),
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             }
                             BasicTextField(
                                 value = note,
                                 onValueChange = { note = it },
-                                textStyle = MaterialTheme.typography.bodySmall.copy(
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.SemiBold,
                                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                 ),
                                 modifier = Modifier.fillMaxWidth(),

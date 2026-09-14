@@ -143,6 +143,11 @@
     <string name="settings_export_debug">Exporter le package de diagnostic (.zip)</string>
     <string name="settings_export_debug_desc">Crée un fichier ZIP avec les infos système, autorisations et journaux. Pré-remplit app@opum.ch pour le support.</string>
     <string name="debug_export_chooser_title">Partager le package de diagnostic (app@opum.ch)</string>
+    <string name="accent_color_dialog_title">Choisir la couleur d\'accentuation</string>
+    <string name="accent_color_brightness_label">Luminosité</string>
+    <string name="accent_color_presets_title">Sélection rapide</string>
+    <string name="settings_accent_color_title">Couleur d\'accentuation</string>
+    <string name="settings_help_accent_color">Choisissez une couleur d\'accentuation personnalisée avec la roue des couleurs ou des raccourcis.</string>
     <string name="unknown_device">Appareil inconnu</string>
 
     <!-- New strings for SettingsScreen.kt -->
