@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
@@ -120,6 +121,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -145,8 +147,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -819,71 +823,91 @@ fun TripScreen(
                 } else {
                     ButtonDefaults.filledTonalButtonColors()
                 }
-                FilledTonalButton(
-                    onClick = {
-                        if (isTracking) {
-                            tripsViewModel.stopTracking()
-                            navController.navigate(Screen.Review.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                val density = LocalDensity.current
+                val buttonDensity = remember(density) {
+                    Density(
+                        density = density.density,
+                        fontScale = density.fontScale.coerceAtMost(1.25f)
+                    )
+                }
+
+                CompositionLocalProvider(LocalDensity provides buttonDensity) {
+                    FilledTonalButton(
+                        onClick = {
+                            if (isTracking) {
+                                tripsViewModel.stopTracking()
+                                navController.navigate(Screen.Review.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            } else {
+                                onStartTrip()
+                            }
+                        },
+                        colors = buttonColors,
+                        modifier = Modifier
+                            .width(135.dp)
+                            .heightIn(min = 48.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = if (isTracking) 2.dp else 4.dp)
+                    ) {
+                        val formattedLiveDistance = DistanceFormatter.formatShort(distance / 1000.0, distanceUnit)
+                        if (isTracking) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Stop,
+                                    contentDescription = stringResource(R.string.stop),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column(
+                                    horizontalAlignment = Alignment.Start,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.stop),
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            lineHeight = 14.sp
+                                        ),
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = formattedLiveDistance,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            lineHeight = 12.sp
+                                        ),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         } else {
-                            onStartTrip()
-                        }
-                    },
-                    colors = buttonColors,
-                    modifier = Modifier
-                        .width(135.dp)
-                        .height(48.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    val formattedLiveDistance = DistanceFormatter.formatShort(distance / 1000.0, distanceUnit)
-                    if (isTracking) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Stop,
-                                contentDescription = stringResource(R.string.stop),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column(
-                                horizontalAlignment = Alignment.Start
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = stringResource(R.string.stop),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold
+                                Icon(
+                                    imageVector = Icons.Default.DirectionsCar,
+                                    contentDescription = stringResource(R.string.start_trip_button),
+                                    modifier = Modifier.size(20.dp)
                                 )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = formattedLiveDistance,
-                                    style = MaterialTheme.typography.labelSmall
+                                    text = stringResource(R.string.start_trip_button),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
                                 )
                             }
-                        }
-                    } else {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.DirectionsCar,
-                                contentDescription = stringResource(R.string.start_trip_button),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.start_trip_button),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold
-                            )
                         }
                     }
                 }
