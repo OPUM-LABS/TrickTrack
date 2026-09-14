@@ -890,7 +890,7 @@ class TripsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             if (trip.endOdometer != null && trip.vehicleId != null) {
                 favouritesRepository.getVehicleById(trip.vehicleId)?.let { vehicle ->
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = trip.endOdometer))
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, trip.endOdometer)))
                 }
             }
             if (trip.id == 0L) {
@@ -909,7 +909,7 @@ class TripsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             if (trip.endOdometer != null && trip.vehicleId != null) {
                 favouritesRepository.getVehicleById(trip.vehicleId)?.let { vehicle ->
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = trip.endOdometer))
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, trip.endOdometer)))
                 }
             }
             repository.updateTrip(trip)
@@ -1040,17 +1040,16 @@ class TripsViewModel(
             var updatedTrip = trip.copy(type = typeString, isConfirmed = true, description = description)
             
             if (endOdometer != null && trip.vehicleId != null) {
-                val unit = distanceUnit.first()
-                val endOdometerKm = DistanceFormatter.toKm(endOdometer, unit)
+                val endOdometerKm = endOdometer
                 val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
                 if (vehicle != null) {
-                    val distance = endOdometerKm - vehicle.currentOdometer
+                    val distance = (endOdometerKm - vehicle.currentOdometer).coerceAtLeast(0.0)
                     updatedTrip = updatedTrip.copy(
-                        distance = if (distance > 0) distance else updatedTrip.distance,
+                        distance = distance,
                         endOdometer = endOdometerKm
                     )
-                    // Update vehicle odometer
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = endOdometerKm))
+                    // Update vehicle odometer to the higher reading
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, endOdometerKm)))
                 }
             }
             

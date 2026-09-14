@@ -352,9 +352,18 @@ fun ReviewTripCard(
     var note by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+    val activeVehicle = selectedVehicle?.let { sel ->
+        allVehicles.find { it.id == sel.id } ?: sel
+    } ?: tripWithVehicle.vehicle?.let { v ->
+        allVehicles.find { it.id == v.id } ?: v
+    }
     val odometerValue = odometerText.toDoubleOrNull() ?: 0.0
-    val isOdometerError = isOdometerModeEnabled && selectedVehicle != null && 
-        (odometerValue < DistanceFormatter.convert(selectedVehicle!!.currentOdometer, distanceUnit))
+    val vehicleOdoConverted = activeVehicle?.let { DistanceFormatter.convert(it.currentOdometer, distanceUnit) } ?: 0.0
+    val isOdometerError = isOdometerModeEnabled && (
+        activeVehicle == null ||
+        odometerText.isBlank() ||
+        (odometerValue < vehicleOdoConverted)
+    )
 
     Card(
         modifier = modifier
@@ -385,8 +394,8 @@ fun ReviewTripCard(
                             modifier = Modifier
                                 .clickable { vehicleExpanded = true }
                         ) {
-                            if (selectedVehicle != null) {
-                                LicensePlateBadge(selectedVehicle!!, showDropdownIndicator = true)
+                            if (activeVehicle != null) {
+                                LicensePlateBadge(activeVehicle, showDropdownIndicator = true)
                             } else {
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
@@ -527,15 +536,32 @@ fun ReviewTripCard(
                 }
             }
 
-            if (isOdometerModeEnabled && (selectedVehicle != null)) {
-                val calcDistance = (odometerValue - DistanceFormatter.convert(selectedVehicle!!.currentOdometer, distanceUnit)).coerceAtLeast(0.0)
-                val formattedCalc = DistanceFormatter.format(calcDistance, distanceUnit)
-                Text(
-                    text = "Calculated: $formattedCalc",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isOdometerError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.align(Alignment.End).padding(top = 4.dp, end = 16.dp)
-                )
+            if (isOdometerModeEnabled && activeVehicle != null) {
+                val endOdoKm = DistanceFormatter.toKm(odometerValue, distanceUnit)
+                val vehicleOdoKm = activeVehicle.currentOdometer
+                val calcDistanceKm = (endOdoKm - vehicleOdoKm).coerceAtLeast(0.0)
+                val formattedCalc = DistanceFormatter.format(calcDistanceKm, distanceUnit)
+                val tripCost = calcDistanceKm.toFloat() * expenseRatePerKm
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, end = 16.dp)
+                ) {
+                    Text(
+                        text = "Calculated: $formattedCalc",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isOdometerError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    )
+                    if (expenseTrackingEnabled && !isOdometerError && odometerText.isNotBlank()) {
+                        Text(
+                            text = String.format(LocalLocale.current.platformLocale, "%.2f %s", tripCost, expenseCurrency),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -736,8 +762,14 @@ fun ReviewTripCard(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
+                    val endOdometerKm = if (isOdometerModeEnabled && activeVehicle != null && odometerText.isNotBlank()) {
+                        DistanceFormatter.toKm(odometerValue, distanceUnit)
+                    } else {
+                        null
+                    }
+
                     FilledIconButton(
-                        onClick = { onApprove(selectedType, selectedVehicle, DistanceFormatter.toKm(odometerValue, distanceUnit) , note) },
+                        onClick = { onApprove(selectedType, activeVehicle, endOdometerKm, note) },
                         enabled = !isOdometerError,
                         colors = IconButtonDefaults.filledIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
