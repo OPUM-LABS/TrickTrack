@@ -187,6 +187,7 @@ import ch.opum.tricktrack.ui.review.ReviewScreen
 import ch.opum.tricktrack.ui.settings.SettingsScreen
 import ch.opum.tricktrack.ui.theme.TrickTrackTheme
 import ch.opum.tricktrack.ui.troubleshooting.TroubleshootingViewModel
+import android.view.WindowManager
 import ch.opum.tricktrack.util.DistanceFormatter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -195,7 +196,6 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import androidx.activity.SystemBarStyle
 import java.util.Date
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
@@ -207,16 +207,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(
-                android.graphics.Color.TRANSPARENT,
-                android.graphics.Color.TRANSPARENT
-            ),
-            navigationBarStyle = SystemBarStyle.auto(
-                android.graphics.Color.TRANSPARENT,
-                android.graphics.Color.TRANSPARENT
-            )
-        )
+        enableEdgeToEdge()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                window.attributes.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            } else {
+                @Suppress("DEPRECATION")
+                window.attributes.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
 
         _currentIntent.value = intent // Set initial intent
 
