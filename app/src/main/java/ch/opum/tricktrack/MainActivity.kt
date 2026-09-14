@@ -671,7 +671,8 @@ fun MainScreen(
                         selectedPlaceToEdit = null
                         showAddEditPlaceDialog = true
                     },
-                    addTrigger = triggerAddInFavourites
+                    addTrigger = triggerAddInFavourites,
+                    onAddTriggerConsumed = { triggerAddInFavourites = 0 }
                 )
             }
             composable(Screen.Settings.route) {

@@ -93,7 +93,8 @@ data class SimpleItem(
 @Composable
 fun PlacesListScreen(
     onAddPlace: () -> Unit,
-    addTrigger: Int = 0
+    addTrigger: Int = 0,
+    onAddTriggerConsumed: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as TripApplication
@@ -142,6 +143,7 @@ fun PlacesListScreen(
                 }
                 showAddDialog = true
             }
+            onAddTriggerConsumed()
         }
     }
 
