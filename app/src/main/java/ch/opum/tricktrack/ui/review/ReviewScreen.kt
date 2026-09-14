@@ -35,7 +35,7 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.ButtonDefaults
@@ -430,7 +430,7 @@ fun ReviewTripCard(
                     if (!trip.isAutomatic) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
-                            imageVector = Icons.Default.Edit,
+                            imageVector = Icons.Default.TouchApp,
                             contentDescription = "Manual Trip",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
