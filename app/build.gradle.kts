@@ -99,9 +99,6 @@ dependencies {
     // OkHttp
     implementation(libs.okhttp)
 
-    // Material Components
-    implementation(libs.material.components)
-
     // osmdroid (OpenStreetMap)
     implementation(libs.osmdroid.android)
 
