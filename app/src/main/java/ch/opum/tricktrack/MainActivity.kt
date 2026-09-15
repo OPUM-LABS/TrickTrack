@@ -187,6 +187,10 @@ import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.clearFocusOnTap
 import ch.opum.tricktrack.ui.components.FullscreenMapSheet
 import ch.opum.tricktrack.ui.components.TripMapView
+import ch.opum.tricktrack.ui.components.LocalSnowObstacleRegistry
+import ch.opum.tricktrack.ui.components.SnowObstacleRegistry
+import ch.opum.tricktrack.ui.components.SnowOverlay
+import ch.opum.tricktrack.ui.components.snowObstacle
 import ch.opum.tricktrack.ui.navigation.Screen
 import ch.opum.tricktrack.ui.onboarding.OnboardingScreen
 import ch.opum.tricktrack.ui.place.AddEditPlaceDialog
@@ -289,6 +293,8 @@ fun MainScreen(
         "DARK" -> true
         else -> isSystemDark
     }
+    val isWinterModeEnabled by tripsViewModel.isWinterModeEnabled.collectAsState()
+    val snowObstacleRegistry = remember { SnowObstacleRegistry() }
 
     val startDestination = remember(hasCompletedOnboarding) {
         if (hasCompletedOnboarding) Screen.TripList.route else Screen.Onboarding.route
@@ -460,8 +466,10 @@ fun MainScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
+    CompositionLocalProvider(LocalSnowObstacleRegistry provides snowObstacleRegistry) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                topBar = {
             if (currentRoute != Screen.Onboarding.route) {
                 val currentHour = rememberCurrentHour()
                 val headerGradient = SpecialThemeHelper.getHeaderGradient(specialTheme, currentHour)
@@ -745,6 +753,15 @@ fun MainScreen(
             }
         }
     }
+
+            if (isWinterModeEnabled) {
+                SnowOverlay(
+                    isWinterModeEnabled = true,
+                    isDarkTheme = isDarkTheme
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -827,7 +844,9 @@ fun TripScreen(
         ) {
         // Fixed Top Header
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .snowObstacle("total_distance_summary"),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 1.dp
         ) {
@@ -2187,6 +2206,7 @@ fun TripItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp) // Added horizontal padding
+            .snowObstacle("trip_${trip.id}")
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

@@ -69,6 +69,7 @@ class UserPreferencesRepository(private val context: Context) {
         val ACCENT_COLOR_HEX = longPreferencesKey("accent_color_hex")
         val IS_DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("is_dynamic_color_enabled")
         val SPECIAL_THEME = stringPreferencesKey("special_theme")
+        val IS_WINTER_MODE_ENABLED = booleanPreferencesKey("is_winter_mode_enabled")
         val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
         val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
         val SHOW_SETTINGS_HELP = booleanPreferencesKey("show_settings_help")
@@ -252,6 +253,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setSpecialTheme(theme: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SPECIAL_THEME] = theme
+        }
+    }
+
+    val isWinterModeEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.IS_WINTER_MODE_ENABLED] ?: false
+        }
+
+    suspend fun setWinterModeEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_WINTER_MODE_ENABLED] = enabled
         }
     }
 

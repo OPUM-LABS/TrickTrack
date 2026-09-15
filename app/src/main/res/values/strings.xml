@@ -465,4 +465,6 @@
     <string name="special_theme_sunset">Sunset</string>
     <string name="special_theme_ocean">Ocean</string>
     <string name="special_theme_aurora">Aurora</string>
+    <string name="settings_winter_mode_title">Winter Mode</string>
+    <string name="settings_winter_mode_description">Let it snow gently across your logbook</string>
 </resources>

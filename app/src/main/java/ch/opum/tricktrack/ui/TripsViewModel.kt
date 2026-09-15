@@ -633,6 +633,13 @@ class TripsViewModel(
             initialValue = "NONE"
         )
 
+    val isWinterModeEnabled: StateFlow<Boolean> = userPreferencesRepository.isWinterModeEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     private val scheduleTicker = flow {
         while (true) {
             emit(Unit)
@@ -1350,6 +1357,12 @@ class TripsViewModel(
     fun setSpecialTheme(theme: String) {
         viewModelScope.launch {
             userPreferencesRepository.setSpecialTheme(theme)
+        }
+    }
+
+    fun setWinterModeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setWinterModeEnabled(enabled)
         }
     }
 }

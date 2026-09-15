@@ -464,4 +464,6 @@
     <string name="special_theme_sunset">Coucher de soleil</string>
     <string name="special_theme_ocean">Océan</string>
     <string name="special_theme_aurora">Aurore</string>
+    <string name="settings_winter_mode_title">Mode hiver</string>
+    <string name="settings_winter_mode_description">Laissez neiger doucement sur votre carnet</string>
 </resources>

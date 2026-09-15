@@ -598,6 +598,7 @@ fun SettingsScreen(
         val accentColorHex by viewModel.accentColorHex.collectAsState()
         val isDynamicColorEnabled by viewModel.isDynamicColorEnabled.collectAsState()
         val specialTheme by viewModel.specialTheme.collectAsState()
+        val isWinterModeEnabled by viewModel.isWinterModeEnabled.collectAsState()
         val showSettingsHelp by viewModel.showSettingsHelp.collectAsState()
         var showColorPickerDialog by remember { mutableStateOf(false) }
 
@@ -696,6 +697,30 @@ fun SettingsScreen(
 
                     if (showSettingsHelp) {
                         SettingHelpBox(helpText = stringResource(R.string.settings_help_accent_color))
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_winter_mode_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_winter_mode_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = isWinterModeEnabled,
+                            onCheckedChange = { viewModel.setWinterModeEnabled(it) }
+                        )
                     }
                 }
             }
