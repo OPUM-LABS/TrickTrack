@@ -135,7 +135,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import ch.opum.tricktrack.ui.theme.Grey10
+import ch.opum.tricktrack.ui.theme.SpecialThemeHelper
+import ch.opum.tricktrack.ui.theme.rememberCurrentHour
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -231,11 +235,13 @@ class MainActivity : ComponentActivity() {
             val themeMode by tripsViewModel.themeMode.collectAsState()
             val accentColorHex by tripsViewModel.accentColorHex.collectAsState()
             val isDynamicColorEnabled by tripsViewModel.isDynamicColorEnabled.collectAsState()
+            val specialTheme by tripsViewModel.specialTheme.collectAsState()
 
             TrickTrackTheme(
                 themeMode = themeMode,
                 accentColorHex = accentColorHex,
-                dynamicColor = isDynamicColorEnabled
+                dynamicColor = isDynamicColorEnabled,
+                specialTheme = specialTheme
             ) {
                 val context = LocalContext.current
                 val application = context.applicationContext as TripApplication
@@ -273,6 +279,7 @@ fun MainScreen(
     val currentRoute = currentDestination?.route
     val hasCompletedOnboarding by tripsViewModel.hasCompletedOnboarding.collectAsState()
     val isDynamicColorEnabled by tripsViewModel.isDynamicColorEnabled.collectAsState()
+    val specialTheme by tripsViewModel.specialTheme.collectAsState()
 
     val startDestination = remember(hasCompletedOnboarding) {
         if (hasCompletedOnboarding) Screen.TripList.route else Screen.Onboarding.route
@@ -447,7 +454,41 @@ fun MainScreen(
     Scaffold(
         topBar = {
             if (currentRoute != Screen.Onboarding.route) {
+                val currentHour = rememberCurrentHour()
+                val headerGradient = SpecialThemeHelper.getHeaderGradient(specialTheme, currentHour)
+                val isHeaderDark = if (headerGradient != null) {
+                    SpecialThemeHelper.isGradientDark(headerGradient)
+                } else if (isDynamicColorEnabled) {
+                    false
+                } else {
+                    (0.299f * MaterialTheme.colorScheme.primary.red + 0.587f * MaterialTheme.colorScheme.primary.green + 0.114f * MaterialTheme.colorScheme.primary.blue) < 0.6f
+                }
+
+                val topAppBarColors = if (headerGradient != null) {
+                    val contentColor = if (isHeaderDark) Color.White else Grey10
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        titleContentColor = contentColor,
+                        actionIconContentColor = contentColor,
+                        navigationIconContentColor = contentColor
+                    )
+                } else {
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
+                        scrolledContainerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
+                        titleContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+
                 TopAppBar(
+                    modifier = if (headerGradient != null) {
+                        Modifier.background(Brush.horizontalGradient(headerGradient))
+                    } else {
+                        Modifier
+                    },
                     title = {
                         val title = when (currentRoute) {
                             Screen.TripList.route -> stringResource(R.string.screen_title_trips)
@@ -463,13 +504,7 @@ fun MainScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
-                        scrolledContainerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
-                        titleContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                        actionIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
-                    ),
+                    colors = topAppBarColors,
                     actions = {
                         when (currentRoute) {
                             Screen.TripList.route -> {

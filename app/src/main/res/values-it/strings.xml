@@ -458,4 +458,10 @@
     <string name="settings_help_auto_backup_folder_select">Seleziona la cartella di destinazione per i backup automatici.</string>
     <string name="settings_help_auto_backup_frequency">Imposta la frequenza con cui vengono generati i backup (Giornaliera, Settimanale o Mensile).</string>
     <string name="settings_help_auto_backup_time_schedule">Imposta l\'ora indicativa. L\'esecuzione esatta può variare leggermente a causa dell\'ottimizzazione della batteria di Android.</string>
+    <string name="special_themes_title">Temi speciali</string>
+    <string name="special_theme_none">Nessuno</string>
+    <string name="special_theme_daytime">Ora del giorno</string>
+    <string name="special_theme_sunset">Tramonto</string>
+    <string name="special_theme_ocean">Oceano</string>
+    <string name="special_theme_aurora">Aurora</string>
 </resources>

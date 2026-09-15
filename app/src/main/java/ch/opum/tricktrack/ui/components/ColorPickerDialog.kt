@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.ui.DialogAcceptButton
 import ch.opum.tricktrack.ui.DialogDeclineButton
+import ch.opum.tricktrack.ui.theme.SpecialThemeHelper
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -57,8 +59,9 @@ val defaultColorPresets = listOf(
 fun ColorPickerDialog(
     initialColorLong: Long,
     initialIsDynamic: Boolean,
+    initialSpecialTheme: String = SpecialThemeHelper.THEME_NONE,
     onDismiss: () -> Unit,
-    onSave: (colorLong: Long, isDynamic: Boolean) -> Unit
+    onSave: (colorLong: Long, isDynamic: Boolean, specialTheme: String) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -67,6 +70,7 @@ fun ColorPickerDialog(
     var saturation by remember(initialColorLong) { mutableFloatStateOf(initialHsv[1].coerceIn(0.1f, 1.0f)) }
     var value by remember(initialColorLong) { mutableFloatStateOf(initialHsv[2].coerceIn(0.3f, 1.0f)) }
     var isDynamicSelected by remember(initialIsDynamic) { mutableStateOf(initialIsDynamic) }
+    var selectedSpecialTheme by remember(initialSpecialTheme) { mutableStateOf(initialSpecialTheme) }
 
     val currentColor = remember(hue, saturation, value) {
         hsvToColor(hue, saturation, value)
@@ -115,6 +119,7 @@ fun ColorPickerDialog(
                                     hue = angle
                                     saturation = (dist / radius).coerceIn(0f, 1f)
                                     isDynamicSelected = false
+                                    selectedSpecialTheme = SpecialThemeHelper.THEME_NONE
                                 }
                             }
                         }
@@ -130,6 +135,7 @@ fun ColorPickerDialog(
                                 hue = angle
                                 saturation = (dist / radius).coerceIn(0f, 1f)
                                 isDynamicSelected = false
+                                selectedSpecialTheme = SpecialThemeHelper.THEME_NONE
                             }
                         }
                 ) {
@@ -175,12 +181,14 @@ fun ColorPickerDialog(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            val isSpecialActive = isDynamicSelected || selectedSpecialTheme != SpecialThemeHelper.THEME_NONE
+
             // Real-time Gradient Brightness / Value Slider
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(if (isDynamicSelected) 0.38f else 1.0f)
+                    .alpha(if (isSpecialActive) 0.38f else 1.0f)
             ) {
                 Text(
                     text = stringResource(R.string.accent_color_brightness_label),
@@ -217,8 +225,9 @@ fun ColorPickerDialog(
                         onValueChange = {
                             value = it
                             isDynamicSelected = false
+                            selectedSpecialTheme = SpecialThemeHelper.THEME_NONE
                         },
-                        enabled = !isDynamicSelected,
+                        enabled = !isSpecialActive,
                         valueRange = 0.3f..1.0f,
                         colors = SliderDefaults.colors(
                             thumbColor = currentColor,
@@ -252,7 +261,7 @@ fun ColorPickerDialog(
             ) {
                 defaultColorPresets.forEach { preset ->
                     val presetColor = Color(preset.colorLong)
-                    val isSelected = !isDynamicSelected && colorMatches(currentColor, presetColor)
+                    val isSelected = !isDynamicSelected && selectedSpecialTheme == SpecialThemeHelper.THEME_NONE && colorMatches(currentColor, presetColor)
 
                     Box(
                         modifier = Modifier
@@ -270,6 +279,7 @@ fun ColorPickerDialog(
                                 saturation = hsv[1]
                                 value = hsv[2]
                                 isDynamicSelected = false
+                                selectedSpecialTheme = SpecialThemeHelper.THEME_NONE
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -286,27 +296,86 @@ fun ColorPickerDialog(
 
                 // Dynamic Material You Option (Android 12+)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val isMaterialYouSelected = isDynamicSelected && selectedSpecialTheme == SpecialThemeHelper.THEME_NONE
                     Box(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primaryContainer)
                             .border(
-                                width = if (isDynamicSelected) 3.dp else 1.dp,
-                                color = if (isDynamicSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                                width = if (isMaterialYouSelected) 3.dp else 1.dp,
+                                color = if (isMaterialYouSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
                                 shape = CircleShape
                             )
                             .clickable {
                                 isDynamicSelected = true
+                                selectedSpecialTheme = SpecialThemeHelper.THEME_NONE
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.AutoAwesome,
+                            imageVector = if (isMaterialYouSelected) Icons.Default.Check else Icons.Default.AutoAwesome,
                             contentDescription = "Dynamic Color",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(20.dp)
                         )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Special Themes Row (Gradients & Daytime)
+            Text(
+                text = stringResource(R.string.special_themes_title),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SpecialThemeHelper.specialPresets.forEach { preset ->
+                    val isSelected = !isDynamicSelected && selectedSpecialTheme == preset.id
+
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(
+                                brush = Brush.linearGradient(preset.previewColors)
+                            )
+                            .border(
+                                width = if (isSelected) 3.dp else 1.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                shape = CircleShape
+                            )
+                            .clickable {
+                                selectedSpecialTheme = preset.id
+                                isDynamicSelected = false
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = stringResource(preset.titleRes),
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else if (preset.isDaytime) {
+                            Icon(
+                                imageVector = Icons.Default.WbSunny,
+                                contentDescription = stringResource(preset.titleRes),
+                                tint = Color.White.copy(alpha = 0.9f),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -324,7 +393,7 @@ fun ColorPickerDialog(
                 DialogAcceptButton(
                     onClick = {
                         val colorLong = hsvToLong(hue, saturation, value)
-                        onSave(colorLong, isDynamicSelected)
+                        onSave(colorLong, isDynamicSelected, selectedSpecialTheme)
                     }
                 )
             }

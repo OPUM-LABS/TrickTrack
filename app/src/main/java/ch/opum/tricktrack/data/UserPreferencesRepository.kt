@@ -68,6 +68,7 @@ class UserPreferencesRepository(private val context: Context) {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val ACCENT_COLOR_HEX = longPreferencesKey("accent_color_hex")
         val IS_DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("is_dynamic_color_enabled")
+        val SPECIAL_THEME = stringPreferencesKey("special_theme")
         val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
         val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
         val SHOW_SETTINGS_HELP = booleanPreferencesKey("show_settings_help")
@@ -240,6 +241,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setIsDynamicColorEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_DYNAMIC_COLOR_ENABLED] = enabled
+        }
+    }
+
+    val specialTheme: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.SPECIAL_THEME] ?: "NONE"
+        }
+
+    suspend fun setSpecialTheme(theme: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SPECIAL_THEME] = theme
         }
     }
 

@@ -626,6 +626,13 @@ class TripsViewModel(
             initialValue = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         )
 
+    val specialTheme: StateFlow<String> = userPreferencesRepository.specialTheme
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "NONE"
+        )
+
     private val scheduleTicker = flow {
         while (true) {
             emit(Unit)
@@ -1337,6 +1344,12 @@ class TripsViewModel(
     fun setIsDynamicColorEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setIsDynamicColorEnabled(enabled)
+        }
+    }
+
+    fun setSpecialTheme(theme: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setSpecialTheme(theme)
         }
     }
 }

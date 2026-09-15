@@ -458,4 +458,10 @@
     <string name="settings_help_auto_backup_folder_select">Sélectionnez le dossier cible où les sauvegardes automatiques seront enregistrées.</string>
     <string name="settings_help_auto_backup_frequency">Définissez la fréquence des sauvegardes automatiques (Quotidienne, Hebdomadaire ou Mensuelle).</string>
     <string name="settings_help_auto_backup_time_schedule">Définit l\'heure cible. L\'exécution exacte peut varier légèrement en raison de l\'optimisation de la batterie Android.</string>
+    <string name="special_themes_title">Thèmes spéciaux</string>
+    <string name="special_theme_none">Aucun</string>
+    <string name="special_theme_daytime">Heure du jour</string>
+    <string name="special_theme_sunset">Coucher de soleil</string>
+    <string name="special_theme_ocean">Océan</string>
+    <string name="special_theme_aurora">Aurore</string>
 </resources>

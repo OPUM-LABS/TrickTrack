@@ -92,7 +92,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import ch.opum.tricktrack.ui.theme.SpecialThemeHelper
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -595,6 +597,7 @@ fun SettingsScreen(
         val themeMode by viewModel.themeMode.collectAsState()
         val accentColorHex by viewModel.accentColorHex.collectAsState()
         val isDynamicColorEnabled by viewModel.isDynamicColorEnabled.collectAsState()
+        val specialTheme by viewModel.specialTheme.collectAsState()
         val showSettingsHelp by viewModel.showSettingsHelp.collectAsState()
         var showColorPickerDialog by remember { mutableStateOf(false) }
 
@@ -602,10 +605,12 @@ fun SettingsScreen(
             ColorPickerDialog(
                 initialColorLong = accentColorHex,
                 initialIsDynamic = isDynamicColorEnabled,
+                initialSpecialTheme = specialTheme,
                 onDismiss = { showColorPickerDialog = false },
-                onSave = { selectedColor, isDynamic ->
+                onSave = { selectedColor, isDynamic, selectedSpecialTheme ->
                     viewModel.setAccentColorHex(selectedColor)
                     viewModel.setIsDynamicColorEnabled(isDynamic)
+                    viewModel.setSpecialTheme(selectedSpecialTheme)
                     showColorPickerDialog = false
                 }
             )
@@ -671,11 +676,20 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
+                        val headerGradient = SpecialThemeHelper.getHeaderGradient(specialTheme)
+                        val previewModifier = if (headerGradient != null) {
+                            Modifier.background(Brush.linearGradient(headerGradient))
+                        } else if (isDynamicColorEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            Modifier.background(MaterialTheme.colorScheme.primary)
+                        } else {
+                            Modifier.background(Color(accentColorHex.toInt()))
+                        }
+
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(if (isDynamicColorEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MaterialTheme.colorScheme.primary else Color(accentColorHex.toInt()))
+                                .then(previewModifier)
                                 .border(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), CircleShape)
                         )
                     }

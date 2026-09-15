@@ -459,4 +459,10 @@
     <string name="settings_help_auto_backup_folder_select">Select the target folder where automatic backups will be saved.</string>
     <string name="settings_help_auto_backup_frequency">Set how often automatic backups are generated (Daily, Weekly, or Monthly).</string>
     <string name="settings_help_auto_backup_time_schedule">Sets the target time. Exact execution may vary slightly due to Android battery optimization (Doze mode).</string>
+    <string name="special_themes_title">Special Themes</string>
+    <string name="special_theme_none">None</string>
+    <string name="special_theme_daytime">Time of Day</string>
+    <string name="special_theme_sunset">Sunset</string>
+    <string name="special_theme_ocean">Ocean</string>
+    <string name="special_theme_aurora">Aurora</string>
 </resources>

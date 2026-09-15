@@ -457,4 +457,10 @@
     <string name="settings_help_auto_backup_folder_select">Wählen Sie den Zielordner, in dem automatische Sicherungen gespeichert werden.</string>
     <string name="settings_help_auto_backup_frequency">Legen Sie fest, wie oft eine Sicherung erstellt werden soll (Täglich, Wöchentlich oder Monatlich).</string>
     <string name="settings_help_auto_backup_time_schedule">Legt die Zieluhrzeit fest. Der genaue Zeitpunkt kann durch Android-Akkusparfunktionen (Doze-Modus) leicht abweichen.</string>
+    <string name="special_themes_title">Spezielle Themen</string>
+    <string name="special_theme_none">Keines</string>
+    <string name="special_theme_daytime">Tageszeit</string>
+    <string name="special_theme_sunset">Sonnenuntergang</string>
+    <string name="special_theme_ocean">Ozean</string>
+    <string name="special_theme_aurora">Nordlicht</string>
 </resources>
