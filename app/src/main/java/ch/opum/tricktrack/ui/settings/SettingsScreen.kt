@@ -44,10 +44,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
@@ -620,6 +627,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_appearance_title),
             description = stringResource(R.string.settings_appearance_description),
+            icon = Icons.Default.Palette,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(
@@ -705,6 +713,12 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.AcUnit,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 16.dp),
+                            tint = if (isWinterModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = stringResource(R.string.settings_winter_mode_title),
@@ -729,6 +743,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_settings_title),
             description = stringResource(R.string.settings_tracking_settings_description),
+            icon = Icons.Default.Sensors,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // Tracking Settings
@@ -1059,6 +1074,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_tracking_defaults_title),
             description = stringResource(R.string.settings_tracking_defaults_description),
+            icon = Icons.Default.Tune,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // Trip Defaults
@@ -1348,6 +1364,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_backup_restore_title),
             description = stringResource(R.string.settings_backup_restore_description),
+            icon = Icons.Default.Backup,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(
@@ -1440,6 +1457,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_advanced_settings_title),
             description = stringResource(R.string.settings_advanced_settings_description),
+            icon = Icons.Default.Build,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             // New Card for Server Settings
@@ -1469,6 +1487,7 @@ fun SettingsScreen(
         ExpandableSettingsGroup(
             title = stringResource(R.string.settings_diagnostics_title),
             description = stringResource(R.string.settings_diagnostics_description),
+            icon = Icons.Default.HealthAndSafety,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Card(

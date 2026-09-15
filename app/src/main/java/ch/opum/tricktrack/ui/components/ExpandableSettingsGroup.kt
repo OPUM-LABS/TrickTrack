@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,7 @@ fun ExpandableSettingsGroup(
     description: String? = null,
     helpText: String? = null,
     icon: ImageVector? = null,
+    iconTint: Color = MaterialTheme.colorScheme.primary,
     content: @Composable () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(value = false) }
@@ -66,7 +68,8 @@ fun ExpandableSettingsGroup(
                     Icon(
                         imageVector = it,
                         contentDescription = null,
-                        modifier = Modifier.padding(end = 16.dp)
+                        modifier = Modifier.padding(end = 16.dp),
+                        tint = iconTint
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
