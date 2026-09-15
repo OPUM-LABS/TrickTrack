@@ -35,11 +35,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import ch.opum.tricktrack.ui.components.SettingHelpBox
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -78,6 +82,8 @@ import java.util.Date
 fun FilterDialog(
     currentFilterState: FilterState,
     allVehicles: List<VehicleEntity>,
+    showSettingsHelp: Boolean = false,
+    onToggleHelp: () -> Unit = {},
     onApplyFilter: (FilterState) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -106,13 +112,26 @@ fun FilterDialog(
                 .padding(bottom = 32.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = stringResource(R.string.filter_trips_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.filter_trips_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(onClick = onToggleHelp) {
+                    Icon(
+                        imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
+                        contentDescription = stringResource(R.string.action_toggle_help),
+                        tint = if (showSettingsHelp) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                    )
+                }
+            }
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             ClearableTextField(
                 value = keyword,
@@ -121,6 +140,9 @@ fun FilterDialog(
                 modifier = Modifier.fillMaxWidth(),
                 isFilled = true
             )
+            if (showSettingsHelp) {
+                SettingHelpBox(helpText = stringResource(R.string.filter_help_keyword))
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             val tripTypes = listOf(
@@ -157,6 +179,9 @@ fun FilterDialog(
                         Text(label, maxLines = 1, modifier = Modifier.basicMarquee())
                     }
                 }
+            }
+            if (showSettingsHelp) {
+                SettingHelpBox(helpText = stringResource(R.string.filter_help_trip_type))
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -240,17 +265,21 @@ fun FilterDialog(
                     }
                 }
             }
-
+            if (showSettingsHelp) {
+                SettingHelpBox(helpText = stringResource(R.string.filter_help_vehicles))
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             DateRangeSelectionField(
                 startDate = startDate,
                 endDate = endDate,
                 onClick = {
-                showRangePicker = true
-            }
+                    showRangePicker = true
+                }
             )
-
+            if (showSettingsHelp) {
+                SettingHelpBox(helpText = stringResource(R.string.filter_help_date_range))
+            }
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(

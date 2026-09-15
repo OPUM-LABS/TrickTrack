@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import ch.opum.tricktrack.data.CarBrandHelper
+import ch.opum.tricktrack.ui.components.SettingHelpBox
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -255,98 +256,90 @@ fun ExportFormatDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // PDF Format Card
-                OutlinedCard(
-                    onClick = {
-                        selectedFormat = "PDF"
-                        selectedTabIndex = 0 // Open Document Header tab when switching to PDF
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.outlinedCardColors(
-                        containerColor = if (selectedFormat == "PDF") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-                    ),
-                    border = BorderStroke(
-                        width = if (selectedFormat == "PDF") 2.dp else 1.dp,
-                        color = if (selectedFormat == "PDF") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                Column(modifier = Modifier.weight(1f)) {
+                    OutlinedCard(
+                        onClick = {
+                            selectedFormat = "PDF"
+                            selectedTabIndex = 0 // Open Document Header tab when switching to PDF
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = if (selectedFormat == "PDF") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+                        ),
+                        border = BorderStroke(
+                            width = if (selectedFormat == "PDF") 2.dp else 1.dp,
+                            color = if (selectedFormat == "PDF") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                        )
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.PictureAsPdf,
-                            contentDescription = null,
-                            tint = if (selectedFormat == "PDF") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = stringResource(R.string.export_format_pdf),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                        if (showSettingsHelp) {
-                            Spacer(modifier = Modifier.height(4.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = null,
+                                tint = if (selectedFormat == "PDF") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = stringResource(R.string.export_format_pdf_sub),
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = stringResource(R.string.export_format_pdf),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
                             )
                         }
+                    }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.export_format_pdf_sub))
                     }
                 }
 
                 // CSV Format Card
-                OutlinedCard(
-                    onClick = {
-                        selectedFormat = "CSV"
-                        selectedTabIndex = 1 // Jump straight to Columns tab for CSV
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.outlinedCardColors(
-                        containerColor = if (selectedFormat == "CSV") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-                    ),
-                    border = BorderStroke(
-                        width = if (selectedFormat == "CSV") 2.dp else 1.dp,
-                        color = if (selectedFormat == "CSV") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                Column(modifier = Modifier.weight(1f)) {
+                    OutlinedCard(
+                        onClick = {
+                            selectedFormat = "CSV"
+                            selectedTabIndex = 1 // Jump straight to Columns tab for CSV
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = if (selectedFormat == "CSV") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+                        ),
+                        border = BorderStroke(
+                            width = if (selectedFormat == "CSV") 2.dp else 1.dp,
+                            color = if (selectedFormat == "CSV") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                        )
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Article,
-                            contentDescription = null,
-                            tint = if (selectedFormat == "CSV") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = stringResource(R.string.export_format_csv),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                        if (showSettingsHelp) {
-                            Spacer(modifier = Modifier.height(4.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Article,
+                                contentDescription = null,
+                                tint = if (selectedFormat == "CSV") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = stringResource(R.string.export_format_csv_sub),
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = stringResource(R.string.export_format_csv),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
                             )
                         }
+                    }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.export_format_csv_sub))
                     }
                 }
             }

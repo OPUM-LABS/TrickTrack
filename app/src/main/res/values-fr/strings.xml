@@ -224,6 +224,10 @@
     <string name="filter_trip_type_label">Type de trajet :</string>
     <string name="filter_trip_type_all">Tous</string>
     <string name="filter_reset_button">Réinitialiser</string>
+    <string name="filter_help_keyword">Rechercher des trajets par nom de lieu, adresse ou notes.</string>
+    <string name="filter_help_trip_type">Filtrer les trajets par catégorie : Tous les trajets, Professionnels ou Personnels.</string>
+    <string name="filter_help_vehicles">Filtrer les trajets selon un ou plusieurs véhicules assignés.</string>
+    <string name="filter_help_date_range">Afficher uniquement les trajets enregistrés dans une plage de dates définie.</string>
 
     <!-- Edit Trip Dialog -->
     <string name="edit_trip_title">Modifier le trajet</string>

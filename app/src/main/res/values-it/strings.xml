@@ -224,6 +224,10 @@
     <string name="filter_trip_type_label">Tipo di viaggio:</string>
     <string name="filter_trip_type_all">Tutti</string>
     <string name="filter_reset_button">Reimposta</string>
+    <string name="filter_help_keyword">Cerca viaggi per nome del luogo, indirizzo o note.</string>
+    <string name="filter_help_trip_type">Filtra i viaggi per categoria: Tutti i viaggi, Viaggi di lavoro o Viaggi personali.</string>
+    <string name="filter_help_vehicles">Filtra i viaggi in base a uno o più veicoli assegnati.</string>
+    <string name="filter_help_date_range">Mostra solo i viaggi registrati entro un intervallo di date specifico.</string>
 
     <!-- Edit Trip Dialog -->
     <string name="edit_trip_title">Modifica viaggio</string>

@@ -231,6 +231,10 @@
     <string name="filter_trip_type_label">Trip Type:</string>
     <string name="filter_trip_type_all">All</string>
     <string name="filter_reset_button">Reset</string>
+    <string name="filter_help_keyword">Search trips by location name, street address, or notes.</string>
+    <string name="filter_help_trip_type">Filter trips by classification: All trips, Business trips, or Personal trips.</string>
+    <string name="filter_help_vehicles">Filter trips by one or more assigned vehicles.</string>
+    <string name="filter_help_date_range">Show only trips recorded within a specific start and end date range.</string>
 
     <!-- Edit Trip Dialog -->
     <string name="edit_trip_title">Edit Trip</string>

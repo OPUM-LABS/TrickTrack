@@ -591,9 +591,12 @@ fun MainScreen(
                                 if (showFilterDialog) {
                                     val currentFilterState by tripsViewModel.filterState.collectAsState()
                                     val allVehicles by tripsViewModel.allVehicles.collectAsState()
+                                    val showSettingsHelp by tripsViewModel.showSettingsHelp.collectAsState()
                                     FilterDialog(
                                         currentFilterState = currentFilterState,
                                         allVehicles = allVehicles,
+                                        showSettingsHelp = showSettingsHelp,
+                                        onToggleHelp = { tripsViewModel.toggleShowSettingsHelp() },
                                         onApplyFilter = { newFilterState ->
                                             tripsViewModel.updateFilter(newFilterState)
                                             showFilterDialog = false
