@@ -98,10 +98,13 @@ class LocationService : Service() {
     private var triggerEventListener: TriggerEventListener? = null
     private var accelerometerListener: SensorEventListener? = null
     private var isGpsElevated: Boolean = false
+    private var isCarModeConnected: Boolean? = null
+    private var isForeground: Boolean = false
 
 
     override fun onCreate() {
         super.onCreate()
+        isServiceRunning = true
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
         if (significantMotionSensor == null) {
@@ -143,6 +146,11 @@ class LocationService : Service() {
 
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.hasExtra(EXTRA_CAR_MODE_EVENT) == true) {
+            isCarModeConnected = intent.getBooleanExtra(EXTRA_CAR_MODE_EVENT, false)
+            AppLogger.log("LocationService", "Updated car mode state from intent extra: $isCarModeConnected")
+        }
+
         if (_isTracking.value && (_currentTripTrigger.value == TripTrigger.MANUAL) && (intent?.action == ACTION_BLUETOOTH_CONNECTED)) {
             AppLogger.log("LocationService", "Ignoring Bluetooth connection because a manual trip is in progress.")
             return START_STICKY
@@ -214,8 +222,10 @@ class LocationService : Service() {
 
         val selectedDevices = userPreferencesRepository.selectedBluetoothDevices.first()
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
-        val isCarMode = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_CAR
+        val isSystemCarMode = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_CAR
+        val isCarMode = isCarModeConnected ?: isSystemCarMode
         val isAnySelectedDeviceConnected = selectedDevices.any { bluetoothRepository.isDeviceConnected(it) } || isCarMode
+        AppLogger.log("LocationService", "Car mode check: isCarModeConnected=$isCarModeConnected, isSystemCarMode=$isSystemCarMode -> isCarMode=$isCarMode")
         
         val activeScheduleTarget = getActiveScheduleTarget()
         val isTrackingAllowed = !isScheduleEnabled || activeScheduleTarget != ScheduleTypeTarget.NONE
@@ -457,6 +467,7 @@ class LocationService : Service() {
         } else {
             startForeground(1, notification)
         }
+        isForeground = true
 
         val isDistanceMonitoringEnabled = userPreferencesRepository.isDistanceMonitoringEnabled.first()
         val radius = userPreferencesRepository.distanceMonitoringRadius.first()
@@ -488,6 +499,21 @@ class LocationService : Service() {
 
     private fun stopMonitoring() {
         stopMonitoringInternal() // Stop location updates
+        if (!isForeground) {
+            val notification = NotificationCompat.Builder(this, "monitoring_channel")
+                .setContentTitle(getString(R.string.app_name))
+                .setSmallIcon(R.drawable.tricktrack_outline)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setSilent(true)
+                .build()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+            } else {
+                startForeground(1, notification)
+            }
+        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        isForeground = false
         stopSelf() // Stop the service entirely
         AppLogger.log("LocationService", "Stopping monitoring and service.")
     }
@@ -525,6 +551,7 @@ class LocationService : Service() {
         } else {
             startForeground(1, notification)
         }
+        isForeground = true
 
 
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
@@ -739,6 +766,7 @@ class LocationService : Service() {
             .setContentText(notificationText)
             .setSmallIcon(R.drawable.tricktrack_logo)
             .setOngoing(true)
+            .setSilent(true)
             .addAction(R.drawable.ic_stop, getString(R.string.stop), stopPendingIntent)
             .setOnlyAlertOnce(true)
             .setColorized(true)
@@ -925,6 +953,8 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isServiceRunning = false
+        isForeground = false
         disarmMotionSensor()
         fusedLocationClient.removeLocationUpdates(locationCallback)
         _isTracking.value = false
@@ -980,7 +1010,7 @@ class LocationService : Service() {
     private fun createNotificationChannels() {
         val trackingName = "Trip Tracking"
         val trackingDesc = "Active trip tracking updates"
-        val trackingImportance = NotificationManager.IMPORTANCE_DEFAULT
+        val trackingImportance = NotificationManager.IMPORTANCE_LOW
         val trackingChannel = NotificationChannel("tracking_channel", trackingName, trackingImportance).apply {
             description = trackingDesc
         }
@@ -1000,6 +1030,13 @@ class LocationService : Service() {
     }
 
     companion object {
+        var isServiceRunning: Boolean = false
+            private set
+
+        const val EXTRA_CAR_MODE_EVENT = "ch.opum.tricktrack.EXTRA_CAR_MODE_EVENT"
+        const val EXTRA_CONNECTED_DEVICE_ADDRESS = "ch.opum.tricktrack.EXTRA_CONNECTED_DEVICE_ADDRESS"
+        const val EXTRA_DISCONNECTED_DEVICE_ADDRESS = "ch.opum.tricktrack.EXTRA_DISCONNECTED_DEVICE_ADDRESS"
+
         const val ACTION_START_MANUAL = "ACTION_START_MANUAL"
         const val ACTION_START_AUTOMATIC = "ACTION_START_AUTOMATIC"
         const val ACTION_STOP = "ACTION_STOP"

@@ -460,9 +460,9 @@ class TripsViewModel(
 
     val bluetoothSummary: StateFlow<String> = userPreferencesRepository.selectedBluetoothDevices.map { devices ->
         val context = getApplication<Application>()
-        if (devices.isEmpty()) context.getString(R.string.settings_no_devices_selected)
-        else if (devices.size == 1) context.getString(R.string.settings_device_configured_one)
-        else context.getString(R.string.settings_devices_configured_many, devices.size)
+        if (devices.isEmpty()) context.getString(R.string.settings_bluetooth_summary_aa_only)
+        else if (devices.size == 1) context.getString(R.string.settings_bluetooth_summary_one_plus_aa)
+        else context.getString(R.string.settings_bluetooth_summary_many_plus_aa, devices.size)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
 

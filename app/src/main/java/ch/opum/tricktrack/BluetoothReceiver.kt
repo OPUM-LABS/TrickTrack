@@ -1,89 +1,122 @@
 package ch.opum.tricktrack
 
 import android.Manifest
+import android.app.UiModeManager
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.content.ContextCompat
+import ch.opum.tricktrack.data.BluetoothRepository
 import ch.opum.tricktrack.data.UserPreferencesRepository
 import ch.opum.tricktrack.logging.AppLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class BluetoothReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val action = intent.action
-        
-        if (action == android.app.UiModeManager.ACTION_ENTER_CAR_MODE || action == android.app.UiModeManager.ACTION_EXIT_CAR_MODE) {
-            val scope = CoroutineScope(Dispatchers.IO)
-            scope.launch {
-                when (action) {
-                    android.app.UiModeManager.ACTION_ENTER_CAR_MODE -> {
-                        AppLogger.log("BluetoothReceiver", "Android Auto connected. Notifying LocationService.")
-                        val serviceIntent = Intent(context, LocationService::class.java).apply {
-                            this.action = LocationService.ACTION_BLUETOOTH_CONNECTED
-                        }
-                        context.startService(serviceIntent)
-                    }
-                    android.app.UiModeManager.ACTION_EXIT_CAR_MODE -> {
-                        AppLogger.log("BluetoothReceiver", "Android Auto disconnected. Notifying LocationService.")
-                        val serviceIntent = Intent(context, LocationService::class.java).apply {
-                            this.action = LocationService.ACTION_BLUETOOTH_DISCONNECTED
-                        }
-                        context.startService(serviceIntent)
-                    }
+        val action = intent.action ?: return
+
+        val isCarModeAction = (action == UiModeManager.ACTION_ENTER_CAR_MODE || action == UiModeManager.ACTION_EXIT_CAR_MODE)
+        val isAclAction = (action == BluetoothDevice.ACTION_ACL_CONNECTED || action == BluetoothDevice.ACTION_ACL_DISCONNECTED)
+
+        if (!isCarModeAction && !isAclAction) {
+            return
+        }
+
+        // If the service is not running and we receive a disconnect event, no work is needed
+        if (!LocationService.isServiceRunning &&
+            (action == UiModeManager.ACTION_EXIT_CAR_MODE || action == BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+            AppLogger.log("BluetoothReceiver", "LocationService not running; ignoring disconnect event: $action")
+            return
+        }
+
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val prefs = UserPreferencesRepository(context)
+                val isBtTriggerEnabled = prefs.bluetoothTriggerEnabled.first()
+
+                if (!isBtTriggerEnabled) {
+                    AppLogger.log("BluetoothReceiver", "Bluetooth trigger is disabled in settings; ignoring event: $action")
+                    return@launch
                 }
-            }
-            return
-        }
 
-        val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-        }
+                val serviceIntent = Intent(context, LocationService::class.java)
 
-        if (device == null) {
-            AppLogger.log("BluetoothReceiver", "No device found in intent")
-            return
-        }
-
-        UserPreferencesRepository(context)
-        val scope = CoroutineScope(Dispatchers.IO)
-
-        scope.launch {
-            // The service will now decide if this device is relevant.
-            // The receiver's only job is to report the event.
-            val deviceName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                    device.name
+                if (isCarModeAction) {
+                    val isEntering = (action == UiModeManager.ACTION_ENTER_CAR_MODE)
+                    AppLogger.log("BluetoothReceiver", "Android Auto ${if (isEntering) "connected" else "disconnected"}. Notifying LocationService.")
+                    serviceIntent.action = if (isEntering) LocationService.ACTION_BLUETOOTH_CONNECTED else LocationService.ACTION_BLUETOOTH_DISCONNECTED
+                    serviceIntent.putExtra(LocationService.EXTRA_CAR_MODE_EVENT, isEntering)
                 } else {
-                    "Unknown Device"
-                }
-            } else {
-                device.name
-            }
-
-            when (action) {
-                BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                    AppLogger.log("BluetoothReceiver", "Device $deviceName connected. Notifying LocationService.")
-                    val serviceIntent = Intent(context, LocationService::class.java).apply {
-                        this.action = LocationService.ACTION_BLUETOOTH_CONNECTED
+                    val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     }
-                    context.startService(serviceIntent)
+
+                    if (device == null) {
+                        AppLogger.log("BluetoothReceiver", "No device found in intent")
+                        return@launch
+                    }
+
+                    val address = device.address
+                    val isConnected = (action == BluetoothDevice.ACTION_ACL_CONNECTED)
+
+                    if (address != null) {
+                        if (isConnected) {
+                            BluetoothRepository.registerConnectedDevice(address)
+                        } else {
+                            BluetoothRepository.unregisterConnectedDevice(address)
+                        }
+                        serviceIntent.putExtra(
+                            if (isConnected) LocationService.EXTRA_CONNECTED_DEVICE_ADDRESS else LocationService.EXTRA_DISCONNECTED_DEVICE_ADDRESS,
+                            address
+                        )
+                    }
+
+                    val selectedDevices = prefs.selectedBluetoothDevices.first()
+                    val isSelectedDevice = address != null && selectedDevices.any { it.equals(address, ignoreCase = true) }
+
+                    // Only notify LocationService if this device is one of the user's selected vehicles,
+                    // or if the service is already running and this is a disconnect event.
+                    if (!isSelectedDevice && !LocationService.isServiceRunning) {
+                        AppLogger.log("BluetoothReceiver", "Device ${device.name ?: address} is not a selected vehicle; skipping service start.")
+                        return@launch
+                    }
+
+                    serviceIntent.action = if (isConnected) LocationService.ACTION_BLUETOOTH_CONNECTED else LocationService.ACTION_BLUETOOTH_DISCONNECTED
+
+                    val deviceName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        if (context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                            device.name ?: address ?: "Unknown Device"
+                        } else {
+                            address ?: "Unknown Device"
+                        }
+                    } else {
+                        device.name ?: address ?: "Unknown Device"
+                    }
+
+                    AppLogger.log("BluetoothReceiver", "Device $deviceName ${if (isConnected) "connected" else "disconnected"}. Notifying LocationService.")
                 }
 
-                BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-                    AppLogger.log("BluetoothReceiver", "Device $deviceName disconnected. Notifying LocationService.")
-                    val serviceIntent = Intent(context, LocationService::class.java).apply {
-                        this.action = LocationService.ACTION_BLUETOOTH_DISCONNECTED
+                try {
+                    if (LocationService.isServiceRunning) {
+                        context.startService(serviceIntent)
+                    } else {
+                        ContextCompat.startForegroundService(context, serviceIntent)
                     }
-                    context.startService(serviceIntent)
+                } catch (e: Exception) {
+                    AppLogger.log("BluetoothReceiver", "Failed to start LocationService for action $action: ${e.message}")
                 }
+            } finally {
+                pendingResult.finish()
             }
         }
     }

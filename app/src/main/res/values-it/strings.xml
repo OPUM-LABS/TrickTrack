@@ -21,8 +21,8 @@
     <string name="settings_automatic_tracking_description">Registra automaticamente i viaggi quando inizi a guidare.</string>
     <string name="settings_odometer_mode_title">Modalità Contachilometri</string>
     <string name="settings_odometer_mode_description">Inserisci manualmente la lettura finale del contachilometri per calcolare la distanza del viaggio.</string>
-    <string name="settings_bluetooth_trigger_title">Avvia alla connessione Bluetooth</string>
-    <string name="settings_bluetooth_trigger_description">Avvia automaticamente il tracciamento quando un dispositivo Bluetooth selezionato si connette.</string>
+    <string name="settings_bluetooth_trigger_title">Bluetooth e Android Auto</string>
+    <string name="settings_bluetooth_trigger_description">Avvia automaticamente il tracciamento quando si connette Android Auto o un dispositivo Bluetooth selezionato.</string>
     <string name="settings_smart_location_snapping_title">Aggancio intelligente della posizione</string>
     <string name="settings_smart_location_snapping_description">Usa i nomi dei preferiti per gli indirizzi vicini alle posizioni salvate.</string>
     <string name="settings_smart_location_radius_label">Raggio di aggancio (%s)</string>
@@ -404,6 +404,10 @@
     <string name="settings_tap_to_edit"> • Tocca per modificare</string>
     <string name="settings_tap_to_configure">Disabilitato • Tocca per configurare</string>
     <string name="settings_no_devices_selected">Nessun dispositivo selezionato</string>
+    <string name="settings_bluetooth_summary_aa_only">Android Auto attivo (nessun dispositivo Bluetooth)</string>
+    <string name="settings_bluetooth_summary_one_plus_aa">1 dispositivo selezionato • Android Auto incluso</string>
+    <string name="settings_bluetooth_summary_many_plus_aa">%d dispositivi selezionati • Android Auto incluso</string>
+    <string name="settings_bluetooth_dialog_note">Android Auto avvia il tracciamento automaticamente. Puoi selezionare i dispositivi Bluetooth del tuo veicolo qui sotto:</string>
     <string name="settings_device_configured_one">1 dispositivo configurato</string>
     <string name="settings_devices_configured_many">%d dispositivi configurati</string>
     <string name="settings_wakes_up_every_meters">Si sveglia ogni %1$d %2$s</string>
@@ -443,7 +447,7 @@
     <string name="settings_help_theme">Scegli tra modalità di sistema, chiara o scura.</string>
     <string name="settings_help_odometer_mode">Utilizza il contachilometri per calcolare la distanza. I dati GPS rimangono intatti e il percorso continua a essere registrato in background.</string>
     <string name="settings_help_auto_tracking">Rileva i viaggi automaticamente tramite i sensori di movimento.</string>
-    <string name="settings_help_bluetooth_trigger">Avvia la registrazione con la connessione Bluetooth del veicolo.</string>
+    <string name="settings_help_bluetooth_trigger">Avvia la registrazione automaticamente quando connesso ad Android Auto o al Bluetooth del veicolo. Tocca per scegliere i tuoi dispositivi Bluetooth associati.</string>
     <string name="settings_help_bluetooth_devices">Seleziona i dispositivi Bluetooth abbinati.</string>
     <string name="settings_help_stillness_timer">Tempo di inattività prima della fine automatica del viaggio.</string>
     <string name="settings_help_min_speed">Soglia di velocità minima per classificare il movimento come viaggio.</string>

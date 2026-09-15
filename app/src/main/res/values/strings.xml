@@ -20,8 +20,8 @@
     <string name="settings_automatic_tracking_description">Automatically records trips when you start driving.</string>
     <string name="settings_odometer_mode_title">Odometer Mode</string>
     <string name="settings_odometer_mode_description">Manually enter end odometer reading to calculate trip distance.</string>
-    <string name="settings_bluetooth_trigger_title">Start on Bluetooth Connection</string>
-    <string name="settings_bluetooth_trigger_description">Automatically start tracking when a selected Bluetooth device connects.</string>
+    <string name="settings_bluetooth_trigger_title">Bluetooth &amp; Android Auto</string>
+    <string name="settings_bluetooth_trigger_description">Automatically start tracking when Android Auto connects or a selected Bluetooth device connects.</string>
     <string name="settings_smart_location_snapping_title">Smart Location Snapping</string>
     <string name="settings_smart_location_snapping_description">Use Favorite names for addresses near saved locations.</string>
     <string name="settings_smart_location_radius_label">Snapping Radius (%s)</string>
@@ -405,6 +405,10 @@
     <string name="settings_tap_to_edit"> • Tap to edit</string>
     <string name="settings_tap_to_configure">Disabled • Tap to configure</string>
     <string name="settings_no_devices_selected">No devices selected</string>
+    <string name="settings_bluetooth_summary_aa_only">Android Auto active (no Bluetooth devices)</string>
+    <string name="settings_bluetooth_summary_one_plus_aa">1 device selected • Android Auto included</string>
+    <string name="settings_bluetooth_summary_many_plus_aa">%d devices selected • Android Auto included</string>
+    <string name="settings_bluetooth_dialog_note">Android Auto triggers tracking automatically. You can select your vehicle\'s Bluetooth devices below:</string>
     <string name="settings_device_configured_one">1 device configured</string>
     <string name="settings_devices_configured_many">%d devices configured</string>
     <string name="settings_wakes_up_every_meters">Wakes up every %1$d %2$s</string>
@@ -444,7 +448,7 @@
     <string name="settings_help_theme">Choose between system default, light, or dark mode.</string>
     <string name="settings_help_odometer_mode">Uses odometer readings to calculate distance. Existing GPS data remains intact, and routes continue to be recorded in the background.</string>
     <string name="settings_help_auto_tracking">Detects trips automatically using background motion sensors.</string>
-    <string name="settings_help_bluetooth_trigger">Starts recording automatically when connected to your vehicle\'s Bluetooth.</string>
+    <string name="settings_help_bluetooth_trigger">Starts recording automatically when connected to Android Auto or your vehicle\'s Bluetooth. Tap to choose your paired Bluetooth devices.</string>
     <string name="settings_help_bluetooth_devices">Select your paired vehicle Bluetooth devices.</string>
     <string name="settings_help_stillness_timer">Duration of inactivity before a trip is automatically ended.</string>
     <string name="settings_help_min_speed">Minimum speed threshold required to classify movement as a trip.</string>
