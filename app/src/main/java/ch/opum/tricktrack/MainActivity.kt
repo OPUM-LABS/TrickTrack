@@ -23,6 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -280,6 +281,13 @@ fun MainScreen(
     val hasCompletedOnboarding by tripsViewModel.hasCompletedOnboarding.collectAsState()
     val isDynamicColorEnabled by tripsViewModel.isDynamicColorEnabled.collectAsState()
     val specialTheme by tripsViewModel.specialTheme.collectAsState()
+    val themeMode by tripsViewModel.themeMode.collectAsState()
+    val isSystemDark = isSystemInDarkTheme()
+    val isDarkTheme = when (themeMode) {
+        "LIGHT" -> false
+        "DARK" -> true
+        else -> isSystemDark
+    }
 
     val startDestination = remember(hasCompletedOnboarding) {
         if (hasCompletedOnboarding) Screen.TripList.route else Screen.Onboarding.route
@@ -458,6 +466,8 @@ fun MainScreen(
                 val headerGradient = SpecialThemeHelper.getHeaderGradient(specialTheme, currentHour)
                 val isHeaderDark = if (headerGradient != null) {
                     SpecialThemeHelper.isGradientDark(headerGradient)
+                } else if (isDarkTheme) {
+                    true
                 } else if (isDynamicColorEnabled) {
                     false
                 } else {
@@ -474,12 +484,13 @@ fun MainScreen(
                         navigationIconContentColor = contentColor
                     )
                 } else {
+                    val isDarkSurface = isDynamicColorEnabled || isDarkTheme
                     TopAppBarDefaults.topAppBarColors(
-                        containerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
-                        scrolledContainerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
-                        titleContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                        actionIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                        containerColor = if (isDarkSurface) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
+                        scrolledContainerColor = if (isDarkSurface) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
+                        titleContentColor = if (isDarkSurface) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = if (isDarkSurface) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = if (isDarkSurface) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
                     )
                 }
 
