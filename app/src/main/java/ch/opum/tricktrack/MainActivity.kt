@@ -281,6 +281,7 @@ fun MainScreen(
     val hasCompletedOnboarding by tripsViewModel.hasCompletedOnboarding.collectAsState()
     val isDynamicColorEnabled by tripsViewModel.isDynamicColorEnabled.collectAsState()
     val specialTheme by tripsViewModel.specialTheme.collectAsState()
+    val accentColorHex by tripsViewModel.accentColorHex.collectAsState()
     val themeMode by tripsViewModel.themeMode.collectAsState()
     val isSystemDark = isSystemInDarkTheme()
     val isDarkTheme = when (themeMode) {
@@ -464,14 +465,13 @@ fun MainScreen(
             if (currentRoute != Screen.Onboarding.route) {
                 val currentHour = rememberCurrentHour()
                 val headerGradient = SpecialThemeHelper.getHeaderGradient(specialTheme, currentHour)
+                val rawAccentColor = if (accentColorHex == 0L) Color(0xFF6750A4L) else Color(accentColorHex.toInt())
                 val isHeaderDark = if (headerGradient != null) {
                     SpecialThemeHelper.isGradientDark(headerGradient)
-                } else if (isDarkTheme) {
-                    true
                 } else if (isDynamicColorEnabled) {
-                    false
+                    isDarkTheme
                 } else {
-                    (0.299f * MaterialTheme.colorScheme.primary.red + 0.587f * MaterialTheme.colorScheme.primary.green + 0.114f * MaterialTheme.colorScheme.primary.blue) < 0.6f
+                    (0.299f * rawAccentColor.red + 0.587f * rawAccentColor.green + 0.114f * rawAccentColor.blue) < 0.6f
                 }
 
                 val topAppBarColors = if (headerGradient != null) {
@@ -484,13 +484,16 @@ fun MainScreen(
                         navigationIconContentColor = contentColor
                     )
                 } else {
-                    val isDarkSurface = isDynamicColorEnabled || isDarkTheme
+                    val contentColor = if (isHeaderDark) Color.White else Grey10
+                    val containerColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.surface else rawAccentColor
+                    val titleActionColor = if (isDynamicColorEnabled) MaterialTheme.colorScheme.onSurface else contentColor
+
                     TopAppBarDefaults.topAppBarColors(
-                        containerColor = if (isDarkSurface) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
-                        scrolledContainerColor = if (isDarkSurface) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
-                        titleContentColor = if (isDarkSurface) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                        actionIconContentColor = if (isDarkSurface) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                        navigationIconContentColor = if (isDarkSurface) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                        containerColor = containerColor,
+                        scrolledContainerColor = containerColor,
+                        titleContentColor = titleActionColor,
+                        actionIconContentColor = titleActionColor,
+                        navigationIconContentColor = titleActionColor
                     )
                 }
 

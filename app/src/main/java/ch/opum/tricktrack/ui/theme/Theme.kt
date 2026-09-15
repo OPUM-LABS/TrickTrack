@@ -20,7 +20,23 @@ import kotlinx.coroutines.delay
 import java.util.Calendar
 import kotlin.time.Duration.Companion.minutes
 
-fun adjustColorForDarkTheme(color: Color): Color {
+private fun sRgbToLinear(c: Float): Float {
+    return if (c <= 0.04045f) c / 12.92f else Math.pow(((c + 0.055) / 1.055), 2.4).toFloat()
+}
+
+fun calculateLuminance(color: Color): Float {
+    return 0.2126f * sRgbToLinear(color.red) + 0.7152f * sRgbToLinear(color.green) + 0.0722f * sRgbToLinear(color.blue)
+}
+
+fun calculateContrast(c1: Color, c2: Color): Float {
+    val l1 = calculateLuminance(c1)
+    val l2 = calculateLuminance(c2)
+    val lighter = maxOf(l1, l2)
+    val darker = minOf(l1, l2)
+    return (lighter + 0.05f) / (darker + 0.05f)
+}
+
+private fun colorToHsl(color: Color): FloatArray {
     val r = color.red
     val g = color.green
     val b = color.blue
@@ -37,18 +53,13 @@ fun adjustColorForDarkTheme(color: Color): Color {
         max == g -> (((b - r) / delta) + 2f) * 60f
         else -> (((r - g) / delta) + 4f) * 60f
     }
+    return floatArrayOf(h, s, l)
+}
 
-    // Maintain contrast against dark surfaces (Grey10 #121212 and Grey20 #1E1E1E).
-    // Target lightness >= 0.72f ensures >= 7:1 (AAA) contrast ratio.
-    val targetL = if (l < 0.72f) 0.72f else l
-
-    // Preserve grayscale/monochrome if saturation is near zero; otherwise constrain
-    // saturation to 0.35..0.75 to prevent glare/vibration on dark backgrounds
-    val targetS = if (s >= 0.05f) s.coerceIn(0.35f, 0.75f) else 0f
-
-    val c = (1f - Math.abs(2f * targetL - 1f)) * targetS
+private fun hslToColor(h: Float, s: Float, l: Float, alpha: Float = 1f): Color {
+    val c = (1f - Math.abs(2f * l - 1f)) * s
     val x = c * (1f - Math.abs((h / 60f) % 2f - 1f))
-    val m = targetL - c / 2f
+    val m = l - c / 2f
 
     val (rPrime, gPrime, bPrime) = when {
         h < 60f -> Triple(c, x, 0f)
@@ -63,8 +74,51 @@ fun adjustColorForDarkTheme(color: Color): Color {
         red = (rPrime + m).coerceIn(0f, 1f),
         green = (gPrime + m).coerceIn(0f, 1f),
         blue = (bPrime + m).coerceIn(0f, 1f),
-        alpha = color.alpha
+        alpha = alpha
     )
+}
+
+fun adjustColorForDarkTheme(color: Color): Color {
+    // In dark theme, text and icons appear on Grey10 (#121212) and Grey20 (#1E1E1E).
+    // Ensure contrast is at least 7.0:1 (AAA) while preserving hue and pleasant saturation.
+    if (calculateContrast(color, Grey10) >= 7.0f) {
+        return color
+    }
+
+    val hsl = colorToHsl(color)
+    val h = hsl[0]
+    val s = hsl[1]
+    var l = hsl[2]
+    val targetS = if (s >= 0.05f) s.coerceIn(0.35f, 0.75f) else 0f
+
+    var candidate = color
+    while (l < 0.90f && calculateContrast(candidate, Grey10) < 7.0f) {
+        l += 0.02f
+        candidate = hslToColor(h, targetS, l, color.alpha)
+    }
+    return candidate
+}
+
+fun adjustColorForLightTheme(color: Color): Color {
+    // In light theme, text and icons appear on White (#FFFFFF) and Grey90 (#E6E6E6).
+    // Ensure contrast is at least 4.8:1 (WCAG AA) against White.
+    if (calculateContrast(color, White) >= 4.8f) {
+        return color
+    }
+
+    val hsl = colorToHsl(color)
+    val h = hsl[0]
+    val s = hsl[1]
+    var l = hsl[2]
+    // Maintain rich saturation when darkening light colors so they don't look muddy
+    val targetS = if (s >= 0.05f) s.coerceAtLeast(0.55f) else 0f
+
+    var candidate = color
+    while (l > 0.12f && calculateContrast(candidate, White) < 4.8f) {
+        l -= 0.02f
+        candidate = hslToColor(h, targetS, l, color.alpha)
+    }
+    return candidate
 }
 
 fun buildCustomColorScheme(baseColor: Color, darkTheme: Boolean): ColorScheme {
@@ -88,17 +142,18 @@ fun buildCustomColorScheme(baseColor: Color, darkTheme: Boolean): ColorScheme {
             onSurface = White
         )
     } else {
-        val isPrimaryDark = (0.299f * baseColor.red + 0.587f * baseColor.green + 0.114f * baseColor.blue) < 0.6f
+        val effectivePrimary = adjustColorForLightTheme(baseColor)
+        val isPrimaryDark = (0.299f * effectivePrimary.red + 0.587f * effectivePrimary.green + 0.114f * effectivePrimary.blue) < 0.6f
         val onPrimaryColor = if (isPrimaryDark) White else Grey10
-        val onPrimaryContainerColor = if (isPrimaryDark) baseColor else Grey10
+        val onPrimaryContainerColor = if (isPrimaryDark) effectivePrimary else Grey10
 
         lightColorScheme(
-            primary = baseColor,
-            primaryContainer = baseColor.copy(alpha = 0.18f),
+            primary = effectivePrimary,
+            primaryContainer = effectivePrimary.copy(alpha = 0.18f),
             onPrimary = onPrimaryColor,
             onPrimaryContainer = onPrimaryContainerColor,
-            secondary = baseColor,
-            secondaryContainer = baseColor.copy(alpha = 0.15f),
+            secondary = effectivePrimary,
+            secondaryContainer = effectivePrimary.copy(alpha = 0.15f),
             onSecondary = onPrimaryColor,
             onSecondaryContainer = onPrimaryContainerColor,
             background = Grey90,
@@ -154,14 +209,13 @@ fun TrickTrackTheme(
         else -> buildCustomColorScheme(accentColorHex, darkTheme)
     }
 
-    val isHeaderBackgroundDark = if (darkTheme) {
-        if (headerGradient != null) SpecialThemeHelper.isGradientDark(headerGradient) else true
-    } else if (dynamicColor) {
-        false
+    val isHeaderBackgroundDark = if (dynamicColor) {
+        darkTheme
     } else if (headerGradient != null) {
         SpecialThemeHelper.isGradientDark(headerGradient)
     } else {
-        (0.299f * colorScheme.primary.red + 0.587f * colorScheme.primary.green + 0.114f * colorScheme.primary.blue) < 0.6f
+        val rawAccent = if (accentColorHex == 0L) Color(0xFF6750A4L) else Color(accentColorHex.toInt())
+        (0.299f * rawAccent.red + 0.587f * rawAccent.green + 0.114f * rawAccent.blue) < 0.6f
     }
 
     val view = LocalView.current
