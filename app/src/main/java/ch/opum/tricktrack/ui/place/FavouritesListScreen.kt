@@ -1,5 +1,10 @@
 package ch.opum.tricktrack.ui.place
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
@@ -245,64 +250,75 @@ fun PlacesListScreen(
         }
 
 
-        when (selectedTabIndex) {
-            0 -> {
-                val groupedPlaces by viewModel.groupedPlaces.collectAsState()
-                SavedPlaceList(
-                    groupedFavorites = groupedPlaces,
-                    onEditPlace = { place ->
-                        placeToEdit = place
-                        showEditDialog = true
-                    },
-                )
-            }
-            1 -> {
-                val groupedDrivers by viewModel.groupedDrivers.collectAsState()
-                val selectedId by viewModel.selectedDriverId.collectAsState()
-                GenericGroupedList(
-                    groupedItems = groupedDrivers.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
-                    onEdit = { item ->
-                        itemToEdit = item
-                        showEditDialog = true
-                    },
-                    selectedId = selectedId,
-                    onSelect = { id -> viewModel.setDefaultDriver(id) },
-                    emptyIcon = Icons.Default.Person,
-                    emptyHelpText = stringResource(R.string.favourites_drivers_empty_help),
-                    viewModel = viewModel
-                )
-            }
-            2 -> {
-                val groupedCompanies by viewModel.groupedCompanies.collectAsState()
-                val selectedId by viewModel.selectedCompanyId.collectAsState()
-                GenericGroupedList(
-                    groupedItems = groupedCompanies.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
-                    onEdit = { item ->
-                        itemToEdit = item
-                        showEditDialog = true
-                    },
-                    selectedId = selectedId,
-                    onSelect = { id -> viewModel.setDefaultCompany(id) },
-                    emptyIcon = Icons.Default.Work,
-                    emptyHelpText = stringResource(R.string.favourites_companies_empty_help),
-                    viewModel = viewModel
-                )
-            }
-            3 -> {
-                val groupedVehicles by viewModel.groupedVehicles.collectAsState()
-                val selectedId by viewModel.selectedVehicleId.collectAsState()
-                GenericGroupedList(
-                    groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel, it.brand, it.currentOdometer) } },
-                    onEdit = { item ->
-                        itemToEdit = item
-                        showEditDialog = true
-                    },
-                    selectedId = selectedId,
-                    onSelect = { id -> viewModel.setDefaultVehicle(id) },
-                    emptyIcon = Icons.Default.DirectionsCar,
-                    emptyHelpText = stringResource(R.string.favourites_vehicles_empty_help),
-                    viewModel = viewModel
-                )
+        AnimatedContent(
+            targetState = selectedTabIndex,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+            },
+            label = "FavouritesCategoryTransition",
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) { targetTabIndex ->
+            when (targetTabIndex) {
+                0 -> {
+                    val groupedPlaces by viewModel.groupedPlaces.collectAsState()
+                    SavedPlaceList(
+                        groupedFavorites = groupedPlaces,
+                        onEditPlace = { place ->
+                            placeToEdit = place
+                            showEditDialog = true
+                        },
+                    )
+                }
+                1 -> {
+                    val groupedDrivers by viewModel.groupedDrivers.collectAsState()
+                    val selectedId by viewModel.selectedDriverId.collectAsState()
+                    GenericGroupedList(
+                        groupedItems = groupedDrivers.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
+                        onEdit = { item ->
+                            itemToEdit = item
+                            showEditDialog = true
+                        },
+                        selectedId = selectedId,
+                        onSelect = { id -> viewModel.setDefaultDriver(id) },
+                        emptyIcon = Icons.Default.Person,
+                        emptyHelpText = stringResource(R.string.favourites_drivers_empty_help),
+                        viewModel = viewModel
+                    )
+                }
+                2 -> {
+                    val groupedCompanies by viewModel.groupedCompanies.collectAsState()
+                    val selectedId by viewModel.selectedCompanyId.collectAsState()
+                    GenericGroupedList(
+                        groupedItems = groupedCompanies.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.name) } },
+                        onEdit = { item ->
+                            itemToEdit = item
+                            showEditDialog = true
+                        },
+                        selectedId = selectedId,
+                        onSelect = { id -> viewModel.setDefaultCompany(id) },
+                        emptyIcon = Icons.Default.Work,
+                        emptyHelpText = stringResource(R.string.favourites_companies_empty_help),
+                        viewModel = viewModel
+                    )
+                }
+                3 -> {
+                    val groupedVehicles by viewModel.groupedVehicles.collectAsState()
+                    val selectedId by viewModel.selectedVehicleId.collectAsState()
+                    GenericGroupedList(
+                        groupedItems = groupedVehicles.mapValues { entry -> entry.value.map { SimpleItem(it.id, it.licensePlate, it.carModel, it.brand, it.currentOdometer) } },
+                        onEdit = { item ->
+                            itemToEdit = item
+                            showEditDialog = true
+                        },
+                        selectedId = selectedId,
+                        onSelect = { id -> viewModel.setDefaultVehicle(id) },
+                        emptyIcon = Icons.Default.DirectionsCar,
+                        emptyHelpText = stringResource(R.string.favourites_vehicles_empty_help),
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }
