@@ -1479,7 +1479,11 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = stringResource(R.string.api_settings_title))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                        contentDescription = stringResource(R.string.api_settings_title),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
@@ -1543,7 +1547,8 @@ fun SettingsScreen(
                     }
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = stringResource(R.string.settings_last_movement_title)
+                        contentDescription = stringResource(R.string.settings_last_movement_title),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -1563,7 +1568,8 @@ fun SettingsScreen(
                     Text(stringResource(R.string.settings_logs_title), modifier = Modifier.weight(1f))
                     Icon(
                         Icons.Default.BugReport,
-                        contentDescription = stringResource(R.string.settings_logs_title)
+                        contentDescription = stringResource(R.string.settings_logs_title),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }

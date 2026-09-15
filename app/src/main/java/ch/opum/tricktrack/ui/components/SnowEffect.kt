@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
@@ -155,9 +156,8 @@ fun SnowOverlay(
         val darkCoreColor = Color.White
         val darkHaloColor = Color(0xFFE1F5FE)
 
-        val lightCoreColor = Color(0xFFF0F8FF)
-        val lightRimColor = Color(0xFF64B5F6)
-        val lightShadowColor = Color(0x30000000)
+        val lightCoreColor = Color.White
+        val lightBorderColor = Color(0xFF4F4F4F)
 
         // Read frameTrigger to ensure Canvas redraws on each animation frame
         if (frameTrigger < 0L) return@Canvas
@@ -244,23 +244,19 @@ fun SnowOverlay(
                     center = center
                 )
             } else {
-                // Soft shadow for contrast on white cards
-                drawCircle(
-                    color = lightShadowColor.copy(alpha = effectiveAlpha * 0.4f),
-                    radius = flake.radius * 1.3f,
-                    center = Offset(flake.x, flake.y + 0.8f)
-                )
-                // Frosty ice-blue rim
-                drawCircle(
-                    color = lightRimColor.copy(alpha = effectiveAlpha * 0.85f),
-                    radius = flake.radius * 1.15f,
-                    center = center
-                )
-                // White/icy core
+                // White core
                 drawCircle(
                     color = lightCoreColor.copy(alpha = effectiveAlpha),
-                    radius = flake.radius * 0.85f,
+                    radius = flake.radius,
                     center = center
+                )
+                // Crisp gray border for contrast on white cards and light backgrounds
+                val strokeWidth = (flake.radius * 0.22f).coerceIn(0.6f, 1.0f)
+                drawCircle(
+                    color = lightBorderColor.copy(alpha = effectiveAlpha * 0.75f),
+                    radius = flake.radius,
+                    center = center,
+                    style = Stroke(width = strokeWidth)
                 )
             }
         }
