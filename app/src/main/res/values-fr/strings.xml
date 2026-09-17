@@ -157,6 +157,7 @@
     <string name="about_osm_attribution">Données cartographiques © contributeurs OpenStreetMap</string>
     <string name="about_copyright">© 2026 Michel Perrin @ OPUM-Labs</string>
     <string name="about_made_with_love">Créé avec ❤️ et 🤖</string>
+    <string name="about_privacy_policy">Politique de confidentialité</string>
 
     <!-- Export Settings Dialog -->
     <string name="export_column_date">Date</string>
@@ -242,6 +243,12 @@
     <string name="delete_trip_cd">Supprimer le trajet</string>
     <string name="end_time_before_start_time_toast">L\'heure de fin ne peut pas être antérieure à l\'heure de début.</string>
     <string name="calculate_distance_button">Calculer</string>
+    <string name="calculate_missing_both_addresses">Veuillez saisir les adresses de départ et d\'arrivée.</string>
+    <string name="calculate_missing_start_address">Veuillez saisir une adresse de départ.</string>
+    <string name="calculate_missing_end_address">Veuillez saisir une adresse d\'arrivée.</string>
+    <string name="calculate_no_internet">Impossible de calculer l\'itinéraire : Pas de connexion Internet.</string>
+    <string name="calculate_address_not_found">Impossible de trouver les coordonnées des adresses saisies.</string>
+    <string name="calculate_routing_failed">Impossible de calculer l\'itinéraire routier entre ces lieux.</string>
     <string name="delete_filtered_trips_title">Supprimer les trajets filtrés ?</string>
     <string name="delete_filtered_trips_confirmation">Êtes-vous sûr de vouloir supprimer tous les trajets qui correspondent au filtre actuel ? Cette action est irréversible.</string>
 

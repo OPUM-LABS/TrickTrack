@@ -157,6 +157,7 @@
     <string name="about_osm_attribution">Dati mappa © contributori OpenStreetMap</string>
     <string name="about_copyright">© 2026 Michel Perrin @ OPUM-Labs</string>
     <string name="about_made_with_love">Creato con ❤️ e 🤖</string>
+    <string name="about_privacy_policy">Informativa sulla privacy</string>
 
     <!-- Export Settings Dialog -->
     <string name="export_column_date">Data</string>
@@ -242,6 +243,12 @@
     <string name="delete_trip_cd">Elimina viaggio</string>
     <string name="end_time_before_start_time_toast">L\'ora di fine non può essere precedente all\'ora di inizio.</string>
     <string name="calculate_distance_button">Calcola</string>
+    <string name="calculate_missing_both_addresses">Inserisci sia l\'indirizzo di partenza che quello di arrivo.</string>
+    <string name="calculate_missing_start_address">Inserisci un indirizzo di partenza.</string>
+    <string name="calculate_missing_end_address">Inserisci un indirizzo di arrivo.</string>
+    <string name="calculate_no_internet">Impossibile calcolare il percorso: Nessuna connessione Internet.</string>
+    <string name="calculate_address_not_found">Impossibile trovare le coordinate per gli indirizzi inseriti.</string>
+    <string name="calculate_routing_failed">Impossibile calcolare il percorso stradale tra queste posizioni.</string>
     <string name="delete_filtered_trips_title">Eliminare i viaggi filtrati?</string>
     <string name="delete_filtered_trips_confirmation">Sei sicuro di voler eliminare tutti i viaggi che corrispondono al filtro corrente? Questa azione non può essere annullata.</string>
 

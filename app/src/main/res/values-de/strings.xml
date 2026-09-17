@@ -156,6 +156,7 @@
     <string name="about_osm_attribution">Kartendaten © OpenStreetMap Mitwirkende</string>
     <string name="about_copyright">© 2026 Michel Perrin @ OPUM-Labs</string>
     <string name="about_made_with_love">Erstellt mit ❤️ und 🤖</string>
+    <string name="about_privacy_policy">Datenschutzerklärung</string>
 
     <!-- Export Settings Dialog -->
     <string name="export_column_date">Datum</string>
@@ -241,6 +242,12 @@
     <string name="delete_trip_cd">Fahrt löschen</string>
     <string name="end_time_before_start_time_toast">Die Endzeit darf nicht vor der Startzeit liegen.</string>
     <string name="calculate_distance_button">Berechnen</string>
+    <string name="calculate_missing_both_addresses">Bitte Start- und Zieladresse eingeben.</string>
+    <string name="calculate_missing_start_address">Bitte Startadresse eingeben.</string>
+    <string name="calculate_missing_end_address">Bitte Zieladresse eingeben.</string>
+    <string name="calculate_no_internet">Route kann nicht berechnet werden: Keine Internetverbindung.</string>
+    <string name="calculate_address_not_found">Koordinaten für die eingegebenen Adressen nicht gefunden.</string>
+    <string name="calculate_routing_failed">Fahrtroute zwischen diesen Orten konnte nicht berechnet werden.</string>
     <string name="delete_filtered_trips_title">Gefilterte Fahrten löschen?</string>
     <string name="delete_filtered_trips_confirmation">Möchten Sie wirklich alle Fahrten löschen, die dem aktuellen Filter entsprechen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
 

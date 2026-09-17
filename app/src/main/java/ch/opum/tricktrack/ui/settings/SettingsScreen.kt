@@ -57,6 +57,7 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Warning
@@ -75,6 +76,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -366,6 +368,7 @@ fun SettingsScreen(
     var showLastMovementSheet by remember { mutableStateOf(false) }
     var showScheduleDialog by remember { mutableStateOf(false) }
     var showServerSettingsDialog by remember { mutableStateOf(false) } // New state for server settings
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     val permissionHelper = rememberPermissionHelper()
     var isBatteryOptimizationIgnored by remember { mutableStateOf(isBatteryOptimizationIgnored(context)) }
@@ -552,6 +555,19 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+                OutlinedButton(
+                    onClick = { showPrivacyDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.about_privacy_policy))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
                         scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -564,6 +580,12 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    if (showPrivacyDialog) {
+        PrivacyPolicyDialog(
+            onDismiss = { showPrivacyDialog = false }
+        )
     }
 
     if (showScheduleDialog) {
