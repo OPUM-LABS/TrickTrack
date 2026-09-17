@@ -46,6 +46,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -182,6 +183,7 @@ import ch.opum.tricktrack.ui.TimePickerDialog
 import ch.opum.tricktrack.ui.TimelineNode
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
+import ch.opum.tricktrack.ui.CalculationError
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.clearFocusOnTap
@@ -542,12 +544,38 @@ fun MainScreen(
                                 IconButton(onClick = { showDeleteConfirmationDialog = true }) {
                                     Icon(Icons.Default.Delete, stringResource(R.string.action_delete))
                                 }
-                                IconButton(onClick = { showFilterDialog = true }) {
-                                    Icon(
-                                        Icons.Default.FilterList,
-                                        stringResource(R.string.action_filter),
-                                        tint = if (isFilterActive) MaterialTheme.colorScheme.secondary else LocalContentColor.current
-                                    )
+                                IconButton(
+                                    onClick = { showFilterDialog = true },
+                                    modifier = if (isFilterActive) {
+                                        Modifier.background(
+                                            color = LocalContentColor.current.copy(alpha = 0.20f),
+                                            shape = CircleShape
+                                        )
+                                    } else {
+                                        Modifier
+                                    }
+                                ) {
+                                    if (isFilterActive) {
+                                        BadgedBox(
+                                            badge = {
+                                                Badge(
+                                                    containerColor = if (isHeaderDark) Color.White else Grey10
+                                                )
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Default.FilterList,
+                                                contentDescription = stringResource(R.string.action_filter),
+                                                tint = LocalContentColor.current
+                                            )
+                                        }
+                                    } else {
+                                        Icon(
+                                            Icons.Default.FilterList,
+                                            contentDescription = stringResource(R.string.action_filter),
+                                            tint = LocalContentColor.current
+                                        )
+                                    }
                                 }
                                 IconButton(onClick = { showExportDialog = true }) {
                                     Icon(Icons.Default.FileDownload, stringResource(R.string.action_export))
@@ -1311,6 +1339,7 @@ fun EditTripDialog(
     var startLon by remember { mutableStateOf(trip?.startLon) }
     var endLat by remember { mutableStateOf(trip?.endLat) }
     var endLon by remember { mutableStateOf(trip?.endLon) }
+    var routePolyline by remember { mutableStateOf(trip?.routePolyline) }
     var tripType by remember {
         mutableStateOf(
             trip?.type ?: if (defaultIsBusiness) "Business" else "Personal"
@@ -1381,6 +1410,12 @@ fun EditTripDialog(
 
     val context = LocalContext.current
     val endTimeBeforeStartTimeToast = stringResource(R.string.end_time_before_start_time_toast)
+    val calculateMissingBothAddressesToast = stringResource(R.string.calculate_missing_both_addresses)
+    val calculateMissingStartAddressToast = stringResource(R.string.calculate_missing_start_address)
+    val calculateMissingEndAddressToast = stringResource(R.string.calculate_missing_end_address)
+    val calculateNoInternetToast = stringResource(R.string.calculate_no_internet)
+    val calculateAddressNotFoundToast = stringResource(R.string.calculate_address_not_found)
+    val calculateRoutingFailedToast = stringResource(R.string.calculate_routing_failed)
 
     // State for Start Date and Time
     val startCalendar = Calendar.getInstance().apply {
@@ -1923,7 +1958,58 @@ fun EditTripDialog(
                         }
                     } else {
                         Surface(
-                            onClick = { tripsViewModel.calculateDistance(startText, endText) },
+                            onClick = {
+                                val startBlank = startText.isBlank()
+                                val endBlank = endText.isBlank()
+                                if (startBlank && endBlank) {
+                                    Toast.makeText(
+                                        context,
+                                        calculateMissingBothAddressesToast,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@Surface
+                                } else if (startBlank) {
+                                    Toast.makeText(
+                                        context,
+                                        calculateMissingStartAddressToast,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@Surface
+                                } else if (endBlank) {
+                                    Toast.makeText(
+                                        context,
+                                        calculateMissingEndAddressToast,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@Surface
+                                }
+
+                                val startBias = if (startLat != null && startLon != null) Pair(startLat!!, startLon!!) else null
+                                val endBias = if (endLat != null && endLon != null) Pair(endLat!!, endLon!!) else null
+
+                                tripsViewModel.calculateDistance(
+                                    startAddress = startText,
+                                    endAddress = endText,
+                                    startCoordsBias = startBias,
+                                    endCoordsBias = endBias,
+                                    onSuccess = { _, sLat, sLon, eLat, eLon, polyline ->
+                                        startLat = sLat
+                                        startLon = sLon
+                                        endLat = eLat
+                                        endLon = eLon
+                                        routePolyline = polyline
+                                        isError = false
+                                    },
+                                    onError = { error ->
+                                        val msg = when (error) {
+                                            CalculationError.NO_INTERNET -> calculateNoInternetToast
+                                            CalculationError.ADDRESS_NOT_FOUND -> calculateAddressNotFoundToast
+                                            CalculationError.ROUTING_FAILED -> calculateRoutingFailedToast
+                                        }
+                                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            },
                             modifier = Modifier
                                 .weight(0.32f)
                                 .fillMaxHeight(),
@@ -2150,6 +2236,7 @@ fun EditTripDialog(
                             startLon = startLon,
                             endLat = endLat,
                             endLon = endLon,
+                            routePolyline = routePolyline,
                             vehicleId = selectedVehicle?.id,
                             endOdometer = if (isOdometerModeEnabled) {
                                 odometerText.toDoubleOrNull()?.let { DistanceFormatter.toKm(it, distanceUnit) }
@@ -2168,6 +2255,7 @@ fun EditTripDialog(
                             startLon = startLon,
                             endLat = endLat,
                             endLon = endLon,
+                            routePolyline = routePolyline,
                             isConfirmed = true, // Default for manual add/edit
                             vehicleId = selectedVehicle?.id,
                             endOdometer = if (isOdometerModeEnabled) {

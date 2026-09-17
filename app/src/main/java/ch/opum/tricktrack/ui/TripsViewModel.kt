@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Geocoder
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -28,6 +27,9 @@ import ch.opum.tricktrack.TripNotificationManager
 import ch.opum.tricktrack.util.DistanceFormatter
 import ch.opum.tricktrack.data.CompanyEntity
 import ch.opum.tricktrack.data.DistanceUnit
+import ch.opum.tricktrack.data.place.SavedPlace
+import ch.opum.tricktrack.util.PolylineUtils
+import kotlin.math.abs
 import ch.opum.tricktrack.data.DriverEntity
 import ch.opum.tricktrack.data.ScheduleSettings
 import ch.opum.tricktrack.data.ScheduleTarget
@@ -71,8 +73,6 @@ import java.util.Calendar
 import java.util.Currency
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 
 enum class TripType {
     ALL, BUSINESS, PERSONAL
@@ -92,6 +92,12 @@ data class TripGroup(
     val totalDistance: Double,
 )
 
+enum class CalculationError {
+    NO_INTERNET,
+    ADDRESS_NOT_FOUND,
+    ROUTING_FAILED
+}
+
 class TripsViewModel(
     application: Application,
     private val repository: TripRepository,
@@ -104,8 +110,12 @@ class TripsViewModel(
     var isCalculating by mutableStateOf(value = false)
     var distanceInput by mutableStateOf("")
 
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var isResolvingAddresses = false
+
     init {
         registerNetworkCallback()
+        resolvePendingOfflineAddresses()
     }
 
     private fun registerNetworkCallback() {
@@ -116,16 +126,26 @@ class TripsViewModel(
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     .build()
 
-                connectivityManager.registerNetworkCallback(networkRequest, object : ConnectivityManager.NetworkCallback() {
+                val callback = object : ConnectivityManager.NetworkCallback() {
                     override fun onAvailable(network: Network) {
                         super.onAvailable(network)
                         resolvePendingOfflineAddresses()
                     }
-                })
+                }
+                networkCallback = callback
+                connectivityManager.registerNetworkCallback(networkRequest, callback)
             }
         } catch (e: Exception) {
             AppLogger.log("TripsViewModel", "Error registering network callback: ${e.message}")
         }
+    }
+
+    override fun onCleared() {
+        try {
+            val connectivityManager = getApplication<Application>().getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            networkCallback?.let { connectivityManager?.unregisterNetworkCallback(it) }
+            networkCallback = null
+        } catch (_: Exception) {}
     }
 
     suspend fun getAddressFromLocation(lat: Double?, lng: Double?): String {
@@ -139,14 +159,28 @@ class TripsViewModel(
     }
 
     fun resolvePendingOfflineAddresses() {
+        if (!geocoderHelper.isNetworkAvailable()) return
+
         viewModelScope.launch(Dispatchers.IO) {
+            if (isResolvingAddresses) return@launch
+            isResolvingAddresses = true
             try {
                 val confirmed = repository.confirmedTrips.first().map { it.trip }
                 val unconfirmed = repository.unconfirmedTrips.first().map { it.trip }
                 val allTrips = confirmed + unconfirmed
+                val pendingTrips = allTrips.filter {
+                    (isPendingAddress(it.startLoc) && it.startLat != null && it.startLon != null) ||
+                            (isPendingAddress(it.endLoc) && it.endLat != null && it.endLon != null)
+                }
+
+                if (pendingTrips.isEmpty()) return@launch
+
+                val isSmartLocationEnabled = userPreferencesRepository.isSmartLocationEnabled.first()
+                val smartLocationRadius = userPreferencesRepository.smartLocationRadius.first()
+                val savedPlaces = repository.getSavedPlacesList()
                 var anyUpdated = false
 
-                allTrips.forEach { trip ->
+                pendingTrips.forEach { trip ->
                     val startNeedsResolution = isPendingAddress(trip.startLoc) && trip.startLat != null && trip.startLon != null
                     val endNeedsResolution = isPendingAddress(trip.endLoc) && trip.endLat != null && trip.endLon != null
 
@@ -157,14 +191,28 @@ class TripsViewModel(
                         if (startNeedsResolution) {
                             val resolvedStart = geocoderHelper.getAddressFromLocation(trip.startLat, trip.startLon)
                             if (resolvedStart.isNotBlank() && !isPendingAddress(resolvedStart)) {
-                                newStart = resolvedStart
+                                newStart = geocoderHelper.getSmartAddress(
+                                    originalAddress = resolvedStart,
+                                    lat = trip.startLat,
+                                    lng = trip.startLon,
+                                    favorites = savedPlaces,
+                                    isEnabled = isSmartLocationEnabled,
+                                    radius = smartLocationRadius
+                                )
                             }
                         }
 
                         if (endNeedsResolution) {
                             val resolvedEnd = geocoderHelper.getAddressFromLocation(trip.endLat, trip.endLon)
                             if (resolvedEnd.isNotBlank() && !isPendingAddress(resolvedEnd)) {
-                                newEnd = resolvedEnd
+                                newEnd = geocoderHelper.getSmartAddress(
+                                    originalAddress = resolvedEnd,
+                                    lat = trip.endLat,
+                                    lng = trip.endLon,
+                                    favorites = savedPlaces,
+                                    isEnabled = isSmartLocationEnabled,
+                                    radius = smartLocationRadius
+                                )
                             }
                         }
 
@@ -181,6 +229,8 @@ class TripsViewModel(
                 }
             } catch (e: Exception) {
                 AppLogger.log("TripsViewModel", "Error resolving pending offline addresses: ${e.message}")
+            } finally {
+                isResolvingAddresses = false
             }
         }
     }
@@ -781,53 +831,109 @@ class TripsViewModel(
         }.launchIn(viewModelScope)
     }
 
-    fun calculateDistance(startAddress: String, endAddress: String) {
+    private suspend fun resolveCoordinates(
+        address: String,
+        savedPlaces: List<SavedPlace>,
+        biasLat: Double? = null,
+        biasLon: Double? = null
+    ): Pair<Double, Double>? {
+        val trimmed = address.trim()
+        val matchedPlace = savedPlaces.firstOrNull {
+            it.name.equals(trimmed, ignoreCase = true) ||
+            it.address.equals(trimmed, ignoreCase = true) ||
+            "${it.name}, ${it.address}".equals(trimmed, ignoreCase = true)
+        }
+        if (matchedPlace != null && (abs(matchedPlace.latitude) > 0.001 || abs(matchedPlace.longitude) > 0.001)) {
+            return Pair(matchedPlace.latitude, matchedPlace.longitude)
+        }
+        return geocoderHelper.getCoordinatesFromAddress(trimmed, biasLat, biasLon)
+    }
+
+    fun calculateDistance(
+        startAddress: String,
+        endAddress: String,
+        startCoordsBias: Pair<Double, Double>? = null,
+        endCoordsBias: Pair<Double, Double>? = null,
+        onSuccess: ((distanceKm: Double, startLat: Double, startLon: Double, endLat: Double, endLon: Double, routePolyline: String?) -> Unit)? = null,
+        onError: ((reason: CalculationError) -> Unit)? = null
+    ) {
         Log.d("TripsViewModel", "calculateDistance called with start: $startAddress, end: $endAddress")
-        if (startAddress.isNotBlank() && endAddress.isNotBlank()) {
-            isCalculating = true
-            viewModelScope.launch(Dispatchers.IO) {
-                val geocoder = Geocoder(getApplication(), Locale.getDefault())
-                try {
-                    val startAddresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        suspendCancellableCoroutine { continuation ->
-                            geocoder.getFromLocationName(startAddress, 1) { addresses ->
-                                continuation.resume(addresses)
-                            }
-                        }
-                    } else {
-                        @Suppress("DEPRECATION")
-                        geocoder.getFromLocationName(startAddress, 1)
-                    }
+        if (startAddress.isBlank() || endAddress.isBlank()) {
+            return
+        }
 
-                    val endAddresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        suspendCancellableCoroutine { continuation ->
-                            geocoder.getFromLocationName(endAddress, 1) { addresses ->
-                                continuation.resume(addresses)
-                            }
-                        }
-                    } else {
-                        @Suppress("DEPRECATION")
-                        geocoder.getFromLocationName(endAddress, 1)
-                    }
+        if (!geocoderHelper.isNetworkAvailable()) {
+            onError?.invoke(CalculationError.NO_INTERNET)
+            return
+        }
 
-                    if (startAddresses != null && (endAddresses != null) && startAddresses.isNotEmpty() && endAddresses.isNotEmpty()) {
-                        val start = startAddresses[0]
-                        val end = endAddresses[0]
-                        val distance = distanceRepository.getDrivingDistance(start.latitude, start.longitude, end.latitude, end.longitude)
-                        withContext(Dispatchers.Main) {
-                            distance?.let {
-                                val unit = distanceUnit.value
-                                val converted = DistanceFormatter.convert(it, unit)
-                                distanceInput = "%.2f".format(converted)
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("TripsViewModel", "Error calculating distance", e)
-                } finally {
+        isCalculating = true
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val savedPlaces = repository.getSavedPlacesList()
+
+                // 1. Resolve start coordinates
+                val startCoords = resolveCoordinates(startAddress, savedPlaces)
+                    ?: (if (startCoordsBias != null && (abs(startCoordsBias.first) > 0.001 || abs(startCoordsBias.second) > 0.001)) startCoordsBias else null)
+
+                // 2. Resolve end coordinates (proximity biased first, fallback to unbiased)
+                val endCoords = (resolveCoordinates(endAddress, savedPlaces, startCoords?.first, startCoords?.second)
+                    ?: resolveCoordinates(endAddress, savedPlaces, null, null))
+                    ?: (if (endCoordsBias != null && (abs(endCoordsBias.first) > 0.001 || abs(endCoordsBias.second) > 0.001)) endCoordsBias else null)
+
+                if (startCoords == null || endCoords == null) {
                     withContext(Dispatchers.Main) {
-                        isCalculating = false
+                        onError?.invoke(CalculationError.ADDRESS_NOT_FOUND)
                     }
+                    return@launch
+                }
+
+                // 3. Request driving distance and route geometry from OSRM
+                val distance = distanceRepository.getDrivingDistance(
+                    startCoords.first,
+                    startCoords.second,
+                    endCoords.first,
+                    endCoords.second
+                )
+
+                if (distance == null) {
+                    withContext(Dispatchers.Main) {
+                        onError?.invoke(CalculationError.ROUTING_FAILED)
+                    }
+                    return@launch
+                }
+
+                val roadPoints = distanceRepository.getOsrmRouteGeometry(
+                    startCoords.first,
+                    startCoords.second,
+                    endCoords.first,
+                    endCoords.second
+                )
+                val encodedPolyline = if (!roadPoints.isNullOrEmpty()) {
+                    PolylineUtils.encode(roadPoints)
+                } else null
+
+                withContext(Dispatchers.Main) {
+                    val unit = distanceUnit.value
+                    val converted = DistanceFormatter.convert(distance, unit)
+                    distanceInput = "%.2f".format(converted)
+                    onSuccess?.invoke(
+                        distance,
+                        startCoords.first,
+                        startCoords.second,
+                        endCoords.first,
+                        endCoords.second,
+                        encodedPolyline
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("TripsViewModel", "Error calculating distance", e)
+                withContext(Dispatchers.Main) {
+                    onError?.invoke(CalculationError.ROUTING_FAILED)
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isCalculating = false
                 }
             }
         }

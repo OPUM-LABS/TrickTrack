@@ -658,16 +658,42 @@ class LocationService : Service() {
         )
 
         val previousLocation = _lastLocation.value
-        lastLocationTime = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
+        val prevLocationTime = lastLocationTime
+        lastLocationTime = now
 
         if (_startLocation.value == null) {
-            _startLocation.value = location
-            recordedWaypoints.add(GeoPoint(location.latitude, location.longitude))
-        }
-
-        previousLocation?.let { prev ->
-            if (location.accuracy < 35.0) {
-                val distance = prev.distanceTo(location)
+            // Allow initial cold GPS lock up to 65m to establish start location without dropping cold satellite fixes
+            if (!location.hasAccuracy() || location.accuracy <= 65.0f) {
+                _startLocation.value = location
+                _lastLocation.value = location
+                recordedWaypoints.add(GeoPoint(location.latitude, location.longitude))
+                AppLogger.log("LocationService", "Initial trip start location locked with accuracy: ${location.accuracy}m")
+            } else {
+                AppLogger.log("LocationService", "Waiting for better accuracy for start location. Current: ${location.accuracy}m (Threshold: 65m)")
+                return
+            }
+        } else if (previousLocation == null) {
+            // Robust fallback if start location was set (e.g. from cached start) but previousLocation wasn't
+            val startLoc = _startLocation.value!!
+            if (location.accuracy < 35.0f) {
+                val distance = startLoc.distanceTo(location)
+                if (distance > 2) {
+                    _distance.value += distance
+                    recordedWaypoints.add(GeoPoint(location.latitude, location.longitude))
+                    AppLogger.log(
+                        "LocationService",
+                        "Distance from initial start point: ${distance}m. Total distance: ${_distance.value}m."
+                    )
+                }
+                _lastLocation.value = location
+            } else {
+                _lastLocation.value = startLoc
+                AppLogger.log("LocationService", "Skipping distance accumulation for inaccurate fix: ${location.accuracy}m")
+            }
+        } else {
+            if (location.accuracy < 35.0f) {
+                val distance = previousLocation.distanceTo(location)
                 if (distance > 2) { // Filter out GPS jitter
                     _distance.value += distance
                     recordedWaypoints.add(GeoPoint(location.latitude, location.longitude))
@@ -676,9 +702,11 @@ class LocationService : Service() {
                         "Distance since last point: ${distance}m. Total distance: ${_distance.value}m."
                     )
                 }
+                _lastLocation.value = location
+            } else {
+                AppLogger.log("LocationService", "Skipping distance accumulation for inaccurate fix: ${location.accuracy}m")
             }
         }
-        _lastLocation.value = location
         updateNotification(_distance.value)
 
         // Priority: If Bluetooth is tracking, we don't need stillness detection (logic of automatic tracking)
@@ -723,23 +751,40 @@ class LocationService : Service() {
 
                 // Now, decide if the new location update should reset the timer.
                 // A reset means we are confident the user is still driving.
-                if (previousLocation != null) {
-                    val timeDeltaSeconds = (location.time - previousLocation.time) / 1000.0
+                val effectivePrevLocation = previousLocation ?: _startLocation.value
+                if (effectivePrevLocation != null) {
+                    val timeDeltaSeconds = if (location.time > effectivePrevLocation.time) {
+                        (location.time - effectivePrevLocation.time) / 1000.0
+                    } else if (prevLocationTime > 0 && now > prevLocationTime) {
+                        (now - prevLocationTime) / 1000.0
+                    } else {
+                        5.0
+                    }
 
-                    if (timeDeltaSeconds > 0) {
-                        val distanceMeters = location.distanceTo(previousLocation)
-                        // Manually calculate speed in km/h
-                        val calculatedSpeedKmh = (distanceMeters / timeDeltaSeconds) * 3.6
-                        lastReportedSpeed = calculatedSpeedKmh
+                    val distanceMeters = location.distanceTo(effectivePrevLocation)
 
-                        AppLogger.log("LocationService", "Stillness check. Calculated Speed: %.2f km/h. TimeDelta: %.2fs. DistDelta: %.2fm.".format(calculatedSpeedKmh, timeDeltaSeconds, distanceMeters))
+                    // Velocity is calculated strictly from GPS coordinate displacement over time.
+                    // If displacement is within GPS jitter (<= 2m), the vehicle is stationary.
+                    val speedKmh = if (distanceMeters > 2.0 && timeDeltaSeconds > 0) {
+                        (distanceMeters / timeDeltaSeconds) * 3.6
+                    } else {
+                        0.0
+                    }
 
-                        // If speed is high, we are definitely driving. Reset the timer.
-                        if (calculatedSpeedKmh > minSpeedValue) {
-                            AppLogger.log("LocationService", "Speed is > $minSpeedValue km/h. Resetting stillness timer.")
-                            stillnessTimer?.cancel()
-                            stillnessTimer = null // A new timer will start on the next location update.
-                        }
+                    lastReportedSpeed = speedKmh
+
+                    AppLogger.log(
+                        "LocationService",
+                        "Stillness check. Calculated Speed: %.2f km/h. TimeDelta: %.2fs. DistDelta: %.2fm.".format(
+                            speedKmh, timeDeltaSeconds, distanceMeters
+                        )
+                    )
+
+                    // If speed is high, we are definitely driving. Reset the timer.
+                    if (speedKmh > minSpeedValue) {
+                        AppLogger.log("LocationService", "Speed is > $minSpeedValue km/h. Resetting stillness timer.")
+                        stillnessTimer?.cancel()
+                        stillnessTimer = null // A new timer will start on the next location update.
                     }
                 }
             }
@@ -793,8 +838,12 @@ class LocationService : Service() {
                 isBluetoothTriggeredTrip = false
                 _currentTripTrigger.value = TripTrigger.AUTOMATIC
                 withContext(Dispatchers.Main) {
-                    startTrip() // This will reset _startLocation to null
-                    _startLocation.value = potentialTripStartLocation // Immediately set it from the cache
+                    startTrip() // This will reset _startLocation and _lastLocation to null
+                    potentialTripStartLocation?.let { startLoc ->
+                        _startLocation.value = startLoc
+                        _lastLocation.value = startLoc
+                        recordedWaypoints.add(GeoPoint(startLoc.latitude, startLoc.longitude))
+                    }
                     AppLogger.log(
                         "LocationService",
                         "Setting trip start location from cached value: ${
@@ -816,6 +865,8 @@ class LocationService : Service() {
     private fun stopAutoTripAndSaveForReview() {
         AppLogger.log("LocationService", "Stopping automatic trip and saving for review.")
         _isTracking.value = false
+        stillnessTimer?.cancel()
+        stillnessTimer = null
         applicationScope.launch {
             saveTrip()
             evaluateTrackingState() // Re-evaluate state after trip ends
