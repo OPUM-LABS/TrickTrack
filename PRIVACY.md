@@ -1,6 +1,6 @@
 # Privacy Policy for TrickTrack
 
-**Last updated:** September 16, 2026
+**Last updated:** September 17, 2026
 
 This Privacy Policy describes the policies and procedures of **OPUM-Labs** ("We", "Us", or "Our") regarding the collection, use, and protection of Your information when You use the **TrickTrack** mobile application (the "Application").
 
@@ -8,30 +8,24 @@ This Privacy Policy describes the policies and procedures of **OPUM-Labs** ("We"
 
 ### 1. On-Device Data Storage & Local Architecture
 
-TrickTrack is designed with a privacy-first approach. All trip logs, route coordinates, vehicle information, category records, expense entries, attached photos, and exported logbook reports (PDF/CSV) are stored locally on Your device using an internal database.
+TrickTrack is designed with a privacy-first approach. All trip logs, route coordinates, vehicle information, category records, expense entries and exported logbook reports (PDF/CSV) are stored locally on Your device using an internal database.
 
 * **No Server Uploads:** We do not operate remote application servers to collect, upload, or back up Your logbook records.
 
-
 * **No User Accounts:** You are not required to create an account, register, or sign in to use the Application.
-
-
 
 ---
 
-### 2. Location Data & Mapping
+### 2. Location Data, Mapping & Address Lookup
+To provide trip recording and logbook features, the Application requests permission to access Your Device's GPS location.
 
-To provide automated and manual trip recording features, the Application requests permission to access Your Device's GPS location.
+* **Local Storage:** GPS coordinates are saved directly to Your local device database to calculate driven distances and generate route maps.
 
-* **Usage:** GPS location coordinates are processed locally on Your Device solely to calculate driven distances, determine start/end addresses, and render route overlays on the map.
+* **Map Tiles:** Route maps are rendered using open-source mapping libraries (osmdroid / OpenStreetMap). Tile requests are fetched anonymously over HTTPS.(Self-hostabe and customizable in the settings)
 
+* **Address Conversion (Geocoding):** To convert coordinates into human-readable street addresses, the Application sends anonymous location queries to the Photon API (operated by Komoot, based on OpenStreetMap data). These requests contain only the coordinates or address query necessary to fetch location names. No personal identifiers, user accounts, or full trip histories are transmitted or stored by Komoot. (Self-hostabe and customizable in the settings)
 
-* **Map Services:** Map tiles are rendered using open-source mapping services (`osmdroid` / OpenStreetMap). Standard map tile requests are fetched anonymously over HTTPS without transmitting personal identifying information or trip history to third-party servers.
-
-
-* **Control:** You can enable or disable location permissions at any time through Your Device settings. Disabling location access will prevent automated trip tracking.
-
-
+* **Permission Control:** You can enable or disable location permissions at any time in Your Device settings.
 
 ---
 
@@ -50,8 +44,6 @@ TrickTrack is distributed as a paid application through the Google Play Store an
 Because all personal data resides entirely on Your Device:
 
 * You have full control to edit, export, or delete any trip records directly within the Application.
-
-
 * Uninstalling the Application or clearing the Application data in Your Device settings will permanently erase all local logbook data.
 
 
@@ -75,6 +67,4 @@ We may update Our Privacy Policy from time to time. Any changes will be posted w
 If You have any questions regarding this Privacy Policy or the privacy practices of TrickTrack, You can contact Us:
 
 * **By email:** app@opum.ch
-
-
 * **Operating Entity:** OPUM-Labs, Switzerland
