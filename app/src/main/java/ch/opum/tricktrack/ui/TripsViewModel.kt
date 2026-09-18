@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -152,10 +153,40 @@ class TripsViewModel(
         return geocoderHelper.getAddressFromLocation(lat, lng)
     }
 
+    private val pendingAddressMarkers: Set<String> by lazy {
+        val context = getApplication<Application>()
+        val supportedLanguageTags = listOf("en", "de", "fr", "it")
+        val markers = mutableSetOf("Unknown Start", "Unknown End")
+
+        // 1. Current runtime configuration locale
+        try {
+            val current = context.getString(R.string.address_pending_offline)
+            markers.add(current)
+            val currentPrefix = current.substringBefore(" (").trim()
+            if (currentPrefix.isNotEmpty()) markers.add(currentPrefix)
+        } catch (_: Exception) {}
+
+        // 2. Prepopulate across all bundled app locales for cross-language compatibility
+        for (lang in supportedLanguageTags) {
+            try {
+                val config = Configuration(context.resources.configuration).apply {
+                    setLocale(Locale.forLanguageTag(lang))
+                }
+                val localizedString = context.createConfigurationContext(config)
+                    .getString(R.string.address_pending_offline)
+                val prefix = localizedString.substringBefore(" (").trim()
+                if (prefix.isNotEmpty()) {
+                    markers.add(prefix)
+                }
+                markers.add(localizedString)
+            } catch (_: Exception) {}
+        }
+        markers
+    }
+
     fun isPendingAddress(address: String?): Boolean {
         if (address.isNullOrBlank()) return true
-        val pendingPrefixes = listOf("Pending address", "Adresse ausstehend", "Adresse en attente", "Indirizzo in attesa", "Unknown Start", "Unknown End")
-        return pendingPrefixes.any { address.contains(it, ignoreCase = true) }
+        return pendingAddressMarkers.any { address.contains(it, ignoreCase = true) }
     }
 
     fun resolvePendingOfflineAddresses() {
