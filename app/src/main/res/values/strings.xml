@@ -37,7 +37,6 @@
     <string name="settings_expense_rate_label">Rate per %s</string>
     <string name="settings_expense_currency_label">Currency</string>
     <string name="settings_export_fields_title">Configure Export Fields</string>
-    <string name="settings_export_fields_configure_cd">Configure Export</string>
     <string name="settings_enable_schedule_title">Enable Schedule</string>
     <string name="settings_advanced_settings_title">Advanced Settings</string>
     <string name="settings_advanced_settings_description">Configure API URLs and other advanced options.</string>
@@ -61,8 +60,6 @@
     <string name="settings_no_folder_selected">Tap to select folder…</string>
     <string name="settings_auto_backup_time">Backup Time</string>
     <string name="settings_auto_backup_time_approx">Approximate Backup Time</string>
-    <string name="settings_auto_backup_time_sub">Backups will run around %s</string>
-    <string name="settings_auto_backup_folder_selected">Selected folder: %1$s</string>
     <string name="settings_auto_backup_frequency">Backup Frequency</string>
     <string name="settings_auto_backup_frequency_daily">Daily</string>
     <string name="settings_auto_backup_frequency_weekly">Weekly</string>
@@ -106,8 +103,6 @@
     <string name="onboarding_continue">Continue</string>
     <string name="onboarding_finish">Continue to App</string>
     <string name="onboarding_grant_permission">Grant Permission</string>
-    <string name="onboarding_open_settings">Open Settings</string>
-    <string name="onboarding_permission_granted">Permission Granted</string>
     <string name="onboarding_permission_required">Required</string>
     <string name="onboarding_permission_optional">Optional</string>
     <string name="onboarding_permission_granted_chip">Granted</string>
@@ -127,8 +122,6 @@
     <string name="onboarding_driver_label">Driver Name (optional)</string>
     <string name="onboarding_company_label">Company Name (optional)</string>
     <string name="onboarding_save_and_continue">Save &amp; Continue</string>
-    <string name="onboarding_spotlight_title">You\'re All Set!</string>
-    <string name="onboarding_spotlight_desc">TrickTrack is ready to record your trips. Tap anytime to tweak settings or add favorites.</string>
 
     <!-- General -->
     <string name="button_save">Save</string>
@@ -231,7 +224,6 @@
     <!-- Filter Dialog -->
     <string name="filter_trips_title">Filter Trips</string>
     <string name="filter_keyword_label">Keyword</string>
-    <string name="filter_trip_type_label">Trip Type:</string>
     <string name="filter_trip_type_all">All</string>
     <string name="filter_reset_button">Reset</string>
     <string name="filter_help_keyword">Search trips by location name, street address, or notes.</string>
@@ -264,18 +256,12 @@
     <!-- Trip Summary Dialog -->
 
     <!-- Trip Screen -->
-    <string name="expenses_label">Expenses: %1$.2f %2$s</string>
     <string name="start_trip_button">Start</string>
-    <string name="stop_trip_button">Stop • %1$s</string>
     <string name="remove_filter_cd">Remove filter</string>
     <string name="from_date_label">From: %s</string>
     <string name="to_date_label">To: %s</string>
     <string name="trip_count_and_distance_label">%1$d Trips • %2$s</string>
-    <string name="daily_total_cost_label">• %1$.2f %2$s</string>
-    <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Description</string>
-    <string name="filtered_distance_label">Distance: %1$s</string>
-    <string name="filtered_trips_label">Trips: %d</string>
     <string name="total_distance_overline">TOTAL DISTANCE</string>
     <string name="trips_count_label">%d Trips</string>
     <string name="trips_count_with_expenses">%1$d Trips • %2$.2f %3$s</string>
@@ -287,13 +273,10 @@
 
     <!-- Redesigned Export Dialog -->
     <string name="export_scope_title">Trip Scope</string>
-    <string name="export_scope_filtered">Filtered Trips (%1$d of %2$d)</string>
     <string name="export_scope_filtered_title">Filtered Trips</string>
     <string name="export_scope_filtered_count">%1$d of %2$d trips</string>
-    <string name="export_scope_all">All Trips (%d)</string>
     <string name="export_scope_all_title">All Trips</string>
     <string name="export_scope_all_count">%d trips</string>
-    <string name="export_scope_active_filters">Filter active</string>
     <string name="export_format_title">Export Format</string>
     <string name="export_format_pdf">PDF Logbook</string>
     <string name="export_format_pdf_sub">Official formatted PDF report with summary header</string>
@@ -301,7 +284,6 @@
     <string name="export_format_csv_sub">Raw spreadsheet table for Excel or tax accounting</string>
     <string name="export_action_pdf">Generate &amp; Share PDF</string>
     <string name="export_action_csv">Export &amp; Share CSV</string>
-    <string name="export_configure_columns">Customize Included Columns</string>
     <string name="export_tab_header">Document Header</string>
     <string name="export_tab_columns">Columns &amp; Fields</string>
 
@@ -332,8 +314,6 @@
     <string name="stop">Stop</string>
     <string name="tracking_is_running">Tracking is running: %1$s</string>
     <string name="export_trips_title">Export Trips</string>
-    <string name="export_as_csv">Export as CSV</string>
-    <string name="export_as_pdf">Export as PDF</string>
 
     <!-- PDF Export -->
     <string name="pdf_trip_report_title">Trip Report</string>
@@ -388,7 +368,6 @@
     <string name="end_odometer_label">End Odometer</string>
     <string name="vehicles_selected_count">%1$d vehicles selected</string>
     <string name="filter_date_range_label">Date Range</string>
-    <string name="schedule_status_active">Active</string>
     <string name="schedule_status_inactive">Inactive</string>
     <string name="settings_distance_monitoring_title">Movement Sensitivity (Experimental)</string>
     <string name="settings_distance_monitoring_description">Only check for speed if the device moves more than a certain distance. Saves battery when stationary.</string>
@@ -400,7 +379,6 @@
     <string name="settings_last_movement_below_threshold">Speed below threshold (%1$.0f %2$s)</string>
     <string name="settings_last_movement_none">No movement detected yet in this session.</string>
     <string name="settings_last_movement_description">Live motion sensor status and GPS movement speed thresholds</string>
-    <string name="settings_motion_sensor_title">Motion Sensor Status</string>
     <string name="settings_motion_sensor_type">Sensor: %s</string>
     <string name="settings_motion_sensor_state">State: %s</string>
     <string name="settings_motion_sensor_last_event">Last Event: %s</string>
@@ -413,13 +391,10 @@
     <string name="settings_tap_to_change"> • Tap to change</string>
     <string name="settings_tap_to_edit"> • Tap to edit</string>
     <string name="settings_tap_to_configure">Disabled • Tap to configure</string>
-    <string name="settings_no_devices_selected">No devices selected</string>
     <string name="settings_bluetooth_summary_aa_only">Android Auto active (no Bluetooth devices)</string>
     <string name="settings_bluetooth_summary_one_plus_aa">1 device selected • Android Auto included</string>
     <string name="settings_bluetooth_summary_many_plus_aa">%d devices selected • Android Auto included</string>
     <string name="settings_bluetooth_dialog_note">Android Auto triggers tracking automatically. You can select your vehicle\'s Bluetooth devices below:</string>
-    <string name="settings_device_configured_one">1 device configured</string>
-    <string name="settings_devices_configured_many">%d devices configured</string>
     <string name="settings_wakes_up_every_meters">Wakes up every %1$d %2$s</string>
     <string name="settings_schedule_no_active_days">No active days</string>
     <string name="settings_schedule_daily">Daily, %s</string>
@@ -428,13 +403,6 @@
     <string name="settings_schedule_days_active">%d days active</string>
 
     <!-- In-Section Help & Guidance -->
-    <string name="settings_help_appearance">Choose between Light, Dark, or System theme to customize how TrickTrack looks.</string>
-    <string name="settings_help_tracking">Automatic tracking uses speed and motion sensors to record trips. You can also configure Bluetooth auto-start or set an automatic schedule.</string>
-    <string name="settings_help_defaults">Set default values for new trips, such as Business vs. Personal classification, expense rate per kilometer, and default vehicle.</string>
-    <string name="settings_help_export">Customize which columns and details (Driver, Company, Vehicle) are included when exporting your logbook to CSV or PDF.</string>
-    <string name="settings_help_backup">Back up your trips and settings to a local folder or restore previous backups to prevent data loss.</string>
-    <string name="settings_help_api">Configure custom OSRM routing and Photon geocoding server URLs for privacy or self-hosted setups.</string>
-    <string name="settings_help_diagnostics">Check system permissions, view live background movement detection events, or inspect troubleshooting logs.</string>
 
     <string name="review_empty_help">Recorded trips appear here for review before being added to your official logbook. You can set the vehicle, trip type (Business/Personal), and notes before approving.</string>
     <string name="trips_empty_title">No trips recorded yet</string>
@@ -459,7 +427,6 @@
     <string name="settings_help_odometer_mode">Uses odometer readings to calculate distance. Existing GPS data remains intact, and routes continue to be recorded in the background.</string>
     <string name="settings_help_auto_tracking">Detects trips automatically using background motion sensors.</string>
     <string name="settings_help_bluetooth_trigger">Starts recording automatically when connected to Android Auto or your vehicle\'s Bluetooth. Tap to choose your paired Bluetooth devices.</string>
-    <string name="settings_help_bluetooth_devices">Select your paired vehicle Bluetooth devices.</string>
     <string name="settings_help_stillness_timer">Duration of inactivity before a trip is automatically ended.</string>
     <string name="settings_help_min_speed">Minimum speed threshold required to classify movement as a trip.</string>
     <string name="settings_help_distance_monitoring">Saves battery while stationary by using Android\'s low-power motion detection instead of continuous GPS.</string>
@@ -470,15 +437,12 @@
     <string name="settings_help_calculate_expenses">Automatically calculates trip expenses based on your set rate.</string>
     <string name="settings_help_expense_rate_currency">Set the expense reimbursement rate per distance unit and currency.</string>
     <string name="settings_help_schedule">Set scheduled hours during which trips are tracked or classified.</string>
-    <string name="settings_help_server_settings">Configure custom OSRM routing and Photon geocoding servers.</string>
-    <string name="settings_help_backup_restore">Create or restore manual and automatic JSON backups.</string>
     <string name="settings_help_manual_backup_restore">Create a manual JSON backup of all trips and settings or restore a previous backup file.</string>
     <string name="settings_help_auto_backup_toggle">Enables automatic background backups on a fixed schedule.</string>
     <string name="settings_help_auto_backup_folder_select">Select the target folder where automatic backups will be saved.</string>
     <string name="settings_help_auto_backup_frequency">Set how often automatic backups are generated (Daily, Weekly, or Monthly).</string>
     <string name="settings_help_auto_backup_time_schedule">Sets the target time. Exact execution may vary slightly due to Android battery optimization (Doze mode).</string>
     <string name="special_themes_title">Special Themes</string>
-    <string name="special_theme_none">None</string>
     <string name="special_theme_daytime">Time of Day</string>
     <string name="special_theme_sunset">Sunset</string>
     <string name="special_theme_ocean">Ocean</string>

@@ -38,7 +38,6 @@
     <string name="settings_expense_rate_label">Tariffa per %s</string>
     <string name="settings_expense_currency_label">Valuta</string>
     <string name="settings_export_fields_title">Configura campi di esportazione</string>
-    <string name="settings_export_fields_configure_cd">Configura esportazione</string>
     <string name="settings_enable_schedule_title">Abilita programma</string>
     <string name="settings_advanced_settings_title">Impostazioni avanzate</string>
     <string name="settings_advanced_settings_description">Configura gli URL API e altre opzioni avanzate.</string>
@@ -62,8 +61,6 @@
     <string name="settings_no_folder_selected">Tocca per selezionare la cartella…</string>
     <string name="settings_auto_backup_time">Ora del backup</string>
     <string name="settings_auto_backup_time_approx">Ora indicativa del backup</string>
-    <string name="settings_auto_backup_time_sub">I backup verranno eseguiti verso le %s</string>
-    <string name="settings_auto_backup_folder_selected">Cartella selezionata: %1$s</string>
     <string name="settings_auto_backup_frequency">Frequenza di backup</string>
     <string name="settings_auto_backup_frequency_daily">Giornaliero</string>
     <string name="settings_auto_backup_frequency_weekly">Settimanale</string>
@@ -107,8 +104,6 @@
     <string name="onboarding_continue">Continua</string>
     <string name="onboarding_finish">Continua verso l\'app</string>
     <string name="onboarding_grant_permission">Concedi autorizzazione</string>
-    <string name="onboarding_open_settings">Apri impostazioni</string>
-    <string name="onboarding_permission_granted">Autorizzazione concessa</string>
     <string name="onboarding_permission_required">Richiesto</string>
     <string name="onboarding_permission_optional">Opzionale</string>
     <string name="onboarding_permission_granted_chip">Concesso</string>
@@ -128,8 +123,6 @@
     <string name="onboarding_driver_label">Nome conducente (opzionale)</string>
     <string name="onboarding_company_label">Nome azienda (opzionale)</string>
     <string name="onboarding_save_and_continue">Salva e continua</string>
-    <string name="onboarding_spotlight_title">Tutto pronto!</string>
-    <string name="onboarding_spotlight_desc">TrickTrack è pronto per registrare i tuoi viaggi. Tocca in qualsiasi momento per regolare le impostazioni.</string>
 
     <!-- General -->
     <string name="button_save">Salva</string>
@@ -224,7 +217,6 @@
     <string name="permission_dialog_message_bluetooth">Questa funzione richiede l\'autorizzazione Bluetooth per connettersi ai dispositivi. Concedi l\'autorizzazione.</string>
     <string name="filter_trips_title">Filtra viaggi</string>
     <string name="filter_keyword_label">Parola chiave</string>
-    <string name="filter_trip_type_label">Tipo di viaggio:</string>
     <string name="filter_trip_type_all">Tutti</string>
     <string name="filter_reset_button">Reimposta</string>
     <string name="filter_help_keyword">Cerca viaggi per nome del luogo, indirizzo o note.</string>
@@ -257,18 +249,12 @@
     <!-- Trip Summary Dialog -->
 
     <!-- Trip Screen -->
-    <string name="expenses_label">Spese: %1$.2f %2$s</string>
     <string name="start_trip_button">Avvia</string>
-    <string name="stop_trip_button">Ferma • %1$s</string>
     <string name="remove_filter_cd">Rimuovi filtro</string>
     <string name="from_date_label">Da: %s</string>
     <string name="to_date_label">A: %s</string>
     <string name="trip_count_and_distance_label">%1$d viaggi • %2$s</string>
-    <string name="daily_total_cost_label">• %1$.2f %2$s</string>
-    <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Descrizione</string>
-    <string name="filtered_distance_label">Distanza: %1$s</string>
-    <string name="filtered_trips_label">Viaggi: %d</string>
     <string name="total_distance_overline">DISTANZA TOTALE</string>
     <string name="trips_count_label">%d viaggi</string>
     <string name="trips_count_with_expenses">%1$d viaggi • %2$.2f %3$s</string>
@@ -280,13 +266,10 @@
 
     <!-- Redesigned Export Dialog -->
     <string name="export_scope_title">Ambito dei viaggi</string>
-    <string name="export_scope_filtered">Viaggi filtrati (%1$d su %2$d)</string>
     <string name="export_scope_filtered_title">Viaggi filtrati</string>
     <string name="export_scope_filtered_count">%1$d su %2$d viaggi</string>
-    <string name="export_scope_all">Tutti i viaggi (%d)</string>
     <string name="export_scope_all_title">Tutti i viaggi</string>
     <string name="export_scope_all_count">%d viaggi</string>
-    <string name="export_scope_active_filters">Filtro attivo</string>
     <string name="export_format_title">Formato di esportazione</string>
     <string name="export_format_pdf">Registro PDF</string>
     <string name="export_format_pdf_sub">Report PDF ufficiale con riepilogo</string>
@@ -294,7 +277,6 @@
     <string name="export_format_csv_sub">Tabella dati per Excel o contabilità</string>
     <string name="export_action_pdf">Genera e condividi PDF</string>
     <string name="export_action_csv">Esporta e condividi CSV</string>
-    <string name="export_configure_columns">Personalizza colonne incluse</string>
     <string name="export_tab_header">Intestazione documento</string>
     <string name="export_tab_columns">Colonne e campi</string>
 
@@ -325,8 +307,6 @@
     <string name="stop">Ferma</string>
     <string name="tracking_is_running">Il tracciamento è in corso: %1$s</string>
     <string name="export_trips_title">Esporta viaggi</string>
-    <string name="export_as_csv">Esporta come CSV</string>
-    <string name="export_as_pdf">Esporta come PDF</string>
 
     <!-- PDF Export -->
     <string name="pdf_trip_report_title">Rapporto di viaggio</string>
@@ -381,7 +361,6 @@
     <string name="end_odometer_label">Chilometraggio finale</string>
     <string name="vehicles_selected_count">%1$d veicoli selezionati</string>
     <string name="filter_date_range_label">Intervallo di date</string>
-    <string name="schedule_status_active">Attivo</string>
     <string name="schedule_status_inactive">Inattivo</string>
     <string name="backup_successful">Backup creato con successo!</string>
     <string name="permission_dialog_title_location">Autorizzazione alla localizzazione</string>
@@ -399,7 +378,6 @@
     <string name="settings_last_movement_below_threshold">Velocità inferiore alla soglia (%1$.0f %2$s)</string>
     <string name="settings_last_movement_none">Nessun movimento ancora rilevato in questa sessione.</string>
     <string name="settings_last_movement_description">Stato del sensore di movimento e soglie di velocità GPS</string>
-    <string name="settings_motion_sensor_title">Stato del sensore di movimento</string>
     <string name="settings_motion_sensor_type">Sensore: %s</string>
     <string name="settings_motion_sensor_state">Stato: %s</string>
     <string name="settings_motion_sensor_last_event">Ultimo evento: %s</string>
@@ -412,13 +390,10 @@
     <string name="settings_tap_to_change"> • Tocca per cambiare</string>
     <string name="settings_tap_to_edit"> • Tocca per modificare</string>
     <string name="settings_tap_to_configure">Disabilitato • Tocca per configurare</string>
-    <string name="settings_no_devices_selected">Nessun dispositivo selezionato</string>
     <string name="settings_bluetooth_summary_aa_only">Android Auto attivo (nessun dispositivo Bluetooth)</string>
     <string name="settings_bluetooth_summary_one_plus_aa">1 dispositivo selezionato • Android Auto incluso</string>
     <string name="settings_bluetooth_summary_many_plus_aa">%d dispositivi selezionati • Android Auto incluso</string>
     <string name="settings_bluetooth_dialog_note">Android Auto avvia il tracciamento automaticamente. Puoi selezionare i dispositivi Bluetooth del tuo veicolo qui sotto:</string>
-    <string name="settings_device_configured_one">1 dispositivo configurato</string>
-    <string name="settings_devices_configured_many">%d dispositivi configurati</string>
     <string name="settings_wakes_up_every_meters">Si sveglia ogni %1$d %2$s</string>
     <string name="settings_schedule_no_active_days">Nessun giorno attivo</string>
     <string name="settings_schedule_daily">Giornaliero, %s</string>
@@ -427,13 +402,6 @@
     <string name="settings_schedule_days_active">%d giorni attivi</string>
 
     <!-- In-Section Help & Guidance -->
-    <string name="settings_help_appearance">Scegli tra tema chiaro, scuro o di sistema per personalizzare l\'aspetto di TrickTrack.</string>
-    <string name="settings_help_tracking">Il tracciamento automatico usa sensori di velocità e movimento. Puoi anche configurare l\'avvio Bluetooth o una programmazione.</string>
-    <string name="settings_help_defaults">Imposta i valori predefiniti per i nuovi viaggi: classificazione (Lavoro/Personale), tariffa di rimborso al km e veicolo predefinito.</string>
-    <string name="settings_help_export">Personalizza le colonne e i dettagli (Conducente, Azienda, Veicolo) inclusi durante l\'esportazione del registro in CSV o PDF.</string>
-    <string name="settings_help_backup">Esegui il backup di viaggi e impostazioni in una cartella locale o ripristina backup precedenti.</string>
-    <string name="settings_help_api">Configura URL personalizzati per i server OSRM e Photon per la privacy o per server personali.</string>
-    <string name="settings_help_diagnostics">Verifica le autorizzazioni di sistema, visualizza gli eventi di movimento in tempo reale o esamina i log.</string>
 
     <string name="review_empty_help">I viaggi registrati appariranno qui per la revisione. Puoi impostare veicolo, tipo (Lavoro/Personale) e note prima di approvare.</string>
     <string name="trips_empty_title">Nessun viaggio ancora registrato</string>
@@ -458,7 +426,6 @@
     <string name="settings_help_odometer_mode">Utilizza il contachilometri per calcolare la distanza. I dati GPS rimangono intatti e il percorso continua a essere registrato in background.</string>
     <string name="settings_help_auto_tracking">Rileva i viaggi automaticamente tramite i sensori di movimento.</string>
     <string name="settings_help_bluetooth_trigger">Avvia la registrazione automaticamente quando connesso ad Android Auto o al Bluetooth del veicolo. Tocca per scegliere i tuoi dispositivi Bluetooth associati.</string>
-    <string name="settings_help_bluetooth_devices">Seleziona i dispositivi Bluetooth abbinati.</string>
     <string name="settings_help_stillness_timer">Tempo di inattività prima della fine automatica del viaggio.</string>
     <string name="settings_help_min_speed">Soglia di velocità minima per classificare il movimento come viaggio.</string>
     <string name="settings_help_distance_monitoring">Risparmia batteria da fermo utilizzando il rilevamento del movimento a basso consumo invece del GPS continuo.</string>
@@ -469,15 +436,12 @@
     <string name="settings_help_calculate_expenses">Calcola automaticamente le spese di viaggio in base alla tariffa.</string>
     <string name="settings_help_expense_rate_currency">Imposta la tariffa di rimborso per unità di distanza e valuta.</string>
     <string name="settings_help_schedule">Imposta gli orari pianificati per il tracciamento.</string>
-    <string name="settings_help_server_settings">Configura server OSRM e Photon personalizzati.</string>
-    <string name="settings_help_backup_restore">Crea o ripristina backup JSON manuali e automatici.</string>
     <string name="settings_help_manual_backup_restore">Crea un backup JSON manuale di tutti i dati o ripristina un file esistente.</string>
     <string name="settings_help_auto_backup_toggle">Attiva i backup automatici in background secondo una pianificazione.</string>
     <string name="settings_help_auto_backup_folder_select">Seleziona la cartella di destinazione per i backup automatici.</string>
     <string name="settings_help_auto_backup_frequency">Imposta la frequenza con cui vengono generati i backup (Giornaliera, Settimanale o Mensile).</string>
     <string name="settings_help_auto_backup_time_schedule">Imposta l\'ora indicativa. L\'esecuzione esatta può variare leggermente a causa dell\'ottimizzazione della batteria di Android.</string>
     <string name="special_themes_title">Temi speciali</string>
-    <string name="special_theme_none">Nessuno</string>
     <string name="special_theme_daytime">Ora del giorno</string>
     <string name="special_theme_sunset">Tramonto</string>
     <string name="special_theme_ocean">Oceano</string>

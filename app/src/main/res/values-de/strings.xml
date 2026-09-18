@@ -37,7 +37,6 @@
     <string name="settings_expense_rate_label">Rate pro %s</string>
     <string name="settings_expense_currency_label">Währung</string>
     <string name="settings_export_fields_title">Exportfelder konfigurieren</string>
-    <string name="settings_export_fields_configure_cd">Export konfigurieren</string>
     <string name="settings_enable_schedule_title">Zeitplan aktivieren</string>
     <string name="settings_advanced_settings_title">Erweiterte Einstellungen</string>
     <string name="settings_advanced_settings_description">Konfigurieren Sie API-URLs und andere erweiterte Optionen.</string>
@@ -61,8 +60,6 @@
     <string name="settings_no_folder_selected">Tippen, um Ordner auszuwählen…</string>
     <string name="settings_auto_backup_time">Sicherungszeit</string>
     <string name="settings_auto_backup_time_approx">Ungefähre Sicherungszeit</string>
-    <string name="settings_auto_backup_time_sub">Sicherungen werden etwa um %s ausgeführt</string>
-    <string name="settings_auto_backup_folder_selected">Ausgewählter Ordner: %1$s</string>
     <string name="settings_auto_backup_frequency">Sicherungshäufigkeit</string>
     <string name="settings_auto_backup_frequency_daily">Täglich</string>
     <string name="settings_auto_backup_frequency_weekly">Wöchentlich</string>
@@ -106,8 +103,6 @@
     <string name="onboarding_continue">Weiter</string>
     <string name="onboarding_finish">Weiter zur App</string>
     <string name="onboarding_grant_permission">Berechtigung erteilen</string>
-    <string name="onboarding_open_settings">Einstellungen öffnen</string>
-    <string name="onboarding_permission_granted">Berechtigung erteilt</string>
     <string name="onboarding_permission_required">Erforderlich</string>
     <string name="onboarding_permission_optional">Optional</string>
     <string name="onboarding_permission_granted_chip">Erteilt</string>
@@ -127,8 +122,6 @@
     <string name="onboarding_driver_label">Name des Fahrers (optional)</string>
     <string name="onboarding_company_label">Firmenname (optional)</string>
     <string name="onboarding_save_and_continue">Speichern &amp; Weiter</string>
-    <string name="onboarding_spotlight_title">Sie sind startklar!</string>
-    <string name="onboarding_spotlight_desc">TrickTrack zeichnet Ihre Fahrten automatisch auf. Tippen Sie hier, um Einstellungen oder Favoriten anzupassen.</string>
 
     <!-- General -->
     <string name="button_save">Speichern</string>
@@ -223,7 +216,6 @@
     <string name="permission_dialog_message_bluetooth">Diese Funktion erfordert eine Bluetooth-Berechtigung, um eine Verbindung zu Geräten herzustellen. Bitte erteilen Sie die Berechtigung.</string>
     <string name="filter_trips_title">Fahrten filtern</string>
     <string name="filter_keyword_label">Stichwort</string>
-    <string name="filter_trip_type_label">Fahrttyp:</string>
     <string name="filter_trip_type_all">Alle</string>
     <string name="filter_reset_button">Zurücksetzen</string>
     <string name="filter_help_keyword">Fahrten nach Ortsnamen, Adresse oder Notizen durchsuchen.</string>
@@ -256,18 +248,12 @@
     <!-- Trip Summary Dialog -->
 
     <!-- Trip Screen -->
-    <string name="expenses_label">Ausgaben: %1$.2f %2$s</string>
     <string name="start_trip_button">Start</string>
-    <string name="stop_trip_button">Stopp • %1$s</string>
     <string name="remove_filter_cd">Filter entfernen</string>
     <string name="from_date_label">Von: %s</string>
     <string name="to_date_label">Bis: %s</string>
     <string name="trip_count_and_distance_label">%1$d Fahrten • %2$s</string>
-    <string name="daily_total_cost_label">• %1$.2f %2$s</string>
-    <string name="trip_cost_label">• %1$.2f %2$s</string>
     <string name="description_cd">Beschreibung</string>
-    <string name="filtered_distance_label">Distanz: %1$s</string>
-    <string name="filtered_trips_label">Fahrten: %d</string>
     <string name="total_distance_overline">GESAMTDISTANZ</string>
     <string name="trips_count_label">%d Fahrten</string>
     <string name="trips_count_with_expenses">%1$d Fahrten • %2$.2f %3$s</string>
@@ -279,13 +265,10 @@
 
     <!-- Redesigned Export Dialog -->
     <string name="export_scope_title">Umfang der Fahrten</string>
-    <string name="export_scope_filtered">Gefilterte Fahrten (%1$d von %2$d)</string>
     <string name="export_scope_filtered_title">Gefilterte Fahrten</string>
     <string name="export_scope_filtered_count">%1$d von %2$d Fahrten</string>
-    <string name="export_scope_all">Alle Fahrten (%d)</string>
     <string name="export_scope_all_title">Alle Fahrten</string>
     <string name="export_scope_all_count">%d Fahrten</string>
-    <string name="export_scope_active_filters">Filter aktiv</string>
     <string name="export_format_title">Export-Format</string>
     <string name="export_format_pdf">PDF-Fahrtenbuch</string>
     <string name="export_format_pdf_sub">Offizieller PDF-Bericht mit Zusammenfassung</string>
@@ -293,7 +276,6 @@
     <string name="export_format_csv_sub">Tabelle für Excel oder Steuerbuchhaltung</string>
     <string name="export_action_pdf">PDF erstellen &amp; teilen</string>
     <string name="export_action_csv">CSV erstellen &amp; teilen</string>
-    <string name="export_configure_columns">Enthaltene Spalten anpassen</string>
     <string name="export_tab_header">Dokumenten-Kopfzeile</string>
     <string name="export_tab_columns">Spalten &amp; Felder</string>
 
@@ -324,8 +306,6 @@
     <string name="stop">Stopp</string>
     <string name="tracking_is_running">Tracking läuft: %1$s</string>
     <string name="export_trips_title">Fahrten exportieren</string>
-    <string name="export_as_csv">Als CSV exportieren</string>
-    <string name="export_as_pdf">Als PDF exportieren</string>
 
     <!-- PDF Export -->
     <string name="pdf_trip_report_title">Fahrtenbuch</string>
@@ -380,7 +360,6 @@
     <string name="end_odometer_label">Endkilometerstand</string>
     <string name="vehicles_selected_count">%1$d Fahrzeuge ausgewählt</string>
     <string name="filter_date_range_label">Datumsbereich</string>
-    <string name="schedule_status_active">Aktiv</string>
     <string name="schedule_status_inactive">Inaktiv</string>
     <string name="backup_successful">Backup erfolgreich erstellt!</string>
     <string name="permission_dialog_title_location">Standortberechtigung</string>
@@ -398,7 +377,6 @@
     <string name="settings_last_movement_below_threshold">Tempo unter Schwellenwert (%1$.0f %2$s)</string>
     <string name="settings_last_movement_none">In dieser Sitzung noch keine Bewegung erkannt.</string>
     <string name="settings_last_movement_description">Live-Bewegungssensor-Status und GPS-Geschwindigkeitsschwellen</string>
-    <string name="settings_motion_sensor_title">Bewegungssensor-Status</string>
     <string name="settings_motion_sensor_type">Sensor: %s</string>
     <string name="settings_motion_sensor_state">Status: %s</string>
     <string name="settings_motion_sensor_last_event">Letztes Ereignis: %s</string>
@@ -411,13 +389,10 @@
     <string name="settings_tap_to_change"> • Zum Ändern tippen</string>
     <string name="settings_tap_to_edit"> • Zum Ändern tippen</string>
     <string name="settings_tap_to_configure">Deaktiviert • Zum Konfigurieren tippen</string>
-    <string name="settings_no_devices_selected">Keine Geräte ausgewählt</string>
     <string name="settings_bluetooth_summary_aa_only">Android Auto aktiv (keine Bluetooth-Geräte)</string>
     <string name="settings_bluetooth_summary_one_plus_aa">1 Gerät ausgewählt • Android Auto inklusive</string>
     <string name="settings_bluetooth_summary_many_plus_aa">%d Geräte ausgewählt • Android Auto inklusive</string>
     <string name="settings_bluetooth_dialog_note">Android Auto startet die Verfolgung automatisch. Nachfolgend können Sie die Bluetooth-Geräte Ihres Fahrzeugs auswählen:</string>
-    <string name="settings_device_configured_one">1 Gerät konfiguriert</string>
-    <string name="settings_devices_configured_many">%d Geräte konfiguriert</string>
     <string name="settings_wakes_up_every_meters">Wacht alle %1$d %2$s auf</string>
     <string name="settings_schedule_no_active_days">Keine aktiven Tage</string>
     <string name="settings_schedule_daily">Täglich, %s</string>
@@ -426,13 +401,6 @@
     <string name="settings_schedule_days_active">%d Tage aktiv</string>
 
     <!-- In-Section Help & Guidance -->
-    <string name="settings_help_appearance">Wählen Sie zwischen hellem, dunklem oder System-Design, um das Aussehen von TrickTrack anzupassen.</string>
-    <string name="settings_help_tracking">Die automatische Erfassung nutzt Tempo- und Bewegungssensoren. Sie können auch Bluetooth-Autostart oder einen Zeitplan einrichten.</string>
-    <string name="settings_help_defaults">Legen Sie Standardwerte für neue Fahrten fest, wie z.B. Einstufung (Geschäftlich/Privat), Kostensatz pro Kilometer und Standardfahrzeug.</string>
-    <string name="settings_help_export">Passen Sie an, welche Spalten und Angaben (Fahrer, Firma, Fahrzeug) beim Export Ihres Fahrtenbuchs als CSV oder PDF enthalten sind.</string>
-    <string name="settings_help_backup">Sichern Sie Ihre Fahrten und Einstellungen in einem lokalen Ordner oder stellen Sie frühere Sicherungen wieder her.</string>
-    <string name="settings_help_api">Konfigurieren Sie eigene OSRM-Routing- und Photon-Geokodierungs-Server für Datenschutz oder eigene Server.</string>
-    <string name="settings_help_diagnostics">Prüfen Sie Systemberechtigungen, sehen Sie Live-Bewegungsdaten oder untersuchen Sie Diagnose-Protokolle.</string>
 
     <string name="review_empty_help">Aufgezeichnete Fahrten erscheinen hier zur Überprüfung. Sie können Fahrzeug, Typ (Geschäftlich/Privat) und Notizen festlegen, bevor Sie diese genehmigen.</string>
     <string name="trips_empty_title">Noch keine Fahrten aufgezeichnet</string>
@@ -457,7 +425,6 @@
     <string name="settings_help_odometer_mode">Verwendet Kilometerstände zur Distanzberechnung. GPS-Daten bleiben erhalten und die Strecke wird weiterhin im Hintergrund aufgezeichnet.</string>
     <string name="settings_help_auto_tracking">Erkennt Fahrten automatisch anhand von Bewegungssensoren im Hintergrund.</string>
     <string name="settings_help_bluetooth_trigger">Startet die Aufzeichnung automatisch, wenn eine Verbindung zu Android Auto oder zum Bluetooth Ihres Fahrzeugs besteht. Tippen Sie hier, um Ihre gekoppelten Bluetooth-Geräte auszuwählen.</string>
-    <string name="settings_help_bluetooth_devices">Wählen Sie Ihre gespeicherten Fahrzeug-Bluetooth-Geräte aus.</string>
     <string name="settings_help_stillness_timer">Zeitdauer im Stillstand, nach der eine Fahrt automatisch beendet wird.</string>
     <string name="settings_help_min_speed">Mindestgeschwindigkeit, ab der eine Bewegung als Fahrt gewertet wird.</string>
     <string name="settings_help_distance_monitoring">Spart Akku im Stillstand: Verwendet die stromsparende Android-Bewegungserkennung statt dauerhaftem GPS.</string>
@@ -468,15 +435,12 @@
     <string name="settings_help_calculate_expenses">Berechnet Fahrtkosten automatisch anhand des festgelegten Kilometersatzes.</string>
     <string name="settings_help_expense_rate_currency">Legen Sie den Erstattungssatz pro Kilometer und die Währung fest.</string>
     <string name="settings_help_schedule">Legen Sie Betriebszeiten fest, in denen Fahrten aufgezeichnet oder klassifiziert werden.</string>
-    <string name="settings_help_server_settings">Konfigurieren Sie eigene OSRM-Routing- und Photon-Geocoder-Server.</string>
-    <string name="settings_help_backup_restore">Erstellen oder wiederherstellen Sie manuelle und automatische JSON-Sicherungen.</string>
     <string name="settings_help_manual_backup_restore">Erstellt eine manuelle JSON-Sicherung aller Fahrten und Einstellungen oder stellt eine bestehende Datei wieder her.</string>
     <string name="settings_help_auto_backup_toggle">Aktiviert automatische Hintergrund-Sicherungen nach einem festen Zeitplan.</string>
     <string name="settings_help_auto_backup_folder_select">Wählen Sie den Zielordner, in dem automatische Sicherungen gespeichert werden.</string>
     <string name="settings_help_auto_backup_frequency">Legen Sie fest, wie oft eine Sicherung erstellt werden soll (Täglich, Wöchentlich oder Monatlich).</string>
     <string name="settings_help_auto_backup_time_schedule">Legt die Zieluhrzeit fest. Der genaue Zeitpunkt kann durch Android-Akkusparfunktionen (Doze-Modus) leicht abweichen.</string>
     <string name="special_themes_title">Spezielle Themen</string>
-    <string name="special_theme_none">Keines</string>
     <string name="special_theme_daytime">Tageszeit</string>
     <string name="special_theme_sunset">Sonnenuntergang</string>
     <string name="special_theme_ocean">Ozean</string>
