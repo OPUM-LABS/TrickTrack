@@ -113,6 +113,8 @@ dependencies {
 }
 
 tasks.register<Copy>("syncPrivacyPolicy") {
+    description = "Copies the root PRIVACY.md file into the app assets directory"
+    group = "build"
     from("${rootDir}/PRIVACY.md")
     into("${projectDir}/src/main/assets")
 }

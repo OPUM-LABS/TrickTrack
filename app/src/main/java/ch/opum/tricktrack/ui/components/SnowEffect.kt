@@ -111,12 +111,9 @@ private class Snowflake(
 
 @Composable
 fun SnowOverlay(
-    isWinterModeEnabled: Boolean,
     isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
-    if (!isWinterModeEnabled) return
-
     val registry = LocalSnowObstacleRegistry.current
     val flakeCount = 45
     val flakes = remember {
@@ -126,7 +123,7 @@ fun SnowOverlay(
     var isInitialized by remember { mutableStateOf(false) }
     var frameTrigger by remember { mutableLongStateOf(0L) }
 
-    LaunchedEffect(isWinterModeEnabled) {
+    LaunchedEffect(Unit) {
         while (true) {
             withFrameNanos { time ->
                 frameTrigger = time

@@ -791,7 +791,6 @@ fun MainScreen(
 
             if (isWinterModeEnabled) {
                 SnowOverlay(
-                    isWinterModeEnabled = true,
                     isDarkTheme = isDarkTheme
                 )
             }
