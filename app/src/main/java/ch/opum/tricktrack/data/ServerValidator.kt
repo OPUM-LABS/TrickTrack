@@ -26,18 +26,18 @@ class ServerValidator {
                     if (!response.isSuccessful) {
                         return@withContext false
                     }
-                    val responseBody = response.body?.string()
-                    if (responseBody.isNullOrEmpty()) {
+                    val responseBody = response.body.string()
+                    if (responseBody.isEmpty()) {
                         return@withContext false
                     }
                     try {
                         val jsonObject = JSONObject(responseBody)
                         jsonObject.has("code") && jsonObject.getString("code") == "Ok"
-                    } catch (e: JSONException) {
+                    } catch (_: JSONException) {
                         false
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -52,18 +52,18 @@ class ServerValidator {
                     if (!response.isSuccessful) {
                         return@withContext false
                     }
-                    val responseBody = response.body?.string()
-                    if (responseBody.isNullOrEmpty()) {
+                    val responseBody = response.body.string()
+                    if (responseBody.isEmpty()) {
                         return@withContext false
                     }
                     try {
                         val jsonObject = JSONObject(responseBody)
                         jsonObject.has("type") && jsonObject.getString("type") == "FeatureCollection"
-                    } catch (e: JSONException) {
+                    } catch (_: JSONException) {
                         false
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
