@@ -7,6 +7,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -123,7 +124,7 @@ fun SnowOverlay(
     }
 
     var isInitialized by remember { mutableStateOf(false) }
-    var frameTrigger by remember { mutableStateOf(0L) }
+    var frameTrigger by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(isWinterModeEnabled) {
         while (true) {
