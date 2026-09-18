@@ -755,7 +755,7 @@ class LocationService : Service() {
                 if (effectivePrevLocation != null) {
                     val timeDeltaSeconds = if (location.time > effectivePrevLocation.time) {
                         (location.time - effectivePrevLocation.time) / 1000.0
-                    } else if (prevLocationTime > 0 && now > prevLocationTime) {
+                    } else if (prevLocationTime in 1..<now) {
                         (now - prevLocationTime) / 1000.0
                     } else {
                         5.0
