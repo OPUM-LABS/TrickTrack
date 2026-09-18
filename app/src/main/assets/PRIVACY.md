@@ -30,7 +30,7 @@ To provide trip recording and logbook features, the Application requests permiss
 ---
 
 ### 3. File Exports & Local Storage
-   TrickTrack does not access Your device's camera or photo library. Local storage access is used exclusively when You are using the backup/ restore function or You generate and save logbook reports (PDF/CSV) directly to Your device's local filesystem or Downloads folder.
+   TrickTrack does not access Your device's camera or photo library. Local storage access is used exclusively when You are using the backup/ restore function, or You generate and save logbook reports (PDF/CSV) directly to Your device's local filesystem or Downloads folder.
 
 ---
 

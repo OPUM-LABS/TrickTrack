@@ -539,9 +539,9 @@ class TripsViewModel(
     val permissionsStatus: StateFlow<List<PermissionStatus>> = _permissionsStatus.asStateFlow()
 
     val permissionHealth: StateFlow<PermissionHealthState> = _permissionsStatus.map { statuses ->
-        val missing = statuses.filter { !it.isGranted }
-        if (missing.isEmpty()) PermissionHealthState.AllGranted
-        else PermissionHealthState.Missing(missing)
+        val hasMissing = statuses.any { !it.isGranted }
+        if (hasMissing) PermissionHealthState.Missing
+        else PermissionHealthState.AllGranted
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PermissionHealthState.AllGranted)
 
     val isAllPermissionsGranted: StateFlow<Boolean> = permissionHealth.map { 

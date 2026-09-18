@@ -28,7 +28,7 @@ class BluetoothReceiver : BroadcastReceiver() {
             return
         }
 
-        // If the service is not running and we receive a disconnect event, no work is needed
+        // If the service is not running, and we receive a disconnect event, no work is needed
         if (!LocationService.isServiceRunning &&
             (action == UiModeManager.ACTION_EXIT_CAR_MODE || action == BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
             AppLogger.log("BluetoothReceiver", "LocationService not running; ignoring disconnect event: $action")

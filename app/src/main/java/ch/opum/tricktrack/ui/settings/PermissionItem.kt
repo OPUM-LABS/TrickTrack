@@ -70,8 +70,7 @@ data class PermissionStatus(
     val isGranted: Boolean,
 )
 
-@Suppress("unused")
 sealed class PermissionHealthState {
     data object AllGranted : PermissionHealthState()
-    data class Missing(val missing: List<PermissionStatus>) : PermissionHealthState()
+    data object Missing : PermissionHealthState()
 }
