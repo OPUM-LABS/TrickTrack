@@ -1,25 +1,18 @@
-> [!NOTE]
-> TrickTrack is currently undergoing active testing in preparation 
-> for its Google Play Store release. My primary focus during this phase is 
-> incorporating tester feedback and refining core app features, so project 
-> documentation may be temporarily out of date. Documentation will be fully 
-> updated once the launch phase stabilizes.
-> 
-> From version 2.5.2 on i've implemented an inline help (at least in the settings at the moment) 
-> which, in my opinion, is more intuitive than a wiki anyway.
-
 <div align="center">
+    <a href="https://play.google.com/store/apps/details?id=ch.opum.tricktrack" target="_blank">
+      <img src="pictures/get-it-on-google-play-badge-en.png" alt="Get it on Google Play" height="60">
+    </a>
+    &nbsp;&nbsp;
     <a href="https://buymeacoffee.com/opum_labs" target="_blank">
-      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
+      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" style="height: 60px !important;width: 217px !important;">
     </a>
 </div>
 
 ![App Logo](pictures/tricktrack_logo.png)
 
-**TrickTrack** is a smart, automated GPS mileage tracker for Android built with modern Jetpack Compose. It automatically detects when you are driving - either via Bluetooth connection or movement activity - and logs your trips effortlessly. Designed for privacy and battery efficiency.
+**TrickTrack** is a smart, automated GPS mileage tracker for Android built with modern Jetpack Compose. It automatically detects when you are driving — either via Bluetooth / Android Auto connection or movement activity — and logs your trips effortlessly. Designed from the ground up for privacy, battery efficiency, and offline resilience.
 
-![App Screenshot](pictures/preview.png)
-
+![App Screenshot](pictures/banner.png)
 
 ---
 
@@ -38,36 +31,46 @@
 ## ✨ Key Features
 
 ### 🧠 Smart Automation
-* **Bluetooth Trigger:** Automatically starts tracking when connected to specific devices (e.g., Car Audio).
-* **Activity Recognition:** Detects when you are in a vehicle and starts tracking automatically.
-* **Stillness Detection:** Intelligently stops the trip when you park and stop moving.
-* **Scheduling:** Set specific times or days when automation is allowed (e.g., "Work Hours Only") and save power, when tracking is disabled.
+* **Bluetooth & Android Auto Triggers:** Automatically starts and stops tracking when connecting to Android Auto or selected vehicle Bluetooth devices.
+* **Activity Recognition:** Detects vehicle movement automatically and starts recording when driving begins.
+* **Stillness Detection & Speed Threshold:** Intelligently stops trips when parked with a customizable stillness timer (in seconds) and minimum speed thresholds (km/h or mph).
+* **Automated Tracking Schedule:** Restrict automatic tracking to specific days or hours (e.g., work hours). Set default trip classifications (Business vs. Personal) and target triggers (Bluetooth, Activity, or Both) per schedule.
+* **Smart Location Snapping:** Automatically detects and snaps start and end destinations to your saved **Favorites** within a customizable radius (in meters or feet).
+* **Odometer Mode:** Support for recording trips via vehicle odometer readings.
 
-### 📍 Accurate Tracking
-* **Live Distance:** Visual real-time distance updates in the notification shade.
-* **Foreground Service:** Ensures reliable tracking even when the app is in the background.
-* **Smart Suggestions:** Uses the **Photon API (OpenStreetMap)** to auto-fill place names (e.g., "Starbucks") instead of just raw addresses.
+### 📍 Accurate & Offline-First Tracking
+* **Foreground Service:** Ensures rock-solid background tracking with live distance updates directly in the notification shade.
+* **100% Offline Resilience:** Fully logs trips and routes even when driving through areas without cell reception or internet connectivity.
+* **Interactive Route Maps:** View recorded trips and calculated driving routes with polylines and start/end markers powered by **OpenStreetMap** (via **osmdroid**).
+* **Smart Geocoding Suggestions:** Converts coordinates into descriptive location and business names using the **Photon API (OpenStreetMap)**.
+* **Accurate Route Calculation:** Route distance calculation and routing polyline generation via **OSRM (Open Source Routing Machine)**.
+* **Multiple Measurement Units:** Full support for Kilometers (km), Miles (mi), and Nautical Miles (NM ⚓).
 
-### 💰 Reporting & Finances
-* **Expense Tracking:** Automatically calculates trip costs based on customizable mileage rates.
-* **Advanced Filtering:** Easily filter your history by Date, Keywords, or Trip Type to find exactly what you need.
-* **Export Data:** Export your trip logs to **PDF** or **CSV/Excel** for tax returns or employer reimbursement.
+### 💰 Reporting, Expenses & Filtering
+* **Expense Tracking:** Automatically calculates trip costs and reimbursement amounts based on custom rates per unit and currency.
+* **Advanced Filtering:** Instant filtering by date ranges, keywords, or trip type (Business / Personal).
+* **Export Options:** Export detailed trip logs to **PDF** (featuring customizable fields and car logo header branding) or **CSV/Excel** for tax returns and employer reimbursement.
+* **Contextual Inline Help:** Embedded help cards and tooltips in Settings, Filter, and Export dialogs for quick in-app assistance.
 
-### 📊 Data Management
-* **Favorites:** Save frequent locations (Home, Work) for quick logging.
-* **Data Privacy:** All data is stored locally on your device using Room Database. No cloud servers.
+### 🔒 Data Privacy & Diagnostics
+* **100% Local Data:** All trips and favorites are stored locally in an on-device Room database. No user accounts, no analytics, no third-party trackers, and no mandatory cloud servers.
+* **Automated & Manual Backups:** Schedule automatic backups (Daily, Weekly, Monthly) to any folder on your device, with one-tap manual backup and restore.
+* **Self-Hostable Endpoints:** Freely configure custom URLs for both OSRM (Routing) and Photon (Geocoding) in Advanced Settings.
+* **Diagnostics & Debugging:** In-app permissions health check and one-click debug log viewer & export.
 
 ### 🎨 Design & Theming
-* **Adaptive Dark/Light Mode:** The UI seamlessly syncs with your system settings.
-* **Material 3:** Built with the latest Android design standards for a modern, fluid, and intuitive user experience.
+* **Material 3 & Edge-to-Edge:** Modern, fluid UI supporting Android's latest edge-to-edge standards.
+* **Custom Theming:** System, Light, and Dark modes, custom accent color picker, and gradient themes.
+* **Adaptive Map Theming:** Choose Light, Dark, or Auto map styles (featuring a custom high-contrast dark palette designed for night driving).
+* **Winter Mode:** Optional seasonal snowfall visual effect.
 
 ### 🌍 Translation & Localization
 
-TrickTrack is built with multi-language support in mind. Currently, the following languages are available:
+TrickTrack is built with multi-language support in mind:
 
 | Language          | Status                           |
 |:------------------|:---------------------------------|
-| 🇺🇸 **English**  | ✅ Complete (Default)             |
+| 🇺🇸 **English**  | ✅ Complete                       |
 | 🇩🇪 **German**   | ✅ Complete                       |
 | 🇫🇷 **French**   | ⚠️ Complete (machine-translated) |
 | 🇮🇹 **Italian**  | ⚠️ Complete (machine-translated) |
@@ -90,57 +93,58 @@ The inspiration for this project came from using apps like *Driversnote*. While 
 
 * **🔋 Battery Efficiency:** Existing solutions often drained my battery significantly. I wanted an app that was lighter on resources.
 * **🚫 No Arbitrary Limits:** The standard "15 free trips per month" wasn't enough, and I believe basic tracking shouldn't require a subscription.
-* **🔒 Privacy First:** I did not want to create a mandatory user account or be forced to sync my location history to a cloud server. Your data stays on your device.
-* **🚙 Native Hardware:** Modern cars already have Bluetooth. I didn't see the need to buy a proprietary "Beacon" when the phone can simply detect the car's existing Bluetooth connection.
+* **🔒 Privacy First:** I did not want to create a mandatory user account or be forced to sync my location history to a cloud server. Your data stays on your device!
+* **🚙 Native Hardware:** Modern cars already have Bluetooth and Android Auto. I didn't see the need to buy a proprietary "Beacon" when the phone can simply detect the car's existing connection.
 ---
 
 ## 🛠️ Tech Stack
 
 * **Language:** [Kotlin](https://kotlinlang.org/) (100%)
-* **UI:** [Jetpack Compose](https://developer.android.com/jetpack/compose) (Material 3)
-* **Architecture:** MVVM (Model-View-ViewModel)
+* **UI:** [Jetpack Compose](https://developer.android.com/jetpack/compose) (Material 3), Navigation Compose
+* **Architecture:** MVVM (Model-View-ViewModel) with Coroutines & StateFlow
+* **Dependency Injection:** [Hilt](https://dagger.dev/hilt/)
 * **Local Data:**
-    * **Room:** For storing trips and favorites.
-    * **DataStore:** For storing user preferences and settings.
-* **Location & Maps:**
-    * **Android Location Services (FusedLocationProvider):** For GPS tracking.
-    * **Photon API:** For geocoding and address suggestions (OpenStreetMap).
+    * **Room Database:** For storing trips and favorites.
+    * **DataStore & SharedPreferences:** For user preferences and application settings.
+* **Location, Maps & Routing:**
+    * **Android Location Services (FusedLocationProviderClient):** For GPS tracking.
+    * **osmdroid:** OpenStreetMap tile rendering and route polyline overlays.
+    * **OSRM (Open Source Routing Machine):** Distance calculation and route geometry (self-hostable).
+    * **Photon API:** Address search and geocoding suggestions (self-hostable).
+* **Networking:**
+    * **OkHttp:** Lightweight HTTP client for geocoding and routing endpoints.
 * **Background Processing:**
-    * **WorkManager:** For scheduling background tasks.
-    * **Foreground Services:** For active trip recording.
+    * **WorkManager:** For automated scheduled backups and background maintenance.
+    * **Foreground Services:** For persistent, uninterrupted trip recording.
 
 ---
 
 ## 🚀 Installation & Setup
 
-1.  **Get the latest version (apk) from the releases page**
-2.  **Install the app**
+1. **Google Play Store:** Install directly from [Google Play](https://play.google.com/store/apps/details?id=ch.opum.tricktrack).
+2. **GitHub Releases:** Download the latest signed APK from the [Releases](https://github.com/OPUM-LABS/TrickTrack/releases) page.
 
-Google Play Store release is in progress
+> [!WARNING]
+> **Compatibility Note (Signing Keys):**
+> Builds from the **Google Play Store** and **GitHub Releases** are signed with different keys and cannot be installed over each other as a direct update.
+> If you plan to switch between the GitHub and Google Play versions, you must uninstall the currently installed version first. **Always create a backup in Settings > Backup and Restore before switching or uninstalling**, so you can seamlessly restore your trips and favorites in the new installation.
 
 ---
 
 ## 📸 Usage
 
-1.  **Permissions:** Grant Location (Always Allow recommended for automation) and Notification permissions on first launch.
-2.  **Settings:**
-    * Go to Settings to add your **Bluetooth Device** (Car).
-    * Configure your **Schedule** if you only want to track during work hours.
-3.  **Manual Trip:** Tap the "Start" button on the home screen to start a manual trip.
-4.  **Auto Trip:** Just drive! The app handles the rest.
+1. **Permissions:** Grant Location permissions ("Allow all the time" recommended for automatic tracking) and Notification permissions on first launch.
+2. **Settings:**
+    * Connect your **Bluetooth Device** (Car) or enable **Android Auto** auto-start.
+    * Set your **Schedule** if you wish to track only during specific work hours or set default trip classifications.
+    * Add your frequent places to **Favorites** to enable Smart Location Snapping.
+3. **Manual Trip:** Tap the "Start" button on the home screen to begin recording a trip manually, or add a trip retroactively with map route recalculation.
+4. **Auto Trip:** Just drive! The app handles start, tracking, and parking detection automatically.
 
 ---
 
-## 📖 Documentation & Help
-Need more details? Check out the **[GitHub Wiki](https://github.com/OPUM-LABS/TrickTrack/wiki)** for in-depth guides:
-
-* [🔋 Battery Optimization Guide](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%94%8B-Battery-Optimization-Guide)
-* [🚙 Tracking Setup](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%9A%99-Tracking-Setup)
-* [📅 Scheduler & Working Hours](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%93%85-Scheduler-&-Working-Hours)
-* [🔧 Troubleshooting & FAQ](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%94%A7-Troubleshooting-&-FAQ)
-* [📊 Filtering & Reporting](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%93%8A-Filtering-&-Reporting)
-* [⭐ Favourites & Smart Location Snapping](https://github.com/OPUM-LABS/TrickTrack/wiki/%E2%AD%90-Favourites-&-Smart-Location-Snapping)
-* [💾 Backup and Restore](https://github.com/OPUM-LABS/TrickTrack/wiki/%F0%9F%92%BE-Backup-and-Restore)
+## 📖 Help
+Use the built-in inline help cards directly within the app settings, filter, and export dialogs.
 
 ---
 
@@ -148,7 +152,7 @@ Need more details? Check out the **[GitHub Wiki](https://github.com/OPUM-LABS/Tr
 
 **TrickTrack** is a personal hobby project created to solve a specific need: privacy-focused, automated mileage tracking.
 
-* **AI-Assisted Development:** Due to strict time constraints and to bridge the gap in native Android development knowledge, this application was written with significant assistance from **Google Gemini**.
+* **AI-Assisted Development:** Due to strict time constraints and to bridge the gap in native Android development knowledge, this application was written with assistance from **Google Gemini**.
 * **Maintenance:** As this is a side project maintained alongside a full-time job and family commitments, **development speed is limited**.
 * **Support:** This app is primarily built for personal use. While I welcome issues and pull requests, please expect a "hobbyist" pace for updates, features, and bug fixes.
 
@@ -158,8 +162,10 @@ Need more details? Check out the **[GitHub Wiki](https://github.com/OPUM-LABS/Tr
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
 
-* **Map Data:** © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).
+* **Map Data & Tiles:** © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).
+* **Map Renderer:** [osmdroid](https://github.com/osmdroid/osmdroid).
 * **Geocoding:** Powered by [Photon](https://github.com/komoot/photon).
+* **Routing:** Powered by [OSRM](https://project-osrm.org/).
 
 ---
 
