@@ -1832,7 +1832,12 @@ fun EditTripDialog(
                 }
             }
 
-            if (tripsViewModel.isPendingAddress(startText) || tripsViewModel.isPendingAddress(endText)) {
+            val canRetryLookup = trip != null && (
+                (startLat != null && startLon != null && tripsViewModel.isPendingAddress(startText)) ||
+                (endLat != null && endLon != null && tripsViewModel.isPendingAddress(endText))
+            )
+
+            if (canRetryLookup) {
                 Spacer(modifier = Modifier.height(8.dp))
                 AssistChip(
                     onClick = {

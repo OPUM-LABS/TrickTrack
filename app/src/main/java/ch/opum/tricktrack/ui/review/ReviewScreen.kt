@@ -635,7 +635,9 @@ fun ReviewTripCard(
                         address = trip.endLoc
                     )
 
-                    if ((isPendingAddress?.invoke(trip.startLoc) == true) || (isPendingAddress?.invoke(trip.endLoc) == true)) {
+                    val canRetryLookup = (trip.startLat != null && trip.startLon != null && isPendingAddress?.invoke(trip.startLoc) == true) ||
+                            (trip.endLat != null && trip.endLon != null && isPendingAddress?.invoke(trip.endLoc) == true)
+                    if (canRetryLookup) {
                         AssistChip(
                             onClick = { onResolvePendingAddresses?.invoke() },
                             label = { Text(stringResource(R.string.action_retry_address_lookup)) },

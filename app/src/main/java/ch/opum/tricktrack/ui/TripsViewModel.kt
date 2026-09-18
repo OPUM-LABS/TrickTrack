@@ -185,7 +185,7 @@ class TripsViewModel(
     }
 
     fun isPendingAddress(address: String?): Boolean {
-        if (address.isNullOrBlank()) return true
+        if (address.isNullOrBlank()) return false
         return pendingAddressMarkers.any { address.contains(it, ignoreCase = true) }
     }
 
