@@ -18,10 +18,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import kotlinx.coroutines.delay
 import java.util.Calendar
+import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.minutes
 
 private fun sRgbToLinear(c: Float): Float {
-    return if (c <= 0.04045f) c / 12.92f else Math.pow(((c + 0.055) / 1.055), 2.4).toFloat()
+    return if (c <= 0.04045f) c / 12.92f else ((c + 0.055f) / 1.055f).pow(2.4f)
 }
 
 fun calculateLuminance(color: Color): Float {
@@ -46,7 +48,7 @@ private fun colorToHsl(color: Color): FloatArray {
     val delta = max - min
 
     val l = (max + min) / 2f
-    val s = if (delta == 0f) 0f else delta / (1f - Math.abs(2f * l - 1f))
+    val s = if (delta == 0f) 0f else delta / (1f - abs(2f * l - 1f))
     val h = when {
         delta == 0f -> 0f
         max == r -> ((g - b) / delta).let { ((it % 6f) + 6f) % 6f } * 60f
@@ -57,8 +59,8 @@ private fun colorToHsl(color: Color): FloatArray {
 }
 
 private fun hslToColor(h: Float, s: Float, l: Float, alpha: Float = 1f): Color {
-    val c = (1f - Math.abs(2f * l - 1f)) * s
-    val x = c * (1f - Math.abs((h / 60f) % 2f - 1f))
+    val c = (1f - abs(2f * l - 1f)) * s
+    val x = c * (1f - abs((h / 60f) % 2f - 1f))
     val m = l - c / 2f
 
     val (rPrime, gPrime, bPrime) = when {
