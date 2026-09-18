@@ -37,7 +37,6 @@
     <string name="settings_calculate_expenses_title">Calculer les frais de trajet</string>
     <string name="settings_expense_rate_label">Taux par %s</string>
     <string name="settings_expense_currency_label">Devise</string>
-    <string name="settings_export_fields_title">Configurer les champs d\'exportation</string>
     <string name="settings_enable_schedule_title">Activer le calendrier</string>
     <string name="settings_advanced_settings_title">Paramètres avancés</string>
     <string name="settings_advanced_settings_description">Configurez les URL API et d\'autres options avancées.</string>

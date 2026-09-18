@@ -36,7 +36,6 @@
     <string name="settings_calculate_expenses_title">Fahrtkosten berechnen</string>
     <string name="settings_expense_rate_label">Rate pro %s</string>
     <string name="settings_expense_currency_label">Währung</string>
-    <string name="settings_export_fields_title">Exportfelder konfigurieren</string>
     <string name="settings_enable_schedule_title">Zeitplan aktivieren</string>
     <string name="settings_advanced_settings_title">Erweiterte Einstellungen</string>
     <string name="settings_advanced_settings_description">Konfigurieren Sie API-URLs und andere erweiterte Optionen.</string>

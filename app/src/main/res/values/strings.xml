@@ -36,7 +36,6 @@
     <string name="settings_calculate_expenses_title">Calculate Trip Expenses</string>
     <string name="settings_expense_rate_label">Rate per %s</string>
     <string name="settings_expense_currency_label">Currency</string>
-    <string name="settings_export_fields_title">Configure Export Fields</string>
     <string name="settings_enable_schedule_title">Enable Schedule</string>
     <string name="settings_advanced_settings_title">Advanced Settings</string>
     <string name="settings_advanced_settings_description">Configure API URLs and other advanced options.</string>

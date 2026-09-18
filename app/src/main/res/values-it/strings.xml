@@ -37,7 +37,6 @@
     <string name="settings_calculate_expenses_title">Calcola spese di viaggio</string>
     <string name="settings_expense_rate_label">Tariffa per %s</string>
     <string name="settings_expense_currency_label">Valuta</string>
-    <string name="settings_export_fields_title">Configura campi di esportazione</string>
     <string name="settings_enable_schedule_title">Abilita programma</string>
     <string name="settings_advanced_settings_title">Impostazioni avanzate</string>
     <string name="settings_advanced_settings_description">Configura gli URL API e altre opzioni avanzate.</string>
