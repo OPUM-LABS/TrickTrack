@@ -10,6 +10,8 @@
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Hell</string>
     <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_map_theme_title">Karten-Design</string>
+    <string name="settings_map_theme_auto">Auto</string>
     <string name="settings_permissions_check_title">Berechtigungsprüfung</string>
     <string name="settings_permissions_all_granted_cd">Alle gewährt</string>
     <string name="settings_permissions_action_needed_cd">Aktion erforderlich</string>
@@ -451,6 +453,7 @@
     <string name="trips_trips_deleted_multiple">%d Fahrten gelöscht</string>
     <!-- Settings Help Messages -->
     <string name="settings_help_theme">Wählen Sie zwischen Systemstandard, Hell- oder Dunkelmodus.</string>
+    <string name="settings_help_map_theme">Wählen Sie, ob Kartenkacheln dem App-Design folgen oder dauerhaft hell bzw. dunkel angezeigt werden.</string>
     <string name="settings_help_odometer_mode">Verwendet Kilometerstände zur Distanzberechnung. GPS-Daten bleiben erhalten und die Strecke wird weiterhin im Hintergrund aufgezeichnet.</string>
     <string name="settings_help_auto_tracking">Erkennt Fahrten automatisch anhand von Bewegungssensoren im Hintergrund.</string>
     <string name="settings_help_bluetooth_trigger">Startet die Aufzeichnung automatisch, wenn eine Verbindung zu Android Auto oder zum Bluetooth Ihres Fahrzeugs besteht. Tippen Sie hier, um Ihre gekoppelten Bluetooth-Geräte auszuwählen.</string>

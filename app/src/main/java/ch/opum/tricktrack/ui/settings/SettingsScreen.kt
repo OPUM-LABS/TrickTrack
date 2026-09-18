@@ -630,6 +630,7 @@ fun SettingsScreen(
         }
 
         val themeMode by viewModel.themeMode.collectAsState()
+        val mapTheme by viewModel.mapTheme.collectAsState()
         val accentColorHex by viewModel.accentColorHex.collectAsState()
         val isDynamicColorEnabled by viewModel.isDynamicColorEnabled.collectAsState()
         val specialTheme by viewModel.specialTheme.collectAsState()
@@ -733,6 +734,50 @@ fun SettingsScreen(
 
                     if (showSettingsHelp) {
                         SettingHelpBox(helpText = stringResource(R.string.settings_help_accent_color))
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    Text(
+                        text = stringResource(R.string.settings_map_theme_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val mapThemeOptions = listOf(
+                        stringResource(R.string.settings_map_theme_auto) to "AUTO",
+                        stringResource(R.string.settings_theme_light) to "LIGHT",
+                        stringResource(R.string.settings_theme_dark) to "DARK"
+                    )
+
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        mapThemeOptions.forEachIndexed { index, (label, mode) ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = mapThemeOptions.size
+                                ),
+                                onClick = { viewModel.setMapTheme(mode) },
+                                selected = mapTheme == mode,
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    disabledActiveBorderColor = Color.Transparent,
+                                    disabledInactiveBorderColor = Color.Transparent
+                                ),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                            ) {
+                                Text(label)
+                            }
+                        }
+                    }
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_map_theme))
                     }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))

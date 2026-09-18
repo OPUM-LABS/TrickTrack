@@ -11,6 +11,8 @@
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_theme_light">Chiaro</string>
     <string name="settings_theme_dark">Scuro</string>
+    <string name="settings_map_theme_title">Tema della mappa</string>
+    <string name="settings_map_theme_auto">Auto</string>
     <string name="settings_permissions_check_title">Controllo autorizzazioni</string>
     <string name="settings_permissions_all_granted_cd">Tutte concesse</string>
     <string name="settings_permissions_action_needed_cd">Azione richiesta</string>
@@ -452,6 +454,7 @@
     <string name="trips_trips_deleted_multiple">%d viaggi eliminati</string>
     <!-- Settings Help Messages -->
     <string name="settings_help_theme">Scegli tra modalità di sistema, chiara o scura.</string>
+    <string name="settings_help_map_theme">Scegli se le mappe seguono il tema dell\'app o rimangono sempre in modalità chiara o scura.</string>
     <string name="settings_help_odometer_mode">Utilizza il contachilometri per calcolare la distanza. I dati GPS rimangono intatti e il percorso continua a essere registrato in background.</string>
     <string name="settings_help_auto_tracking">Rileva i viaggi automaticamente tramite i sensori di movimento.</string>
     <string name="settings_help_bluetooth_trigger">Avvia la registrazione automaticamente quando connesso ad Android Auto o al Bluetooth del veicolo. Tocca per scegliere i tuoi dispositivi Bluetooth associati.</string>

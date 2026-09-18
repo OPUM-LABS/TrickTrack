@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.Drawable
@@ -43,6 +45,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -75,6 +79,25 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import kotlin.math.abs
 
+val LocalMapTheme = compositionLocalOf { "AUTO" }
+
+private val DarkMapColorFilter: ColorMatrixColorFilter by lazy {
+    // Inverts luminance while rotating hue by 180° so features retain their natural colors:
+    // - Highways and primary roads stay warm amber/orange
+    // - Water bodies stay deep navy/slate blue
+    // - Forests and parks stay deep evergreen
+    // - Land and buildings invert into a modern dark slate/charcoal background (#222224)
+    val colorMatrix = ColorMatrix(
+        floatArrayOf(
+             0.49f, -1.22f, -0.12f, 0f, 235f,
+            -0.36f, -0.37f, -0.12f, 0f, 238f,
+            -0.36f, -1.22f,  0.73f, 0f, 245f,
+                0f,     0f,     0f, 1f,   0f
+        )
+    )
+    ColorMatrixColorFilter(colorMatrix)
+}
+
 @SuppressLint("ClickableViewAccessibility")
 @Composable
 fun TripMapView(
@@ -89,12 +112,19 @@ fun TripMapView(
     endAddress: String? = null,
     routePolyline: String? = null,
     isInteractive: Boolean = false,
+    mapTheme: String = LocalMapTheme.current,
     onRouteCalculated: ((String) -> Unit)? = null,
     onResolvedCoords: ((Double, Double, Double, Double, String?) -> Unit)? = null,
     onRefresh: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val isAppDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val isMapDark = when (mapTheme) {
+        "DARK" -> true
+        "LIGHT" -> false
+        else -> isAppDark
+    }
 
     remember {
         Configuration.getInstance().userAgentValue = context.packageName
@@ -211,6 +241,16 @@ fun TripMapView(
                     mapView.onResume()
                     mapView.overlays.clear()
 
+                    if (isMapDark) {
+                        mapView.overlayManager.tilesOverlay.setColorFilter(DarkMapColorFilter)
+                        mapView.overlayManager.tilesOverlay.loadingBackgroundColor = "#121212".toColorInt()
+                        mapView.overlayManager.tilesOverlay.loadingLineColor = "#2C2C2C".toColorInt()
+                    } else {
+                        mapView.overlayManager.tilesOverlay.setColorFilter(null)
+                        mapView.overlayManager.tilesOverlay.loadingBackgroundColor = "#E0E0E0".toColorInt()
+                        mapView.overlayManager.tilesOverlay.loadingLineColor = "#CCCCCC".toColorInt()
+                    }
+
                     val linePoints = mutableListOf<GeoPoint>()
 
                     // Priority 1: Decoded recorded GPS polyline
@@ -239,7 +279,7 @@ fun TripMapView(
                             position = effectiveStart
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                             title = "Start"
-                            icon = createMapPinDrawable(context, "#2E7D32".toColorInt())
+                            icon = createMapPinDrawable(context, if (isMapDark) "#4CAF50".toColorInt() else "#2E7D32".toColorInt())
                             infoWindow = null
                         }
                         mapView.overlays.add(startMarker)
@@ -252,7 +292,7 @@ fun TripMapView(
                             position = effectiveEnd
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                             title = "End"
-                            icon = createMapPinDrawable(context, "#C62828".toColorInt())
+                            icon = createMapPinDrawable(context, if (isMapDark) "#EF5350".toColorInt() else "#C62828".toColorInt())
                             infoWindow = null
                         }
                         mapView.overlays.add(endMarker)
@@ -262,7 +302,7 @@ fun TripMapView(
                     if (linePoints.size >= 2) {
                         val line = Polyline(mapView).apply {
                             setPoints(linePoints)
-                            outlinePaint.color = Color(0xFF1976D2).toArgb()
+                            outlinePaint.color = if (isMapDark) Color(0xFF00B0FF).toArgb() else Color(0xFF1976D2).toArgb()
                             outlinePaint.strokeWidth = 8f
                             infoWindow = null
                         }

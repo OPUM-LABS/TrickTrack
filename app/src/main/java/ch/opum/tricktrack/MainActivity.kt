@@ -188,6 +188,7 @@ import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.clearFocusOnTap
 import ch.opum.tricktrack.ui.components.FullscreenMapSheet
+import ch.opum.tricktrack.ui.components.LocalMapTheme
 import ch.opum.tricktrack.ui.components.TripMapView
 import ch.opum.tricktrack.ui.components.LocalSnowObstacleRegistry
 import ch.opum.tricktrack.ui.components.SnowObstacleRegistry
@@ -240,6 +241,7 @@ class MainActivity : ComponentActivity() {
                 ),
             )
             val themeMode by tripsViewModel.themeMode.collectAsState()
+            val mapTheme by tripsViewModel.mapTheme.collectAsState()
             val accentColorHex by tripsViewModel.accentColorHex.collectAsState()
             val isDynamicColorEnabled by tripsViewModel.isDynamicColorEnabled.collectAsState()
             val specialTheme by tripsViewModel.specialTheme.collectAsState()
@@ -250,16 +252,18 @@ class MainActivity : ComponentActivity() {
                 dynamicColor = isDynamicColorEnabled,
                 specialTheme = specialTheme
             ) {
-                val context = LocalContext.current
-                val application = context.applicationContext as TripApplication
-                MainScreen(
-                    currentIntent = currentIntent,
-                    viewModelFactory = ViewModelFactory(
-                        application,
-                        application.repository,
-                        application.userPreferencesRepository
+                CompositionLocalProvider(LocalMapTheme provides mapTheme) {
+                    val context = LocalContext.current
+                    val application = context.applicationContext as TripApplication
+                    MainScreen(
+                        currentIntent = currentIntent,
+                        viewModelFactory = ViewModelFactory(
+                            application,
+                            application.repository,
+                            application.userPreferencesRepository
+                        )
                     )
-                )
+                }
             }
         }
     }

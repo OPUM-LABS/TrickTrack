@@ -662,6 +662,13 @@ class TripsViewModel(
             initialValue = "SYSTEM"
         )
 
+    val mapTheme: StateFlow<String> = userPreferencesRepository.mapTheme
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "AUTO"
+        )
+
     val accentColorHex: StateFlow<Long> = userPreferencesRepository.accentColorHex
         .stateIn(
             scope = viewModelScope,
@@ -1445,6 +1452,12 @@ class TripsViewModel(
     fun setThemeMode(mode: String) {
         viewModelScope.launch {
             userPreferencesRepository.setThemeMode(mode)
+        }
+    }
+
+    fun setMapTheme(theme: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setMapTheme(theme)
         }
     }
 

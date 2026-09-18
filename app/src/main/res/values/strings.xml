@@ -10,6 +10,8 @@
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
+    <string name="settings_map_theme_title">Map Theme</string>
+    <string name="settings_map_theme_auto">Auto</string>
     <string name="settings_permissions_check_title">Permissions Check</string>
     <string name="settings_permissions_all_granted_cd">All granted</string>
     <string name="settings_permissions_action_needed_cd">Action Needed</string>
@@ -453,6 +455,7 @@
     <string name="trips_trips_deleted_multiple">%d trips deleted</string>
     <!-- Settings Help Messages -->
     <string name="settings_help_theme">Choose between system default, light, or dark mode.</string>
+    <string name="settings_help_map_theme">Choose whether map tiles follow the app theme, or stay permanently in light or dark mode.</string>
     <string name="settings_help_odometer_mode">Uses odometer readings to calculate distance. Existing GPS data remains intact, and routes continue to be recorded in the background.</string>
     <string name="settings_help_auto_tracking">Detects trips automatically using background motion sensors.</string>
     <string name="settings_help_bluetooth_trigger">Starts recording automatically when connected to Android Auto or your vehicle\'s Bluetooth. Tap to choose your paired Bluetooth devices.</string>

@@ -11,6 +11,8 @@
     <string name="settings_theme_system">Système</string>
     <string name="settings_theme_light">Clair</string>
     <string name="settings_theme_dark">Sombre</string>
+    <string name="settings_map_theme_title">Thème de la carte</string>
+    <string name="settings_map_theme_auto">Auto</string>
     <string name="settings_permissions_check_title">Vérification des autorisations</string>
     <string name="settings_permissions_all_granted_cd">Toutes accordées</string>
     <string name="settings_permissions_action_needed_cd">Action requise</string>
@@ -452,6 +454,7 @@
     <string name="trips_trips_deleted_multiple">%d trajets supprimés</string>
     <!-- Settings Help Messages -->
     <string name="settings_help_theme">Choisissez entre le mode système, clair ou sombre.</string>
+    <string name="settings_help_map_theme">Choisissez si les cartes suivent le thème de l\'application ou restent en mode clair ou sombre.</string>
     <string name="settings_help_odometer_mode">Utilise le compteur pour calculer la distance. Les données GPS sont conservées et l\'itinéraire reste enregistré en arrière-plan.</string>
     <string name="settings_help_auto_tracking">Détecte les trajets automatiquement via les capteurs de mouvement.</string>
     <string name="settings_help_bluetooth_trigger">Démarre l\'enregistrement automatiquement lors de la connexion à Android Auto ou au Bluetooth de votre véhicule. Appuyez pour choisir vos appareils Bluetooth jumelés.</string>

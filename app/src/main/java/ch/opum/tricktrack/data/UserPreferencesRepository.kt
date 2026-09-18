@@ -66,6 +66,7 @@ class UserPreferencesRepository(private val context: Context) {
         val IS_DISTANCE_MONITORING_ENABLED = booleanPreferencesKey("is_distance_monitoring_enabled")
         val DISTANCE_MONITORING_RADIUS = intPreferencesKey("distance_monitoring_radius")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val MAP_THEME = stringPreferencesKey("map_theme")
         val ACCENT_COLOR_HEX = longPreferencesKey("accent_color_hex")
         val IS_DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("is_dynamic_color_enabled")
         val SPECIAL_THEME = stringPreferencesKey("special_theme")
@@ -376,6 +377,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setThemeMode(mode: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.THEME_MODE] = mode
+        }
+    }
+
+    val mapTheme: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.MAP_THEME] ?: "AUTO"
+        }
+
+    suspend fun setMapTheme(theme: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.MAP_THEME] = theme
         }
     }
 
