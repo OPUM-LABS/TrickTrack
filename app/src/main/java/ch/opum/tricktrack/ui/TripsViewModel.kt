@@ -1167,16 +1167,15 @@ class TripsViewModel(
             var updatedTrip = trip.copy(type = typeString, isConfirmed = true, description = description)
             
             if (endOdometer != null && trip.vehicleId != null) {
-                val endOdometerKm = endOdometer
                 val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
                 if (vehicle != null) {
-                    val distance = (endOdometerKm - vehicle.currentOdometer).coerceAtLeast(0.0)
+                    val distance = (endOdometer - vehicle.currentOdometer).coerceAtLeast(0.0)
                     updatedTrip = updatedTrip.copy(
                         distance = distance,
-                        endOdometer = endOdometerKm
+                        endOdometer = endOdometer
                     )
                     // Update vehicle odometer to the higher reading
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, endOdometerKm)))
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, endOdometer)))
                 }
             }
             

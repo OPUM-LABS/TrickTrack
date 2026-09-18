@@ -118,16 +118,15 @@ fun SettingHelpBox(
                 val by = -uy
 
                 val nx = -by
-                val ny = bx
 
                 val barbLen = 5.5.dp.toPx()
                 val barbWidth = 3.5.dp.toPx()
 
                 val leftBarbX = tipX + barbLen * bx + barbWidth * nx
-                val leftBarbY = tipY + barbLen * by + barbWidth * ny
+                val leftBarbY = tipY + barbLen * by + barbWidth * bx
 
                 val rightBarbX = tipX + barbLen * bx - barbWidth * nx
-                val rightBarbY = tipY + barbLen * by - barbWidth * ny
+                val rightBarbY = tipY + barbLen * by - barbWidth * bx
 
                 val arrowHead = Path().apply {
                     moveTo(leftBarbX, leftBarbY)
