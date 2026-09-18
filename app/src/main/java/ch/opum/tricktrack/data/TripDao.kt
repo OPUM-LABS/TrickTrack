@@ -40,9 +40,6 @@ interface TripDao {
     @Query("SELECT * FROM trips")
     suspend fun getTripsForBackup(): List<Trip>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun restoreTrips(trips: List<Trip>)
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(items: List<Trip>)
 

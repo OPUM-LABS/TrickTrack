@@ -50,15 +50,6 @@ class TripRepository(
         return tripDao.getTripsForBackup()
     }
 
-    suspend fun restoreTrips(trips: List<Trip>) {
-        tripDao.restoreTrips(trips)
-    }
-
-    suspend fun restorePlaces(places: List<SavedPlace>) {
-        savedPlaceDao.deleteAll()
-        places.forEach { savedPlaceDao.insert(it) }
-    }
-
     suspend fun getAllDataForBackup(): BackupContainer {
         val trips = tripDao.getTripsForBackup()
         val places = savedPlaceDao.getAll().first()

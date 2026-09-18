@@ -22,18 +22,4 @@ class BackupManager {
         )
         return gson.toJson(backupData)
     }
-
-    fun restoreBackupFromJson(json: String): BackupData? {
-        return try {
-            val backupData = gson.fromJson(json, BackupData::class.java)
-            if (backupData.metadata.appName == "TrickTrack") {
-                backupData
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            // Handle parsing errors, maybe log them
-            null
-        }
-    }
 }
