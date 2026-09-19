@@ -155,6 +155,7 @@ Use the built-in inline help cards directly within the app settings, filter, and
 * **AI-Assisted Development:** Due to strict time constraints and to bridge the gap in native Android development knowledge, this application was written with assistance from **Google Gemini**.
 * **Maintenance:** As this is a side project maintained alongside a full-time job and family commitments, **development speed is limited**.
 * **Support:** This app is primarily built for personal use. While I welcome issues and pull requests, please expect a "hobbyist" pace for updates, features, and bug fixes.
+* **No iOS Version Planned:** Even though I'd like to do it, there are currently no plans for an iOS version. TrickTrack relies heavily on Android-specific features — such as Foreground Services for continuous background GPS tracking and waking up automatically upon car Bluetooth connections. Apple's strict background execution rules prevent standard Bluetooth wake-ups and severely restrict hands-free background tracking without substantial battery drain and compromises.
 
 ---
 
