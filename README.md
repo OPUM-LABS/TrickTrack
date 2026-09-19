@@ -24,7 +24,7 @@
 * [🚀 Installation & Setup](#-installation--setup)
 * [📸 Usage](#-usage)
 * [📖 Help](#-help)
-* [ℹ️ Disclaimer & Development Status](#%EF%B8%8F-disclaimer--development-status)
+* [ℹ️ Disclaimer & Development Status](#%E2%84%B9%EF%B8%8F-disclaimer--development-status)
 * [⚖️ License & Attribution](#%EF%B8%8F-license--attribution)
 ---
 
