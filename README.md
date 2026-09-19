@@ -23,8 +23,8 @@
 * [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
 * [🚀 Installation & Setup](#-installation--setup)
 * [📸 Usage](#-usage)
-* [📖 Documentation & Help](#-documentation--help)
-* [⚠️ Disclaimer & Development Status](#%EF%B8%8F-disclaimer--development-status)
+* [📖 Help](#-help)
+* [ℹ️ Disclaimer & Development Status](#%EF%B8%8F-disclaimer--development-status)
 * [⚖️ License & Attribution](#%EF%B8%8F-license--attribution)
 ---
 
@@ -148,7 +148,7 @@ Use the built-in inline help cards directly within the app settings, filter, and
 
 ---
 
-## ⚠️ Disclaimer & Development Status
+## ℹ️ Disclaimer & Development Status
 
 **TrickTrack** is a personal hobby project created to solve a specific need: privacy-focused, automated mileage tracking.
 
