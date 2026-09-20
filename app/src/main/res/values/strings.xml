@@ -41,6 +41,8 @@
     <string name="settings_advanced_settings_description">Configure API URLs and other advanced options.</string>
     <string name="settings_stillness_timer_label">Stillness Timer (seconds)</string>
     <string name="settings_min_speed_label">Minimum Speed (%s)</string>
+    <string name="settings_min_trip_distance_label">Minimum Trip Distance (%s)</string>
+    <string name="settings_min_trip_distance_note">100 m (~330 ft) is the gold standard. Adjust with care.</string>
     <string name="settings_backup_restore_title">Backup and Restore</string>
     <string name="settings_backup_restore_description">Manage your data backups.</string>
     <string name="settings_tracking_defaults_title">Units, Expenses &amp; Defaults</string>
@@ -428,6 +430,7 @@
     <string name="settings_help_bluetooth_trigger">Starts recording automatically when connected to Android Auto or your vehicle\'s Bluetooth. Tap to choose your paired Bluetooth devices.</string>
     <string name="settings_help_stillness_timer">Duration of inactivity before a trip is automatically ended.</string>
     <string name="settings_help_min_speed">Minimum speed threshold required to classify movement as a trip.</string>
+    <string name="settings_help_min_trip_distance">Discards false starts like driveway shifts or brief Bluetooth connections.</string>
     <string name="settings_help_distance_monitoring">Saves battery while stationary by using Android\'s low-power motion detection instead of continuous GPS.</string>
     <string name="settings_help_default_type">Default classification for new trips (Business or Personal).</string>
     <string name="settings_help_distance_unit">Preferred unit for distances and speeds (km, miles, nautical miles). Existing values are automatically converted.</string>

@@ -37,6 +37,7 @@
         * Smart Location Snapping (on/off, radius in meters)
         * Stillness Timer (in seconds)
         * Minimum Speed (in km/h)
+        * Minimum Trip Distance (in meters / feet)
         * Default Trip Type (business/personal)
     * **Reporting:**
         * Configure Export Fields (Date, Start/End Time, Start/End Location, Distance, Type, Expenses)

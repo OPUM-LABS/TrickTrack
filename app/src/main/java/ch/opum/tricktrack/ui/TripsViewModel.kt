@@ -663,6 +663,13 @@ class TripsViewModel(
             initialValue = 15
         )
 
+    val minTripDistance: StateFlow<Int> = userPreferencesRepository.minTripDistance
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 100
+        )
+
     val isOdometerModeEnabled: StateFlow<Boolean> = userPreferencesRepository.isOdometerModeEnabled
         .stateIn(
             scope = viewModelScope,
@@ -1440,6 +1447,12 @@ class TripsViewModel(
     fun setMinSpeed(speed: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setMinSpeed(speed)
+        }
+    }
+
+    fun setMinTripDistance(distanceMeters: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setMinTripDistance(distanceMeters)
         }
     }
 

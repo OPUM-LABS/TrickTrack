@@ -362,6 +362,7 @@ fun SettingsScreen(
     val distanceMonitoringSummary by viewModel.distanceMonitoringSummary.collectAsState()
     val stillnessTimer by viewModel.stillnessTimer.collectAsState()
     val minSpeed by viewModel.minSpeed.collectAsState()
+    val minTripDistance by viewModel.minTripDistance.collectAsState()
     var pairedDevices by remember { mutableStateOf<Set<BluetoothDevice>>(emptySet()) }
     var showDeviceDialog by remember { mutableStateOf(false) }
     var showPermissionSheet by remember { mutableStateOf(false) }
@@ -1139,6 +1140,42 @@ fun SettingsScreen(
                     )
                     if (showSettingsHelp) {
                         SettingHelpBox(helpText = stringResource(R.string.settings_help_min_speed))
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    val shortDistUnitLabel = if (distanceUnit == DistanceUnit.KM) stringResource(R.string.unit_meters) else stringResource(R.string.unit_feet)
+                    val displayMinTripDistance = DistanceFormatter.convertMetersToDisplayRadius(minTripDistance, distanceUnit)
+                    var localMinTripDistance by remember(minTripDistance, distanceUnit) { mutableStateOf(displayMinTripDistance.toString()) }
+
+                    ClearableTextField(
+                        value = localMinTripDistance,
+                        onValueChange = { newValue ->
+                            localMinTripDistance = newValue
+                        },
+                        label = { Text(stringResource(R.string.settings_min_trip_distance_label, shortDistUnitLabel)) },
+                        placeholder = { Text(displayMinTripDistance.toString()) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused) {
+                                    val inputVal = localMinTripDistance.toIntOrNull() ?: displayMinTripDistance
+                                    val meters = DistanceFormatter.convertDisplayRadiusToMeters(inputVal, distanceUnit)
+                                    viewModel.setMinTripDistance(meters)
+                                    localMinTripDistance = inputVal.toString()
+                                }
+                            },
+                        isFilled = true
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_min_trip_distance_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
+                    )
+                    if (showSettingsHelp) {
+                        SettingHelpBox(helpText = stringResource(R.string.settings_help_min_trip_distance))
                     }
                 }
             }

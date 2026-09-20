@@ -48,6 +48,7 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_SNAPSHOT_BLUETOOTH = booleanPreferencesKey("snapshot_bluetooth")
         val STILLNESS_TIMER_S = intPreferencesKey("stillness_timer_s")
         val MIN_SPEED_KMH = intPreferencesKey("min_speed_kmh")
+        val MIN_TRIP_DISTANCE_M = intPreferencesKey("min_trip_distance_m")
         val AUTO_BACKUP_ENABLED = booleanPreferencesKey("auto_backup_enabled")
         val BACKUP_FREQUENCY = stringPreferencesKey("backup_frequency")
         val BACKUP_DAY_OF_WEEK = intPreferencesKey("backup_day_of_week")
@@ -345,6 +346,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setMinSpeed(speed: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.MIN_SPEED_KMH] = speed
+        }
+    }
+
+    val minTripDistance: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.MIN_TRIP_DISTANCE_M] ?: 100
+        }
+
+    suspend fun setMinTripDistance(distanceMeters: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.MIN_TRIP_DISTANCE_M] = distanceMeters.coerceIn(10, 5000)
         }
     }
 

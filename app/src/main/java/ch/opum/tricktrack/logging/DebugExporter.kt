@@ -112,6 +112,7 @@ object DebugExporter {
                 appendLine("Distance Monitoring Enabled: ${prefsRepo.isDistanceMonitoringEnabled.first()}")
                 appendLine("Distance Monitoring Radius: ${prefsRepo.distanceMonitoringRadius.first()}m")
                 appendLine("Minimum Speed: ${prefsRepo.minSpeed.first()} km/h")
+                appendLine("Minimum Trip Distance: ${prefsRepo.minTripDistance.first()}m")
                 appendLine("Stillness Timer: ${prefsRepo.stillnessTimer.first()}s")
                 appendLine("Odometer Mode Enabled: ${prefsRepo.isOdometerModeEnabled.first()}")
                 appendLine("Distance Unit: ${prefsRepo.distanceUnit.first()}")

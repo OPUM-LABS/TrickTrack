@@ -42,6 +42,8 @@
     <string name="settings_advanced_settings_description">Configura gli URL API e altre opzioni avanzate.</string>
     <string name="settings_stillness_timer_label">Timer di immobilità (secondi)</string>
     <string name="settings_min_speed_label">Velocità minima (%s)</string>
+    <string name="settings_min_trip_distance_label">Distanza minima del viaggio (%s)</string>
+    <string name="settings_min_trip_distance_note">100 m (~330 ft) è lo standard consigliato. Modificare con cautela.</string>
     <string name="settings_backup_restore_title">Backup e ripristino</string>
     <string name="settings_backup_restore_description">Gestisci i backup dei tuoi dati.</string>
     <string name="settings_tracking_defaults_title">Unità, spese e valori predefiniti</string>
@@ -427,6 +429,7 @@
     <string name="settings_help_bluetooth_trigger">Avvia la registrazione automaticamente quando connesso ad Android Auto o al Bluetooth del veicolo. Tocca per scegliere i tuoi dispositivi Bluetooth associati.</string>
     <string name="settings_help_stillness_timer">Tempo di inattività prima della fine automatica del viaggio.</string>
     <string name="settings_help_min_speed">Soglia di velocità minima per classificare il movimento come viaggio.</string>
+    <string name="settings_help_min_trip_distance">Scarta i falsi avvii (spostamenti nel vialetto o brevi connessioni Bluetooth).</string>
     <string name="settings_help_distance_monitoring">Risparmia batteria da fermo utilizzando il rilevamento del movimento a basso consumo invece del GPS continuo.</string>
     <string name="settings_help_default_type">Classificazione predefinita per i nuovi viaggi.</string>
     <string name="settings_help_distance_unit">Unità preferita per distanze e velocità (km, miglia, miglia nautiche). I valori esistenti vengono convertiti automaticamente.</string>

@@ -42,6 +42,8 @@
     <string name="settings_advanced_settings_description">Configurez les URL API et d\'autres options avancées.</string>
     <string name="settings_stillness_timer_label">Minuterie d\'immobilité (secondes)</string>
     <string name="settings_min_speed_label">Vitesse minimale (%s)</string>
+    <string name="settings_min_trip_distance_label">Distance minimale du trajet (%s)</string>
+    <string name="settings_min_trip_distance_note">100 m (~330 ft) est la référence standard. À modifier avec précaution.</string>
     <string name="settings_backup_restore_title">Sauvegarde et restauration</string>
     <string name="settings_backup_restore_description">Gérez vos sauvegardes de données.</string>
     <string name="settings_tracking_defaults_title">Unités, frais et valeurs par défaut</string>
@@ -427,6 +429,7 @@
     <string name="settings_help_bluetooth_trigger">Démarre l\'enregistrement automatiquement lors de la connexion à Android Auto ou au Bluetooth de votre véhicule. Appuyez pour choisir vos appareils Bluetooth jumelés.</string>
     <string name="settings_help_stillness_timer">Durée d\'inactivité avant la fin automatique du trajet.</string>
     <string name="settings_help_min_speed">Vitesse minimale requise pour classer le mouvement comme trajet.</string>
+    <string name="settings_help_min_trip_distance">Ignore les faux départs (manœuvres, brève connexion Bluetooth).</string>
     <string name="settings_help_distance_monitoring">Économise la batterie à l\'arrêt en utilisant la détection de mouvement basse consommation au lieu du GPS continu.</string>
     <string name="settings_help_default_type">Classification par défaut des nouveaux trajets.</string>
     <string name="settings_help_distance_unit">Unité préférée pour les distances et vitesses (km, miles, milles marins). Les valeurs existantes sont automatiquement converties.</string>

@@ -41,6 +41,8 @@
     <string name="settings_advanced_settings_description">Konfigurieren Sie API-URLs und andere erweiterte Optionen.</string>
     <string name="settings_stillness_timer_label">Stillstand-Timer (Sekunden)</string>
     <string name="settings_min_speed_label">Mindestgeschwindigkeit (%s)</string>
+    <string name="settings_min_trip_distance_label">Mindestfahrtstrecke (%s)</string>
+    <string name="settings_min_trip_distance_note">100 m (~330 ft) ist der Goldstandard. Bitte mit Bedacht anpassen.</string>
     <string name="settings_backup_restore_title">Sicherung und Wiederherstellung</string>
     <string name="settings_backup_restore_description">Verwalten Sie Ihre Datensicherungen.</string>
     <string name="settings_tracking_defaults_title">Einheiten, Kosten &amp; Standards</string>
@@ -426,6 +428,7 @@
     <string name="settings_help_bluetooth_trigger">Startet die Aufzeichnung automatisch, wenn eine Verbindung zu Android Auto oder zum Bluetooth Ihres Fahrzeugs besteht. Tippen Sie hier, um Ihre gekoppelten Bluetooth-Geräte auszuwählen.</string>
     <string name="settings_help_stillness_timer">Zeitdauer im Stillstand, nach der eine Fahrt automatisch beendet wird.</string>
     <string name="settings_help_min_speed">Mindestgeschwindigkeit, ab der eine Bewegung als Fahrt gewertet wird.</string>
+    <string name="settings_help_min_trip_distance">Verwirft Fehlstarts wie Umparken oder kurze Bluetooth-Verbindungen.</string>
     <string name="settings_help_distance_monitoring">Spart Akku im Stillstand: Verwendet die stromsparende Android-Bewegungserkennung statt dauerhaftem GPS.</string>
     <string name="settings_help_default_type">Standardtyp für neue Fahrten (Geschäftlich oder Privat).</string>
     <string name="settings_help_distance_unit">Einheit für Entfernungen und Geschwindigkeiten (km, Meilen, Seemeilen). Bestehende Werte werden automatisch umgerechnet.</string>

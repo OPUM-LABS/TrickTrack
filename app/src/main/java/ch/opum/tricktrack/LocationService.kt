@@ -9,7 +9,6 @@ import android.app.UiModeManager
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
-import androidx.core.content.IntentCompat
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -19,20 +18,18 @@ import android.hardware.TriggerEventListener
 import android.location.Location
 import android.os.Build
 import android.os.CountDownTimer
-import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import ch.opum.tricktrack.data.Trip
+import androidx.core.content.IntentCompat
 import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.ScheduleTypeTarget
+import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.logging.AppLogger
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.util.DistanceFormatter
 import ch.opum.tricktrack.util.PolylineUtils
-import org.osmdroid.util.GeoPoint
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -46,6 +43,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.osmdroid.util.GeoPoint
 import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
@@ -891,7 +889,8 @@ class LocationService : Service() {
 
     private suspend fun saveTrip() {
         val finalDistance = _distance.value
-        if (finalDistance > 100) { // Only save if distance is more than 100 meters
+        val minTripDistance = userPreferencesRepository.minTripDistance.first()
+        if (finalDistance >= minTripDistance) { // Only save if distance meets or exceeds minimum threshold
             val startLocation = _startLocation.value
             val endLocation = _lastLocation.value
             val repository = (application as TripApplication).repository
@@ -972,31 +971,11 @@ class LocationService : Service() {
                 TripNotificationManager.sendTripReviewNotification(applicationContext, tripWithId, currentDistanceUnit)
             }
         } else {
+            recordedWaypoints.clear()
             AppLogger.log(
                 "LocationService",
-                "Trip too short, not saving. Distance: $finalDistance meters"
+                "Trip too short, not saving. Distance: $finalDistance meters (Threshold: $minTripDistance meters)"
             )
-
-            // Silently discard phantom 0m/jitter trips without disturbing the user with notifications
-            if (finalDistance >= 15.0) {
-                val currentUnit = currentDistanceUnit
-                val formattedDist = if (currentUnit == DistanceUnit.KM) {
-                    "${finalDistance.toInt()} m"
-                } else {
-                    "${DistanceFormatter.convertMetersToDisplayRadius(finalDistance.toInt(), currentUnit)} ft"
-                }
-
-                val toastMessage = applicationContext.getString(R.string.trip_too_short_not_saved, formattedDist)
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(
-                        applicationContext,
-                        toastMessage,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                TripNotificationManager.sendTripDiscardedNotification(applicationContext, finalDistance.toFloat(), currentUnit)
-            }
         }
     }
 
