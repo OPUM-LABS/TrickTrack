@@ -9,18 +9,27 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import kotlinx.coroutines.launch
+import ch.opum.tricktrack.data.DistanceUnit
+import ch.opum.tricktrack.ui.DialogAcceptButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -212,7 +221,7 @@ fun WelcomeStep(
                 ) {
                     Text(
                         text = stringResource(R.string.onboarding_welcome_steps_overview),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -847,6 +856,7 @@ fun AddFavouritesStep(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackingPreferenceStep(
     onFinish: () -> Unit,
@@ -854,6 +864,8 @@ fun TrackingPreferenceStep(
     tripsViewModel: TripsViewModel
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     // Check permissions before allowing toggling auto-tracking or bluetooth
     val isLocationGranted = ContextCompat.checkSelfPermission(
@@ -871,13 +883,110 @@ fun TrackingPreferenceStep(
     val isAutoTrackingEnabled by tripsViewModel.isAutoTrackingEnabled.collectAsState()
     val isBluetoothTriggerEnabled by tripsViewModel.isBluetoothTriggerEnabled.collectAsState()
     val defaultIsBusiness by tripsViewModel.defaultIsBusiness.collectAsState()
+    val distanceUnit by tripsViewModel.distanceUnit.collectAsState()
+
+    val bluetoothSummary by tripsViewModel.bluetoothSummary.collectAsState()
+    val selectedBluetoothDevices by tripsViewModel.selectedBluetoothDevices.collectAsState()
+    var pairedDevices by remember { mutableStateOf<Set<BluetoothDevice>>(emptySet()) }
+    var showDeviceDialog by remember { mutableStateOf(false) }
+
+    val updatePairedDevices = {
+        if (isBluetoothGranted) {
+            try {
+                val bluetoothManager = ContextCompat.getSystemService(context, BluetoothManager::class.java)
+                val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
+                pairedDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
+            } catch (_: SecurityException) {
+                pairedDevices = emptySet()
+            }
+        }
+    }
+
+    LaunchedEffect(isBluetoothTriggerEnabled, isBluetoothGranted) {
+        if (isBluetoothTriggerEnabled && isBluetoothGranted) {
+            updatePairedDevices()
+        }
+    }
+
+    if (showDeviceDialog) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showDeviceDialog = false },
+            sheetState = sheetState,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_bluetooth_select_devices_dialog_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.settings_bluetooth_dialog_note),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                val unknownDevice = stringResource(R.string.unknown_device)
+                LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
+                    items(pairedDevices.toList()) { device ->
+                        @SuppressLint("MissingPermission")
+                        val deviceName = try {
+                            device.name ?: unknownDevice
+                        } catch (_: SecurityException) {
+                            unknownDevice
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    tripsViewModel.toggleBluetoothDevice(device.address)
+                                }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = deviceName,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Checkbox(
+                                checked = selectedBluetoothDevices.contains(device.address),
+                                onCheckedChange = null
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    DialogAcceptButton(
+                        onClick = {
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) showDeviceDialog = false
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .verticalScroll(scrollState)
+        ) {
             Icon(
                 imageVector = Icons.Default.DirectionsCar,
                 contentDescription = null,
@@ -946,7 +1055,14 @@ fun TrackingPreferenceStep(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(enabled = isBluetoothTriggerEnabled && isBluetoothGranted) {
+                                    updatePairedDevices()
+                                    showDeviceDialog = true
+                                }
+                        ) {
                             Text(
                                 text = stringResource(R.string.settings_bluetooth_trigger_title),
                                 style = MaterialTheme.typography.bodyLarge,
@@ -954,7 +1070,8 @@ fun TrackingPreferenceStep(
                                 color = if (isBluetoothGranted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             )
                             Text(
-                                text = stringResource(R.string.settings_bluetooth_trigger_description),
+                                text = if (isBluetoothTriggerEnabled && isBluetoothGranted) bluetoothSummary + stringResource(R.string.settings_tap_to_change)
+                                       else stringResource(R.string.settings_bluetooth_trigger_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (isBluetoothGranted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             )
@@ -970,7 +1087,13 @@ fun TrackingPreferenceStep(
                         Switch(
                             checked = isBluetoothTriggerEnabled && isBluetoothGranted,
                             enabled = isBluetoothGranted,
-                            onCheckedChange = { tripsViewModel.setBluetoothTriggerEnabled(it) }
+                            onCheckedChange = { enabled ->
+                                tripsViewModel.setBluetoothTriggerEnabled(enabled)
+                                if (enabled) {
+                                    updatePairedDevices()
+                                    showDeviceDialog = true
+                                }
+                            }
                         )
                     }
 
@@ -985,14 +1108,69 @@ fun TrackingPreferenceStep(
                             SegmentedButton(
                                 shape = SegmentedButtonDefaults.itemShape(index = index, count = tripTypes.size),
                                 onClick = { tripsViewModel.setDefaultTripType(index == 0) },
-                                selected = (index == 0) == defaultIsBusiness
+                                selected = (index == 0) == defaultIsBusiness,
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    disabledActiveBorderColor = Color.Transparent,
+                                    disabledInactiveBorderColor = Color.Transparent
+                                ),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                             ) {
                                 Text(label)
                             }
                         }
                     }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                    // Distance Unit
+                    Text(stringResource(R.string.settings_distance_unit_title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val unitOptions = listOf(
+                        DistanceUnit.KM to stringResource(R.string.settings_unit_km),
+                        DistanceUnit.MILES to stringResource(R.string.settings_unit_miles),
+                        DistanceUnit.NAUTICAL_MILES to stringResource(R.string.settings_unit_nautical)
+                    )
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        unitOptions.forEachIndexed { index, (unit, _) ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = unitOptions.size
+                                ),
+                                onClick = { tripsViewModel.setDistanceUnit(unit) },
+                                selected = distanceUnit == unit,
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    activeBorderColor = Color.Transparent,
+                                    inactiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                    inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    disabledActiveBorderColor = Color.Transparent,
+                                    disabledInactiveBorderColor = Color.Transparent
+                                ),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                            ) {
+                                Text(
+                                    text = when (unit) {
+                                        DistanceUnit.KM -> "km"
+                                        DistanceUnit.MILES -> "mi"
+                                        DistanceUnit.NAUTICAL_MILES -> "NM"
+                                    },
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         Row(
