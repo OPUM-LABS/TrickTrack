@@ -140,7 +140,9 @@ The inspiration for this project came from using apps like *Driversnote*. While 
 ---
 
 ## 📖 Help
-Use the built-in inline help cards directly within the app settings, filter, and export dialogs.
+
+* **Initial Setup Wizard:** On first launch, a welcome wizard guides you step-by-step through the initial settings required to use the app (granting necessary background location and battery permissions, setting up driver and vehicle profiles, and selecting your preferred tracking mode).
+* **Contextual Inline Help:** Use the built-in inline help cards and tooltips directly within the app settings, filter, and export dialogs for quick in-app assistance.
 
 ---
 
