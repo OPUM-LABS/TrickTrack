@@ -1,11 +1,7 @@
 <div align="center">
-    <a href="https://play.google.com/store/apps/details?id=ch.opum.tricktrack" target="_blank">
-      <img src="pictures/get-it-on-google-play-badge-en.png" alt="Get it on Google Play" height="60">
-    </a>
-    &nbsp;&nbsp;
-    <a href="https://buymeacoffee.com/opum_labs" target="_blank">
-      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" style="height: 60px !important;width: 217px !important;">
-    </a>
+  <a href="https://play.google.com/store/apps/details?id=ch.opum.tricktrack" target="_blank"><img src="pictures/get-it-on-google-play-badge-en.png" alt="Get it on Google Play" height="60"></a>
+  &nbsp;&nbsp;
+  <a href="https://buymeacoffee.com/opum_labs" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" style="height: 60px !important;width: 217px !important;"></a>
 </div>
 
 ![App Logo](pictures/tricktrack_logo.png)
