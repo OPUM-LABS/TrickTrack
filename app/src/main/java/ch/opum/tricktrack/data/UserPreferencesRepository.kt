@@ -74,6 +74,7 @@ class UserPreferencesRepository(private val context: Context) {
         val DISTANCE_UNIT = stringPreferencesKey("distance_unit")
         val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
         val SHOW_SETTINGS_HELP = booleanPreferencesKey("show_settings_help")
+        val HAS_INTERACTED_WITH_HELP = booleanPreferencesKey("has_interacted_with_help")
         val IS_CUSTOMIZE_INDIVIDUAL_DAYS = booleanPreferencesKey("is_customize_individual_days")
         val GLOBAL_START_HOUR = intPreferencesKey("global_start_hour")
         val GLOBAL_START_MINUTE = intPreferencesKey("global_start_minute")
@@ -509,6 +510,17 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setShowSettingsHelp(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_SETTINGS_HELP] = show
+        }
+    }
+
+    val hasInteractedWithHelp: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.HAS_INTERACTED_WITH_HELP] ?: false
+        }
+
+    suspend fun setHasInteractedWithHelp(interacted: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HAS_INTERACTED_WITH_HELP] = interacted
         }
     }
 

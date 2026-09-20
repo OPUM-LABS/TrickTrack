@@ -43,6 +43,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import ch.opum.tricktrack.ui.components.PencilHelpHint
 import ch.opum.tricktrack.ui.components.SettingHelpBox
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -83,6 +84,7 @@ fun FilterDialog(
     currentFilterState: FilterState,
     allVehicles: List<VehicleEntity>,
     showSettingsHelp: Boolean = false,
+    showHelpHint: Boolean = false,
     onToggleHelp: () -> Unit = {},
     onApplyFilter: (FilterState) -> Unit,
     onDismiss: () -> Unit,
@@ -120,14 +122,20 @@ fun FilterDialog(
                 Text(
                     text = stringResource(R.string.filter_trips_title),
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
-                IconButton(onClick = onToggleHelp) {
-                    Icon(
-                        imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
-                        contentDescription = stringResource(R.string.action_toggle_help),
-                        tint = if (showSettingsHelp) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (showHelpHint) {
+                        PencilHelpHint(onClick = onToggleHelp)
+                    }
+                    IconButton(onClick = onToggleHelp) {
+                        Icon(
+                            imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
+                            contentDescription = stringResource(R.string.action_toggle_help),
+                            tint = if (showSettingsHelp) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                        )
+                    }
                 }
             }
             

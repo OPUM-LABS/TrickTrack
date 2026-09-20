@@ -447,4 +447,5 @@
     <string name="special_theme_aurora">Aurore</string>
     <string name="settings_winter_mode_title">Mode hiver</string>
     <string name="settings_winter_mode_description">Laissez neiger doucement sur votre carnet</string>
+    <string name="hint_toggle_inline_help">basculer l\'aide</string>
 </resources>

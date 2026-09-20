@@ -446,4 +446,5 @@
     <string name="special_theme_aurora">Nordlicht</string>
     <string name="settings_winter_mode_title">Wintermodus</string>
     <string name="settings_winter_mode_description">Lass es sanft über dein Fahrtenbuch schneien</string>
+    <string name="hint_toggle_inline_help">Inline-Hilfe umschalten</string>
 </resources>

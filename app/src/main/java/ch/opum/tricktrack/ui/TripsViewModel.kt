@@ -591,10 +591,18 @@ class TripsViewModel(
     val showSettingsHelp: StateFlow<Boolean> = userPreferencesRepository.showSettingsHelp
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val showInlineHelpHint: StateFlow<Boolean> = combine(
+        userPreferencesRepository.showSettingsHelp,
+        userPreferencesRepository.hasInteractedWithHelp
+    ) { showHelp, interacted ->
+        showHelp && !interacted
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun toggleShowSettingsHelp() {
         viewModelScope.launch {
             val current = showSettingsHelp.value
             userPreferencesRepository.setShowSettingsHelp(!current)
+            userPreferencesRepository.setHasInteractedWithHelp(true)
         }
     }
 

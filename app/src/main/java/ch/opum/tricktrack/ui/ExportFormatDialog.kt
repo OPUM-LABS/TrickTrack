@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import ch.opum.tricktrack.data.CarBrandHelper
+import ch.opum.tricktrack.ui.components.PencilHelpHint
 import ch.opum.tricktrack.ui.components.SettingHelpBox
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -98,6 +99,7 @@ fun ExportFormatDialog(
     val exportColumns by viewModel.exportColumns.collectAsState()
     val expenseTrackingEnabled by viewModel.expenseTrackingEnabled.collectAsState()
     val showSettingsHelp by viewModel.showSettingsHelp.collectAsState()
+    val showInlineHelpHint by viewModel.showInlineHelpHint.collectAsState()
 
     var selectedFormat by remember { mutableStateOf("PDF") }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -139,14 +141,20 @@ fun ExportFormatDialog(
                 Text(
                     text = stringResource(R.string.export_trips_title),
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
-                IconButton(onClick = { viewModel.toggleShowSettingsHelp() }) {
-                    Icon(
-                        imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
-                        contentDescription = stringResource(R.string.action_toggle_help),
-                        tint = if (showSettingsHelp) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (showInlineHelpHint) {
+                        PencilHelpHint(onClick = { viewModel.toggleShowSettingsHelp() })
+                    }
+                    IconButton(onClick = { viewModel.toggleShowSettingsHelp() }) {
+                        Icon(
+                            imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
+                            contentDescription = stringResource(R.string.action_toggle_help),
+                            tint = if (showSettingsHelp) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                        )
+                    }
                 }
             }
 

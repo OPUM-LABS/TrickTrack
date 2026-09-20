@@ -447,4 +447,5 @@
     <string name="special_theme_aurora">Aurora</string>
     <string name="settings_winter_mode_title">Modalità inverno</string>
     <string name="settings_winter_mode_description">Lascia nevicare dolcemente sul tuo diario</string>
+    <string name="hint_toggle_inline_help">attiva/disattiva aiuto</string>
 </resources>

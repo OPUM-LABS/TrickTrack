@@ -448,4 +448,5 @@
     <string name="special_theme_aurora">Aurora</string>
     <string name="settings_winter_mode_title">Winter Mode</string>
     <string name="settings_winter_mode_description">Let it snow gently across your logbook</string>
+    <string name="hint_toggle_inline_help">toggle inline help</string>
 </resources>

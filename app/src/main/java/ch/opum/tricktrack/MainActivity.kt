@@ -189,6 +189,7 @@ import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.clearFocusOnTap
 import ch.opum.tricktrack.ui.components.FullscreenMapSheet
 import ch.opum.tricktrack.ui.components.LocalMapTheme
+import ch.opum.tricktrack.ui.components.PencilHelpHint
 import ch.opum.tricktrack.ui.components.TripMapView
 import ch.opum.tricktrack.ui.components.LocalSnowObstacleRegistry
 import ch.opum.tricktrack.ui.components.SnowObstacleRegistry
@@ -624,10 +625,12 @@ fun MainScreen(
                                     val currentFilterState by tripsViewModel.filterState.collectAsState()
                                     val allVehicles by tripsViewModel.allVehicles.collectAsState()
                                     val showSettingsHelp by tripsViewModel.showSettingsHelp.collectAsState()
+                                    val showInlineHelpHint by tripsViewModel.showInlineHelpHint.collectAsState()
                                     FilterDialog(
                                         currentFilterState = currentFilterState,
                                         allVehicles = allVehicles,
                                         showSettingsHelp = showSettingsHelp,
+                                        showHelpHint = showInlineHelpHint,
                                         onToggleHelp = { tripsViewModel.toggleShowSettingsHelp() },
                                         onApplyFilter = { newFilterState ->
                                             tripsViewModel.updateFilter(newFilterState)
@@ -665,6 +668,10 @@ fun MainScreen(
                             }
                             Screen.Settings.route -> {
                                 val showSettingsHelp by tripsViewModel.showSettingsHelp.collectAsState()
+                                val showInlineHelpHint by tripsViewModel.showInlineHelpHint.collectAsState()
+                                if (showInlineHelpHint) {
+                                    PencilHelpHint(onClick = { tripsViewModel.toggleShowSettingsHelp() })
+                                }
                                 IconButton(onClick = { tripsViewModel.toggleShowSettingsHelp() }) {
                                     Icon(
                                         imageVector = if (showSettingsHelp) Icons.AutoMirrored.Filled.Help else Icons.AutoMirrored.Outlined.HelpOutline,
