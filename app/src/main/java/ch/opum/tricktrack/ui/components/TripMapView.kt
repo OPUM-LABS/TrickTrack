@@ -10,6 +10,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.Drawable
 import android.view.MotionEvent
+import android.view.View
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -222,10 +223,6 @@ fun TripMapView(
                         isClickable = isInteractive
                         isFocusable = isInteractive
 
-                        addOnFirstLayoutListener { _, _, _, _, _ ->
-                            isMapReady = true
-                        }
-
                         if (isInteractive) {
                             setOnTouchListener { v, event ->
                                 v.parent?.requestDisallowInterceptTouchEvent(true)
@@ -321,24 +318,61 @@ fun TripMapView(
                         if (shouldAnimate) {
                             lastHandledRecenter = recenterTrigger
                         }
-                        mapView.post {
-                            mapView.zoomToBoundingBox(box, shouldAnimate)
-                            isMapReady = true
+
+                        val applyZoom = {
+                            if (mapView.width > 0 && mapView.height > 0) {
+                                mapView.zoomToBoundingBox(box, shouldAnimate)
+                                isMapReady = true
+                            }
+                        }
+
+                        if (mapView.isLaidOut && mapView.width > 0 && mapView.height > 0) {
+                            mapView.post { applyZoom() }
+                        } else {
+                            mapView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+                                override fun onLayoutChange(
+                                    v: View?,
+                                    left: Int, top: Int, right: Int, bottom: Int,
+                                    oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
+                                ) {
+                                    if (mapView.width > 0 && mapView.height > 0) {
+                                        mapView.removeOnLayoutChangeListener(this)
+                                        mapView.post { applyZoom() }
+                                    }
+                                }
+                            })
                         }
                     } else if (effectiveStart != null) {
-                        if (recenterTrigger > lastHandledRecenter) {
-                            lastHandledRecenter = recenterTrigger
-                            mapView.controller.animateTo(effectiveStart)
+                        val applyCenter = {
+                            if (recenterTrigger > lastHandledRecenter) {
+                                lastHandledRecenter = recenterTrigger
+                                mapView.controller.animateTo(effectiveStart)
+                            } else {
+                                mapView.controller.setZoom(15.0)
+                                mapView.controller.setCenter(effectiveStart)
+                            }
+                            isMapReady = true
+                        }
+
+                        if (mapView.isLaidOut && mapView.width > 0 && mapView.height > 0) {
+                            mapView.post { applyCenter() }
                         } else {
-                            mapView.controller.setZoom(15.0)
-                            mapView.controller.setCenter(effectiveStart)
+                            mapView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+                                override fun onLayoutChange(
+                                    v: View?,
+                                    left: Int, top: Int, right: Int, bottom: Int,
+                                    oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
+                                ) {
+                                    if (mapView.width > 0 && mapView.height > 0) {
+                                        mapView.removeOnLayoutChangeListener(this)
+                                        mapView.post { applyCenter() }
+                                    }
+                                }
+                            })
                         }
                     }
 
                     mapView.invalidate()
-                    mapView.post {
-                        isMapReady = true
-                    }
                 }
             )
 
