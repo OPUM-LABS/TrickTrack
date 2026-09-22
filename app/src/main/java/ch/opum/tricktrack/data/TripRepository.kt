@@ -46,6 +46,14 @@ class TripRepository(
         tripDao.deleteTrips(trips.map { it.trip })
     }
 
+    suspend fun deleteTripsByIds(ids: List<Long>) {
+        tripDao.deleteTripsByIds(ids)
+    }
+
+    suspend fun mergeTrips(mergedTrip: Trip, originalTripIds: List<Long>): Long {
+        return tripDao.mergeTrips(mergedTrip, originalTripIds)
+    }
+
     suspend fun getTripsForBackup(): List<Trip> {
         return tripDao.getTripsForBackup()
     }

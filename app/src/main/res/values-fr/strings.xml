@@ -32,6 +32,7 @@
     <string name="unit_feet">pieds</string>
     <string name="settings_schedule_title">Calendrier de suivi automatique</string>
     <string name="settings_default_type_title">Type par défaut</string>
+    <string name="trip_type_label">Type de trajet</string>
     <string name="trip_type_business">Professionnel</string>
     <string name="trip_type_personal">Personnel</string>
     <string name="settings_calculate_expenses_title">Calculer les frais de trajet</string>
@@ -245,7 +246,20 @@
     <string name="calculate_address_not_found">Impossible de trouver les coordonnées des adresses saisies.</string>
     <string name="calculate_routing_failed">Impossible de calculer l\'itinéraire routier entre ces lieux.</string>
     <string name="delete_filtered_trips_title">Supprimer les trajets filtrés ?</string>
-    <string name="delete_filtered_trips_confirmation">Êtes-vous sûr de vouloir supprimer tous les trajets qui correspondent au filtre actuel ? Cette action est irréversible.</string>
+    <string name="delete_filtered_trips_confirmation">Êtes-vous sûr de vouloir supprimer tous les %1$d trajets qui correspondent au filtre actuel ? Cette action est irréversible.</string>
+    <string name="delete_selected_trips_title">Supprimer les trajets sélectionnés ?</string>
+    <string name="delete_selected_trips_confirmation">Voulez-vous vraiment supprimer les %1$d trajets sélectionnés ? Cette action est irréversible.</string>
+    <string name="action_merge_trips">Fusionner les trajets</string>
+    <string name="merge_trips_title">Fusionner les trajets</string>
+    <string name="merge_trips_summary_route">Itinéraire</string>
+    <string name="merge_trips_summary_time">Plage horaire</string>
+    <string name="merge_trips_summary_distance">Distance totale</string>
+    <string name="merge_trips_summary_odometer">Compteur</string>
+    <string name="merge_trips_notes_label">Notes combinées (facultatif)</string>
+    <string name="merge_trips_consecutive_warning">Les trajets sélectionnés doivent être consécutifs.</string>
+    <string name="merge_trips_same_vehicle_warning">Les trajets sélectionnés doivent appartenir au même véhicule.</string>
+    <string name="selected_trips_count">%1$d sélectionné(s)</string>
+    <string name="action_cancel_selection">Annuler la sélection</string>
 
     <!-- Trip Summary Dialog -->
 

@@ -79,6 +79,13 @@ enum class TripType {
     ALL, BUSINESS, PERSONAL
 }
 
+sealed class MergeValidationResult {
+    object Valid : MergeValidationResult()
+    object TooFewTrips : MergeValidationResult()
+    object DifferentVehicles : MergeValidationResult()
+    object NotConsecutive : MergeValidationResult()
+}
+
 data class FilterState(
     val type: TripType = TripType.ALL,
     val keyword: String = "",
@@ -287,6 +294,25 @@ class TripsViewModel(
     private val _pendingDeletedTrips = MutableStateFlow<List<TripWithVehicle>>(emptyList())
     val pendingDeletedTrips: StateFlow<List<TripWithVehicle>> = _pendingDeletedTrips.asStateFlow()
 
+    private val _selectedTripIds = MutableStateFlow<Set<Long>>(emptySet())
+    val selectedTripIds: StateFlow<Set<Long>> = _selectedTripIds.asStateFlow()
+
+    fun toggleTripSelection(tripId: Long) {
+        _selectedTripIds.value = if (tripId in _selectedTripIds.value) {
+            _selectedTripIds.value - tripId
+        } else {
+            _selectedTripIds.value + tripId
+        }
+    }
+
+    fun startTripSelection(tripId: Long) {
+        _selectedTripIds.value = setOf(tripId)
+    }
+
+    fun clearTripSelection() {
+        _selectedTripIds.value = emptySet()
+    }
+
     val confirmedTrips = combine(repository.confirmedTrips, _filterState, _pendingDeletedTrips) { allTrips, filter, pending ->
         val pendingIds = pending.map { it.trip.id }.toSet()
         val activeTrips = allTrips.filter { it.trip.id !in pendingIds }
@@ -467,6 +493,13 @@ class TripsViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = 0
+        )
+
+    val allConfirmedTrips: StateFlow<List<TripWithVehicle>> = repository.confirmedTrips
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList()
         )
 
     val isTracking: StateFlow<Boolean> = LocationService.isTracking
@@ -1198,6 +1231,138 @@ class TripsViewModel(
             repository.deleteTrips(tripsToDelete)
             tripsToDelete.forEach {
                 TripNotificationManager.cancelTripNotification(getApplication(), it.trip.id)
+            }
+        }
+    }
+
+    fun deleteSelectedTrips(onComplete: (() -> Unit)? = null) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val idsToDelete = _selectedTripIds.value.toList()
+            if (idsToDelete.isEmpty()) return@launch
+
+            repository.deleteTripsByIds(idsToDelete)
+            idsToDelete.forEach { id ->
+                TripNotificationManager.cancelTripNotification(getApplication(), id)
+            }
+
+            withContext(Dispatchers.Main) {
+                clearTripSelection()
+                onComplete?.invoke()
+            }
+        }
+    }
+
+    fun validateMerge(selectedTrips: List<Trip>? = null, allTrips: List<Trip>? = null): MergeValidationResult {
+        val tripsSource = allTrips
+            ?: confirmedTrips.value.map { it.trip }.ifEmpty { allConfirmedTrips.value.map { it.trip } }
+        val tripsToValidate = selectedTrips ?: run {
+            val selectedIds = _selectedTripIds.value
+            tripsSource.filter { it.id in selectedIds }
+        }
+        if (tripsToValidate.size < 2) return MergeValidationResult.TooFewTrips
+
+        val vehicleIds = tripsToValidate.map { it.vehicleId }.toSet()
+        if (vehicleIds.size > 1) return MergeValidationResult.DifferentVehicles
+
+        val targetVehicleId = vehicleIds.firstOrNull()
+        val relevantTrips = tripsSource
+            .filter { it.vehicleId == targetVehicleId }
+            .sortedWith(compareByDescending<Trip> { it.date.time }.thenByDescending { it.id })
+
+        val selectedIdSet = tripsToValidate.map { it.id }.toSet()
+        val indices = relevantTrips.mapIndexedNotNull { index, trip ->
+            if (trip.id in selectedIdSet) index else null
+        }
+
+        if (indices.size != tripsToValidate.size) return MergeValidationResult.NotConsecutive
+
+        val isConsecutive = indices.zipWithNext().all { (a, b) -> b == a + 1 }
+        if (!isConsecutive) return MergeValidationResult.NotConsecutive
+
+        return MergeValidationResult.Valid
+    }
+
+    fun mergeSelectedTrips(
+        selectedTrips: List<Trip>,
+        finalType: String,
+        finalDescription: String?,
+        isOdometerMode: Boolean,
+        onComplete: (() -> Unit)? = null
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (selectedTrips.size < 2) return@launch
+
+            // Sort chronologically ascending: earliest trip first, latest trip last
+            val sorted = selectedTrips.sortedBy { it.date.time }
+            val firstTrip = sorted.first()
+            val lastTrip = sorted.last()
+
+            val totalDistance: Double
+            val finalEndOdometer: Double?
+
+            if (isOdometerMode && firstTrip.endOdometer != null && lastTrip.endOdometer != null) {
+                val startOdometer = (firstTrip.endOdometer - firstTrip.distance).coerceAtLeast(0.0)
+                finalEndOdometer = lastTrip.endOdometer
+                totalDistance = (finalEndOdometer - startOdometer).coerceAtLeast(0.0)
+            } else {
+                totalDistance = sorted.sumOf { it.distance }
+                finalEndOdometer = lastTrip.endOdometer
+            }
+
+            // Combine recorded GPS polylines in chronological order
+            val combinedPoints = sorted.flatMap { trip ->
+                if (!trip.routePolyline.isNullOrBlank()) {
+                    PolylineUtils.decode(trip.routePolyline)
+                } else emptyList()
+            }
+            val finalPolyline = if (combinedPoints.size >= 2) {
+                PolylineUtils.encode(combinedPoints)
+            } else {
+                sorted.mapNotNull { it.routePolyline }.firstOrNull()
+            }
+
+            val isAllAutomatic = sorted.all { it.isAutomatic }
+            val mergedTrigger = if (isAllAutomatic) firstTrip.trigger else "MANUAL"
+
+            val mergedTrip = Trip(
+                startLoc = firstTrip.startLoc,
+                endLoc = lastTrip.endLoc,
+                distance = totalDistance,
+                type = finalType,
+                description = finalDescription?.takeIf { it.isNotBlank() },
+                date = firstTrip.date,
+                endDate = lastTrip.endDate,
+                isConfirmed = firstTrip.isConfirmed,
+                startLat = firstTrip.startLat,
+                startLon = firstTrip.startLon,
+                endLat = lastTrip.endLat,
+                endLon = lastTrip.endLon,
+                isAutomatic = isAllAutomatic,
+                vehicleId = firstTrip.vehicleId,
+                endOdometer = finalEndOdometer,
+                trigger = mergedTrigger,
+                routePolyline = finalPolyline
+            )
+
+            val oldIds = sorted.map { it.id }
+            repository.mergeTrips(mergedTrip, oldIds)
+
+            // If in odometer mode, update vehicle odometer to latest reading
+            if (finalEndOdometer != null && firstTrip.vehicleId != null) {
+                val vehicle = favouritesRepository.getVehicleById(firstTrip.vehicleId)
+                if (vehicle != null) {
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, finalEndOdometer)))
+                }
+            }
+
+            // Clean up any pending review notifications for old trips
+            oldIds.forEach { id ->
+                TripNotificationManager.cancelTripNotification(getApplication(), id)
+            }
+
+            withContext(Dispatchers.Main) {
+                clearTripSelection()
+                onComplete?.invoke()
             }
         }
     }

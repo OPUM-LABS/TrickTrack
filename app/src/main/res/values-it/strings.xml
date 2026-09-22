@@ -32,6 +32,7 @@
     <string name="unit_feet">piedi</string>
     <string name="settings_schedule_title">Programma di tracciamento automatico</string>
     <string name="settings_default_type_title">Tipo predefinito</string>
+    <string name="trip_type_label">Tipo di viaggio</string>
     <string name="trip_type_business">Lavoro</string>
     <string name="trip_type_personal">Personale</string>
     <string name="settings_calculate_expenses_title">Calcola spese di viaggio</string>
@@ -245,7 +246,20 @@
     <string name="calculate_address_not_found">Impossibile trovare le coordinate per gli indirizzi inseriti.</string>
     <string name="calculate_routing_failed">Impossibile calcolare il percorso stradale tra queste posizioni.</string>
     <string name="delete_filtered_trips_title">Eliminare i viaggi filtrati?</string>
-    <string name="delete_filtered_trips_confirmation">Sei sicuro di voler eliminare tutti i viaggi che corrispondono al filtro corrente? Questa azione non può essere annullata.</string>
+    <string name="delete_filtered_trips_confirmation">Sei sicuro di voler eliminare tutti i %1$d viaggi che corrispondono al filtro corrente? Questa azione non può essere annullata.</string>
+    <string name="delete_selected_trips_title">Eliminare i viaggi selezionati?</string>
+    <string name="delete_selected_trips_confirmation">Sei sicuro di voler eliminare i %1$d viaggi selezionati? Questa azione non può essere annullata.</string>
+    <string name="action_merge_trips">Unisci viaggi</string>
+    <string name="merge_trips_title">Unisci viaggi</string>
+    <string name="merge_trips_summary_route">Percorso</string>
+    <string name="merge_trips_summary_time">Intervallo di tempo</string>
+    <string name="merge_trips_summary_distance">Distanza totale</string>
+    <string name="merge_trips_summary_odometer">Contachilometri</string>
+    <string name="merge_trips_notes_label">Note combinate (opzionale)</string>
+    <string name="merge_trips_consecutive_warning">I viaggi selezionati devono essere consecutivi.</string>
+    <string name="merge_trips_same_vehicle_warning">I viaggi selezionati devono appartenere allo stesso veicolo.</string>
+    <string name="selected_trips_count">%1$d selezionati</string>
+    <string name="action_cancel_selection">Annulla selezione</string>
 
     <!-- Trip Summary Dialog -->
 

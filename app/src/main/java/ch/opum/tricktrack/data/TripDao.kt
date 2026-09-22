@@ -26,6 +26,15 @@ interface TripDao {
     @Delete
     suspend fun deleteTrips(trips: List<Trip>)
 
+    @Query("DELETE FROM trips WHERE id IN (:ids)")
+    suspend fun deleteTripsByIds(ids: List<Long>)
+
+    @Transaction
+    suspend fun mergeTrips(newTrip: Trip, originalTripIds: List<Long>): Long {
+        deleteTripsByIds(originalTripIds)
+        return insert(newTrip)
+    }
+
     @Transaction
     @Query("SELECT * FROM trips WHERE isConfirmed = 1 ORDER BY date DESC")
     fun getConfirmedTrips(): Flow<List<TripWithVehicle>>

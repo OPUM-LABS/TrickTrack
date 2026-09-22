@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -22,6 +23,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +71,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.automirrored.filled.MergeType
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Route
@@ -81,6 +84,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -184,10 +188,12 @@ import ch.opum.tricktrack.ui.TimelineNode
 import ch.opum.tricktrack.ui.TripTrigger
 import ch.opum.tricktrack.ui.TripType
 import ch.opum.tricktrack.ui.CalculationError
+import ch.opum.tricktrack.ui.MergeValidationResult
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.clearFocusOnTap
 import ch.opum.tricktrack.ui.components.FullscreenMapSheet
+import ch.opum.tricktrack.ui.components.MergeTripsDialog
 import ch.opum.tricktrack.ui.components.LocalMapTheme
 import ch.opum.tricktrack.ui.components.PencilHelpHint
 import ch.opum.tricktrack.ui.components.TripMapView
@@ -302,6 +308,17 @@ fun MainScreen(
     }
     val isWinterModeEnabled by tripsViewModel.isWinterModeEnabled.collectAsState()
     val snowObstacleRegistry = remember { SnowObstacleRegistry() }
+    val selectedTripIds by tripsViewModel.selectedTripIds.collectAsState()
+
+    BackHandler(enabled = currentRoute == Screen.TripList.route && selectedTripIds.isNotEmpty()) {
+        tripsViewModel.clearTripSelection()
+    }
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != Screen.TripList.route && selectedTripIds.isNotEmpty()) {
+            tripsViewModel.clearTripSelection()
+        }
+    }
 
     val startDestination = remember(hasCompletedOnboarding) {
         if (hasCompletedOnboarding) Screen.TripList.route else Screen.Onboarding.route
@@ -512,19 +529,35 @@ fun MainScreen(
                     )
                 }
 
+                val isSelectionMode = currentRoute == Screen.TripList.route && selectedTripIds.isNotEmpty()
+
                 TopAppBar(
                     modifier = if (headerGradient != null) {
                         Modifier.background(Brush.horizontalGradient(headerGradient))
                     } else {
                         Modifier
                     },
+                    navigationIcon = {
+                        if (isSelectionMode) {
+                            IconButton(onClick = { tripsViewModel.clearTripSelection() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.action_cancel_selection)
+                                )
+                            }
+                        }
+                    },
                     title = {
-                        val title = when (currentRoute) {
-                            Screen.TripList.route -> stringResource(R.string.screen_title_trips)
-                            Screen.Review.route -> stringResource(R.string.screen_title_review)
-                            Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
-                            Screen.Settings.route -> stringResource(R.string.screen_title_settings)
-                            else -> ""
+                        val title = if (isSelectionMode) {
+                            stringResource(R.string.selected_trips_count, selectedTripIds.size)
+                        } else {
+                            when (currentRoute) {
+                                Screen.TripList.route -> stringResource(R.string.screen_title_trips)
+                                Screen.Review.route -> stringResource(R.string.screen_title_review)
+                                Screen.PlacesList.route -> stringResource(R.string.screen_title_favourites)
+                                Screen.Settings.route -> stringResource(R.string.screen_title_settings)
+                                else -> ""
+                            }
                         }
                         if (title.isNotEmpty()) {
                             Text(
@@ -537,6 +570,97 @@ fun MainScreen(
                     actions = {
                         when (currentRoute) {
                             Screen.TripList.route -> {
+                                if (isSelectionMode) {
+                                    var showMergeDialog by remember { mutableStateOf(false) }
+                                    var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
+                                    val confirmedTrips by tripsViewModel.confirmedTrips.collectAsState()
+                                    val distanceUnit by tripsViewModel.distanceUnit.collectAsState()
+                                    val isOdometerModeEnabled by tripsViewModel.isOdometerModeEnabled.collectAsState()
+                                    val allVehicles by tripsViewModel.allVehicles.collectAsState()
+
+                                    IconButton(
+                                        onClick = {
+                                            val selectedTripsList = confirmedTrips
+                                                .map { it.trip }
+                                                .filter { it.id in selectedTripIds }
+                                            val validation = tripsViewModel.validateMerge(
+                                                selectedTrips = selectedTripsList,
+                                                allTrips = confirmedTrips.map { it.trip }
+                                            )
+                                            when (validation) {
+                                                is MergeValidationResult.Valid -> {
+                                                    showMergeDialog = true
+                                                }
+                                                is MergeValidationResult.TooFewTrips -> {
+                                                    Toast.makeText(context, R.string.merge_trips_consecutive_warning, Toast.LENGTH_SHORT).show()
+                                                }
+                                                is MergeValidationResult.DifferentVehicles -> {
+                                                    Toast.makeText(context, R.string.merge_trips_same_vehicle_warning, Toast.LENGTH_SHORT).show()
+                                                }
+                                                is MergeValidationResult.NotConsecutive -> {
+                                                    Toast.makeText(context, R.string.merge_trips_consecutive_warning, Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.MergeType,
+                                            contentDescription = stringResource(R.string.action_merge_trips)
+                                        )
+                                    }
+
+                                    IconButton(onClick = { showDeleteConfirmationDialog = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = stringResource(R.string.action_delete)
+                                        )
+                                    }
+
+                                    if (showDeleteConfirmationDialog) {
+                                        ConfirmationBottomSheet(
+                                            title = stringResource(R.string.delete_selected_trips_title),
+                                            message = stringResource(R.string.delete_selected_trips_confirmation, selectedTripIds.size),
+                                            icon = Icons.Default.Delete,
+                                            onConfirm = {
+                                                tripsViewModel.deleteSelectedTrips()
+                                                showDeleteConfirmationDialog = false
+                                            },
+                                            onDismiss = { showDeleteConfirmationDialog = false }
+                                        )
+                                    }
+
+                                    if (showMergeDialog) {
+                                        val selectedTripsList = remember(selectedTripIds, confirmedTrips) {
+                                            confirmedTrips
+                                                .map { it.trip }
+                                                .filter { it.id in selectedTripIds }
+                                                .sortedBy { it.date.time }
+                                        }
+                                        val vehicle = remember(selectedTripsList, allVehicles) {
+                                            val vId = selectedTripsList.firstOrNull()?.vehicleId
+                                            allVehicles.find { it.id == vId }
+                                        }
+
+                                        MergeTripsDialog(
+                                            selectedTrips = selectedTripsList,
+                                            vehicle = vehicle,
+                                            distanceUnit = distanceUnit,
+                                            isOdometerMode = isOdometerModeEnabled,
+                                            onDismiss = { showMergeDialog = false },
+                                            onConfirm = { finalType, finalDesc ->
+                                                tripsViewModel.mergeSelectedTrips(
+                                                    selectedTrips = selectedTripsList,
+                                                    finalType = finalType,
+                                                    finalDescription = finalDesc,
+                                                    isOdometerMode = isOdometerModeEnabled,
+                                                    onComplete = {
+                                                        showMergeDialog = false
+                                                    }
+                                                )
+                                            }
+                                        )
+                                    }
+                                } else {
                                 var showFilterDialog by remember { mutableStateOf(value = false) }
                                 var showExportDialog by remember { mutableStateOf(value = false) }
                                 val isFilterActive by tripsViewModel.isFilterActive.collectAsState()
@@ -641,9 +765,11 @@ fun MainScreen(
                                 }
 
                                 if (showDeleteConfirmationDialog) {
+                                    val filteredTripsCount by tripsViewModel.tripCount.collectAsState()
                                     ConfirmationBottomSheet(
                                         title = stringResource(R.string.delete_filtered_trips_title),
-                                        message = stringResource(R.string.delete_filtered_trips_confirmation),
+                                        message = stringResource(R.string.delete_filtered_trips_confirmation, filteredTripsCount),
+                                        icon = Icons.Default.Delete,
                                         onConfirm = {
                                             tripsViewModel.deleteFilteredTrips()
                                             showDeleteConfirmationDialog = false
@@ -666,7 +792,8 @@ fun MainScreen(
                                     )
                                 }
                             }
-                            Screen.Settings.route -> {
+                        }
+                        Screen.Settings.route -> {
                                 val showSettingsHelp by tripsViewModel.showSettingsHelp.collectAsState()
                                 val showInlineHelpHint by tripsViewModel.showInlineHelpHint.collectAsState()
                                 if (showInlineHelpHint) {
@@ -814,6 +941,8 @@ fun TripScreen(
     navController: androidx.navigation.NavHostController
 ) {
     val groupedTrips by tripsViewModel.groupedTrips.collectAsState()
+    val selectedTripIds by tripsViewModel.selectedTripIds.collectAsState()
+    val isSelectionMode = selectedTripIds.isNotEmpty()
     val isFilterActive by tripsViewModel.isFilterActive.collectAsState()
     val currentFilterState by tripsViewModel.filterState.collectAsState()
     val distance by tripsViewModel.distance.collectAsState(initial = 0.0)
@@ -1213,9 +1342,25 @@ fun TripScreen(
                         ) {
                             Column {
                                 group.trips.forEach { tripWithVehicle ->
+                                    val isTripSelected = tripWithVehicle.trip.id in selectedTripIds
                                     TripItem(
                                         tripWithVehicle = tripWithVehicle,
-                                        onClick = { onTripClick(tripWithVehicle.trip) },
+                                        isSelectionMode = isSelectionMode,
+                                        isSelected = isTripSelected,
+                                        onClick = {
+                                            if (isSelectionMode) {
+                                                tripsViewModel.toggleTripSelection(tripWithVehicle.trip.id)
+                                            } else {
+                                                onTripClick(tripWithVehicle.trip)
+                                            }
+                                        },
+                                        onLongClick = {
+                                            if (isSelectionMode) {
+                                                tripsViewModel.toggleTripSelection(tripWithVehicle.trip.id)
+                                            } else {
+                                                tripsViewModel.startTripSelection(tripWithVehicle.trip.id)
+                                            }
+                                        },
                                         expenseTrackingEnabled = expenseTrackingEnabled,
                                         expenseRatePerKm = expenseRatePerKm,
                                         expenseCurrency = expenseCurrency,
@@ -2294,6 +2439,7 @@ fun EditTripDialog(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TripItem(
     tripWithVehicle: TripWithVehicle,
@@ -2303,6 +2449,9 @@ fun TripItem(
     expenseCurrency: String,
     distanceUnit: ch.opum.tricktrack.data.DistanceUnit,
     modifier: Modifier = Modifier,
+    isSelectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
     onUpdatePolyline: ((String) -> Unit)? = null,
     onResolvedCoords: ((Double, Double, Double, Double, String?) -> Unit)? = null,
     onRefreshMap: (() -> Unit)? = null
@@ -2313,8 +2462,12 @@ fun TripItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp) // Added horizontal padding
             .snowObstacle("trip_${trip.id}")
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Column {
@@ -2331,6 +2484,13 @@ fun TripItem(
                     val typeIcon = if (isBusiness) Icons.Default.Work else Icons.Default.Person
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isSelectionMode) {
+                            Checkbox(
+                                checked = isSelected,
+                                onCheckedChange = null
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                         Icon(
                             imageVector = typeIcon,
                             contentDescription = if (isBusiness) stringResource(R.string.trip_type_business) else stringResource(R.string.trip_type_personal),

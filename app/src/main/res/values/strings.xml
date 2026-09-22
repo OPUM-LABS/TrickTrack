@@ -31,6 +31,7 @@
     <string name="unit_feet">feet</string>
     <string name="settings_schedule_title">Automatic Tracking Schedule</string>
     <string name="settings_default_type_title">Default Type</string>
+    <string name="trip_type_label">Trip Type</string>
     <string name="trip_type_business">Business</string>
     <string name="trip_type_personal">Personal</string>
     <string name="settings_calculate_expenses_title">Calculate Trip Expenses</string>
@@ -252,7 +253,20 @@
     <string name="calculate_address_not_found">Could not find coordinates for the entered addresses.</string>
     <string name="calculate_routing_failed">Could not calculate driving route between these locations.</string>
     <string name="delete_filtered_trips_title">Delete Filtered Trips?</string>
-    <string name="delete_filtered_trips_confirmation">Are you sure you want to delete all trips that match the current filter? This action cannot be undone.</string>
+    <string name="delete_filtered_trips_confirmation">Are you sure you want to delete all %1$d trips that match the current filter? This action cannot be undone.</string>
+    <string name="delete_selected_trips_title">Delete Selected Trips?</string>
+    <string name="delete_selected_trips_confirmation">Are you sure you want to delete the %1$d selected trips? This action cannot be undone.</string>
+    <string name="action_merge_trips">Merge Trips</string>
+    <string name="merge_trips_title">Merge Trips</string>
+    <string name="merge_trips_summary_route">Route</string>
+    <string name="merge_trips_summary_time">Time Span</string>
+    <string name="merge_trips_summary_distance">Total Distance</string>
+    <string name="merge_trips_summary_odometer">Odometer</string>
+    <string name="merge_trips_notes_label">Combined Notes (optional)</string>
+    <string name="merge_trips_consecutive_warning">Selected trips must be consecutive.</string>
+    <string name="merge_trips_same_vehicle_warning">Selected trips must be for the same vehicle.</string>
+    <string name="selected_trips_count">%1$d selected</string>
+    <string name="action_cancel_selection">Cancel selection</string>
 
     <!-- Trip Summary Dialog -->
 
