@@ -1,7 +1,7 @@
 • "Accept All" button to approve all pending review trips in one tap
-• Trip recovery if your phone battery shuts down while driving
-• Edit destination and recalculate route for interrupted trips
-• Bulk-edit selected trips to update vehicle, type, or note together
-• Improved odometer calculations and general stability
+• Trip recovery & destination editing if phone shuts down while driving
+• Reduced battery drain: Movement Sensitivity enabled by default
+• Bulk-edit selected trips (vehicle, classification, note)
+• Improved odometer calculations and stability fixes
 
 Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0

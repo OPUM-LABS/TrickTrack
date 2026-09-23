@@ -1,7 +1,7 @@
-• Pulsante "Accetta tutti" per approvare tutti i viaggi in sospeso con un tocco
-• Recupero automatico del viaggio se la batteria si scarica durante la guida
-• Modifica destinazione e ricalcolo percorso per i viaggi interrotti
+• Pulsante "Accetta tutti" per approvare tutti i viaggi con un tocco
+• Recupero viaggi e modifica destinazione in caso di batteria scarica
+• Risparmio batteria: sensibilità al movimento attiva per impostazione predefinita
 • Modifica multipla per i viaggi selezionati (veicolo, tipo, nota)
-• Calcolo del contachilometri migliorato e ottimizzazioni generali
+• Calcolo del contachilometri migliorato e stabilità generale
 
 Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0

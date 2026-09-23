@@ -1,7 +1,7 @@
-• Bouton "Tout accepter" pour valider tous les trajets en attente en un geste
-• Récupération automatique du trajet si la batterie s'éteint en cours de route
-• Modifier la destination et recalculer l'itinéraire des trajets interrompus
+• Bouton "Tout accepter" pour valider tous les trajets en un geste
+• Récupération du trajet et modification en cas de coupure de batterie
+• Économie de batterie : sensibilité au mouvement activée par défaut
 • Modification groupée des trajets sélectionnés (véhicule, type, note)
-• Amélioration du calcul du compteur kilométrique et stabilité générale
+• Améliorations du compteur kilométrique et de la stabilité
 
 Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0

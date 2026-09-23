@@ -63,7 +63,7 @@
 * **Localization:** The app is localized in English, German, Italian and French.
 
 ## 6. Changelog & Release Notes Format
-When asked to write or update release notes / changelog, ALWAYS follow this two-part structure:
+Every time `CHANGELOG.md` is changed or release notes are requested, ALWAYS update BOTH Part 1 and Part 2 simultaneously:
 
 ### Part 1: GitHub Release & `CHANGELOG.md` Template
 Follow this exact layout:
