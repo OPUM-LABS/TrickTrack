@@ -1,0 +1,5 @@
+• "Accept All" button to approve all pending review trips in one tap
+• Trip recovery if your phone battery shuts down while driving
+• Edit destination and recalculate route for interrupted trips
+• Bulk-edit selected trips to update vehicle, type, or note together
+• Improved odometer calculations and general stability

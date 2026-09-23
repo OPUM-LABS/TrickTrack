@@ -1,0 +1,5 @@
+• Bouton "Tout accepter" pour valider tous les trajets en attente en un geste
+• Récupération automatique du trajet si la batterie s'éteint en cours de route
+• Modifier la destination et recalculer l'itinéraire des trajets interrompus
+• Modification groupée des trajets sélectionnés (véhicule, type, note)
+• Amélioration du calcul du compteur kilométrique et stabilité générale

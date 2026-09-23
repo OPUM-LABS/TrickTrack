@@ -1,0 +1,5 @@
+• Pulsante "Accetta tutti" per approvare tutti i viaggi in sospeso con un tocco
+• Recupero automatico del viaggio se la batteria si scarica durante la guida
+• Modifica destinazione e ricalcolo percorso per i viaggi interrotti
+• Modifica multipla per i viaggi selezionati (veicolo, tipo, nota)
+• Calcolo del contachilometri migliorato e ottimizzazioni generali

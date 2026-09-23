@@ -60,3 +60,36 @@
 * Public OSRM/Photon APIs have rate limits; user agent must be set correctly.
 * **Hilt State:** Hilt is fully active.
 * **Localization:** The app is localized in English, German, Italian and French.
+
+## 6. Changelog & Release Notes Format
+When asked to write or update release notes / changelog, ALWAYS follow this two-part structure:
+
+### Part 1: GitHub Release & `CHANGELOG.md` Template
+Follow this exact layout:
+```markdown
+[1-2 friendly introductory sentences summarizing the update]
+
+---
+
+# 🎨 [Category / Title 1]
+* **[Topic]:** [Clear, concise explanation]
+
+---
+
+# ✨ [Category / Title 2]
+* **[Topic]:** [Clear, concise explanation]
+
+---
+```
+*(Standard emojis for section titles: 🚀 New Features, 🎨 UI & Design, ✨ Enhancements, 🛠️ Fixes, 🛡️ Reliability, ⚡ Performance)*
+
+### Part 2: Google Play Store Release Notes ("What's new")
+Provide concise, plain-text bullet points (**strictly under 500 characters** per language, no markdown or links) in all 4 supported languages:
+* `en-US` (`app/src/main/play/release-notes/en-US/default.txt`)
+* `de-DE` (`app/src/main/play/release-notes/de-DE/default.txt`)
+* `fr-FR` (`app/src/main/play/release-notes/fr-FR/default.txt`)
+* `it-IT` (`app/src/main/play/release-notes/it-IT/default.txt`)
+Format:
+• [User benefit / feature 1]
+• [User benefit / feature 2]
+• [Polish / fix]

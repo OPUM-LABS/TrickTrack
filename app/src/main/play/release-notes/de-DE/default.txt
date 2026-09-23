@@ -1,0 +1,5 @@
+• "Alle annehmen"-Button zum Bestätigen aller ausstehenden Fahrten mit einem Tippen
+• Automatische Fahrtrettung bei leerem Akku / Geräteabschaltung während der Fahrt
+• Ziel bearbeiten & Distanz neu berechnen für unterbrochene Fahrten
+• Mehrfachbearbeitung für ausgewählte Fahrten (Fahrzeug, Typ, Notiz)
+• Verbesserte Kilometerstandsberechnung und Stabilitätsoptimierungen
