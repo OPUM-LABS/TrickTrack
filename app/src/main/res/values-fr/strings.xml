@@ -398,7 +398,7 @@
     <string name="permission_dialog_title_background_location">Localisation en arrière-plan</string>
     <string name="permission_dialog_message_background_location">Pour activer le suivi automatique, veuillez accorder l\'autorisation de localisation « Autoriser tout le temps » dans les paramètres.</string>
     <string name="permission_dialog_title_bluetooth">Autorisation Bluetooth</string>
-    <string name="settings_distance_monitoring_title">Sensibilité au mouvement (expérimental)</string>
+    <string name="settings_distance_monitoring_title">Sensibilité au mouvement</string>
     <string name="settings_distance_monitoring_description">Vérifier la vitesse uniquement si l\'appareil se déplace de plus d\'une certaine distance. Économise la batterie lorsqu\'il est immobile.</string>
     <string name="settings_distance_monitoring_radius_label">RAYON DE RÉVEIL (%s)</string>
     <string name="settings_last_movement_title">Dernier mouvement détecté</string>

@@ -399,7 +399,7 @@
     <string name="vehicles_selected_count">%1$d vehicles selected</string>
     <string name="filter_date_range_label">Date Range</string>
     <string name="schedule_status_inactive">Inactive</string>
-    <string name="settings_distance_monitoring_title">Movement Sensitivity (Experimental)</string>
+    <string name="settings_distance_monitoring_title">Movement Sensitivity</string>
     <string name="settings_distance_monitoring_description">Only check for speed if the device moves more than a certain distance. Saves battery when stationary.</string>
     <string name="settings_distance_monitoring_radius_label">WAKE-UP RADIUS (%s)</string>
     <string name="settings_last_movement_title">Last Detected Movement</string>

@@ -362,7 +362,7 @@ class UserPreferencesRepository(private val context: Context) {
 
     val isDistanceMonitoringEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.IS_DISTANCE_MONITORING_ENABLED] ?: false
+            preferences[PreferencesKeys.IS_DISTANCE_MONITORING_ENABLED] ?: true
         }
 
     suspend fun setDistanceMonitoringEnabled(enabled: Boolean) {
