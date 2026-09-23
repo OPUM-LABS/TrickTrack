@@ -274,6 +274,8 @@
     <string name="bulk_edit_change_vehicle">Update Vehicle</string>
     <string name="bulk_edit_change_description">Update Description</string>
     <string name="bulk_edit_no_vehicle">No vehicle</string>
+    <string name="trip_interrupted_shutdown_banner">Trip interrupted due to device shutdown</string>
+    <string name="action_edit_interrupted_destination">Edit Destination</string>
 
     <!-- Trip Summary Dialog -->
 

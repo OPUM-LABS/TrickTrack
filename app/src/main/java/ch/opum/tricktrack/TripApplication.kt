@@ -33,6 +33,13 @@ class TripApplication : Application() {
         super.onCreate()
         AppLogger.init(this)
         createNotificationChannel()
+        ch.opum.tricktrack.data.ActiveTripRecoveryHelper.recoverInterruptedTripIfNeeded(
+            context = applicationContext,
+            repository = repository,
+            geocoderHelper = geocoderHelper,
+            userPreferencesRepository = userPreferencesRepository,
+            scope = applicationScope
+        )
     }
 
     private fun createNotificationChannel() {

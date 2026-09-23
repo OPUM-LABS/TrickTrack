@@ -17,12 +17,17 @@ import android.hardware.TriggerEvent
 import android.hardware.TriggerEventListener
 import android.location.Location
 import android.os.Build
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 import android.os.CountDownTimer
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
+import ch.opum.tricktrack.data.ActiveTripCheckpointData
+import ch.opum.tricktrack.data.ActiveTripCheckpointManager
 import ch.opum.tricktrack.data.DistanceUnit
 import ch.opum.tricktrack.data.ScheduleTypeTarget
 import ch.opum.tricktrack.data.Trip
@@ -98,11 +103,34 @@ class LocationService : Service() {
     private var isGpsElevated: Boolean = false
     private var isCarModeConnected: Boolean? = null
     private var isForeground: Boolean = false
+    private var lastCheckpointTime: Long = 0L
+    private var lastCheckpointDistance: Float = 0f
 
+    private val shutdownReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            AppLogger.log("LocationService", "Shutdown broadcast received: ${intent?.action}")
+            if (_isTracking.value) {
+                runBlocking {
+                    saveTrip(stopReason = "SHUTDOWN")
+                }
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
         isServiceRunning = true
+        val shutdownFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_SHUTDOWN)
+            addAction("android.intent.action.QUICKBOOT_POWEROFF")
+            addAction("com.htc.intent.action.QUICKBOOT_POWEROFF")
+        }
+        ContextCompat.registerReceiver(
+            this,
+            shutdownReceiver,
+            shutdownFilter,
+            ContextCompat.RECEIVER_EXPORTED
+        )
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
         if (significantMotionSensor == null) {
@@ -541,6 +569,9 @@ class LocationService : Service() {
         _distance.value = 0.0
         recordedWaypoints.clear()
         tripStartDate = Date()
+        lastCheckpointTime = System.currentTimeMillis()
+        lastCheckpointDistance = 0f
+        ActiveTripCheckpointManager.clearCheckpoint(applicationContext)
         AppLogger.log("LocationService", "Starting location service for trip tracking.")
 
         val notification = buildNotification(0.0)
@@ -706,6 +737,51 @@ class LocationService : Service() {
             }
         }
         updateNotification(_distance.value)
+
+        val currentDistanceMeters = _distance.value.toFloat()
+        if (currentDistanceMeters >= 50f && (now - lastCheckpointTime >= 15_000L || (currentDistanceMeters - lastCheckpointDistance) >= 100f)) {
+            lastCheckpointTime = now
+            lastCheckpointDistance = currentDistanceMeters
+            val startLoc = _startLocation.value
+            val lastLoc = _lastLocation.value
+            val waypointsSnapshot = synchronized(recordedWaypoints) { recordedWaypoints.toList() }
+            val polyline = if (waypointsSnapshot.size >= 2) PolylineUtils.encode(waypointsSnapshot) else null
+            val startTime = tripStartDate?.time ?: now
+            val triggerName = _currentTripTrigger.value.name
+
+            applicationScope.launch(Dispatchers.IO) {
+                try {
+                    val defaultVehicleId = userPreferencesRepository.defaultVehicleId.first().takeIf { it != -1 }
+                    val activeScheduleTarget = getActiveScheduleTarget()
+                    val tripType = when (activeScheduleTarget) {
+                        ScheduleTypeTarget.BUSINESS -> "Business"
+                        ScheduleTypeTarget.PERSONAL -> "Personal"
+                        ScheduleTypeTarget.NONE -> {
+                            val isBusinessDefault = userPreferencesRepository.defaultIsBusiness.first()
+                            if (isBusinessDefault) "Business" else "Personal"
+                        }
+                    }
+                    val checkpoint = ActiveTripCheckpointData(
+                        startTime = startTime,
+                        startLat = startLoc?.latitude,
+                        startLon = startLoc?.longitude,
+                        startLoc = "",
+                        lastLat = lastLoc?.latitude,
+                        lastLon = lastLoc?.longitude,
+                        lastLoc = "",
+                        distanceMeters = currentDistanceMeters,
+                        routePolyline = polyline,
+                        trigger = triggerName,
+                        vehicleId = defaultVehicleId,
+                        type = tripType,
+                        lastUpdated = now
+                    )
+                    ActiveTripCheckpointManager.saveCheckpoint(applicationContext, checkpoint)
+                } catch (e: Exception) {
+                    AppLogger.log("LocationService", "Failed to save active trip checkpoint: ${e.message}")
+                }
+            }
+        }
 
         // Priority: If Bluetooth is tracking, we don't need stillness detection (logic of automatic tracking)
         if (_currentTripTrigger.value == TripTrigger.BLUETOOTH) {
@@ -881,16 +957,19 @@ class LocationService : Service() {
         isBluetoothTriggeredTrip = false
         if (wasTracking) {
             saveTrip()
+        } else {
+            ActiveTripCheckpointManager.clearCheckpoint(applicationContext)
         }
         applicationScope.launch {
             evaluateTrackingState() // Re-evaluate state after trip ends
         }
     }
 
-    private suspend fun saveTrip() {
+    private suspend fun saveTrip(stopReason: String? = null) {
         val finalDistance = _distance.value
         val minTripDistance = userPreferencesRepository.minTripDistance.first()
-        if (finalDistance >= minTripDistance) { // Only save if distance meets or exceeds minimum threshold
+        val shouldSave = finalDistance >= minTripDistance || (stopReason != null && finalDistance >= 50)
+        if (shouldSave) { // Only save if distance meets or exceeds minimum threshold (or interrupted trip with movement)
             val startLocation = _startLocation.value
             val endLocation = _lastLocation.value
             val repository = (application as TripApplication).repository
@@ -963,10 +1042,11 @@ class LocationService : Service() {
                 isAutomatic = _currentTripTrigger.value != TripTrigger.MANUAL,
                 vehicleId = defaultVehicleId,
                 trigger = _currentTripTrigger.value.name,
-                routePolyline = encodedPolyline
+                routePolyline = encodedPolyline,
+                stopReason = stopReason
             )
             val newId = repository.insert(trip)
-            AppLogger.log("LocationService", "Trip saved with ID: $newId. Trigger: ${_currentTripTrigger.value}, Confirmed: $isConfirmed")
+            AppLogger.log("LocationService", "Trip saved with ID: $newId. Trigger: ${_currentTripTrigger.value}, Confirmed: $isConfirmed, stopReason: $stopReason")
 
             if (!isConfirmed) {
                 val tripWithId = trip.copy(id = newId)
@@ -979,6 +1059,9 @@ class LocationService : Service() {
                 "Trip too short, not saving. Distance: $finalDistance meters (Threshold: $minTripDistance meters)"
             )
         }
+        lastCheckpointDistance = 0f
+        lastCheckpointTime = 0L
+        ActiveTripCheckpointManager.clearCheckpoint(applicationContext)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -992,6 +1075,12 @@ class LocationService : Service() {
         _isTracking.value = false
         isMonitoring = false
         isGpsElevated = false
+        try {
+            unregisterReceiver(shutdownReceiver)
+        } catch (_: Exception) {}
+        if (!_isTracking.value) {
+            ActiveTripCheckpointManager.clearCheckpoint(applicationContext)
+        }
         AppLogger.log("LocationService", "Service destroyed.")
     }
 

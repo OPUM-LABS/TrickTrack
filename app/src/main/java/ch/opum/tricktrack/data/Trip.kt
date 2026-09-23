@@ -51,7 +51,9 @@ data class Trip(
     @SerializedName(value = "trigger", alternate = ["q"])
     val trigger: String? = null,
     @SerializedName(value = "routePolyline", alternate = ["r"])
-    val routePolyline: String? = null
+    val routePolyline: String? = null,
+    @SerializedName(value = "stopReason", alternate = ["u"])
+    val stopReason: String? = null
 ) {
     fun getEffectiveDistance(isOdometerMode: Boolean): Double {
         return if (isOdometerMode && startOdometer != null && endOdometer != null) {

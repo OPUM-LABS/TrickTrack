@@ -267,6 +267,8 @@
     <string name="bulk_edit_change_vehicle">Aggiorna veicolo</string>
     <string name="bulk_edit_change_description">Aggiorna descrizione</string>
     <string name="bulk_edit_no_vehicle">Nessun veicolo</string>
+    <string name="trip_interrupted_shutdown_banner">Viaggio interrotto per spegnimento del dispositivo</string>
+    <string name="action_edit_interrupted_destination">Modifica destinazione</string>
 
     <!-- Trip Summary Dialog -->
 

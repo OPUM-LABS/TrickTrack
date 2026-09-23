@@ -34,9 +34,12 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -82,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.DistanceUnit
+import ch.opum.tricktrack.data.Trip
 import ch.opum.tricktrack.data.TripWithVehicle
 import ch.opum.tricktrack.data.VehicleEntity
 import ch.opum.tricktrack.ui.LicensePlateBadge
@@ -99,7 +103,10 @@ import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ReviewScreen(viewModel: TripsViewModel) {
+fun ReviewScreen(
+    viewModel: TripsViewModel,
+    onEditTrip: (Trip) -> Unit = {}
+) {
     val groupedTrips by viewModel.groupedReviewTrips.collectAsState()
     val isOdometerModeEnabled by viewModel.isOdometerModeEnabled.collectAsState()
     val allVehicles by viewModel.allVehicles.collectAsState()
@@ -231,6 +238,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                                 expenseTrackingEnabled = expenseTrackingEnabled,
                                 expenseRatePerKm = expenseRatePerKm,
                                 expenseCurrency = expenseCurrency,
+                                onEditTrip = onEditTrip,
                                 onApprove = { finalType, selectedVehicle, endOdometer, description ->
                                     viewModel.approveTrip(
                                         trip = tripWithVehicle.trip.copy(vehicleId = selectedVehicle?.id),
@@ -332,6 +340,7 @@ fun ReviewTripCard(
     onApprove: (TripType, VehicleEntity?, Double?, String?) -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier,
+    onEditTrip: (Trip) -> Unit = {},
     onUpdatePolyline: ((String) -> Unit)? = null,
     onResolvedCoords: ((Double, Double, Double, Double, String?) -> Unit)? = null,
     onRefreshMap: (() -> Unit)? = null,
@@ -603,6 +612,60 @@ fun ReviewTripCard(
                         }
                     ) {
                         Text(label)
+                    }
+                }
+            }
+
+            if (trip.stopReason == "SHUTDOWN") {
+                Spacer(modifier = Modifier.height(10.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.6f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.trip_interrupted_shutdown_banner),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = { onEditTrip(trip) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = stringResource(R.string.action_edit_interrupted_destination),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }

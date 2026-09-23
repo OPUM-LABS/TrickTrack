@@ -917,7 +917,10 @@ fun MainScreen(
                 )
             }
             composable(Screen.Review.route) {
-                ReviewScreen(viewModel = tripsViewModel)
+                ReviewScreen(
+                    viewModel = tripsViewModel,
+                    onEditTrip = { trip -> selectedTripToEdit = trip }
+                )
             }
             composable(Screen.TripList.route) {
                 TripScreen(
@@ -2571,6 +2574,7 @@ fun EditTripDialog(
                             endLon = endLon,
                             routePolyline = routePolyline,
                             vehicleId = selectedVehicle?.id,
+                            stopReason = null,
                             startOdometer = if (isOdometerModeEnabled) {
                                 effectiveStartOdoKm
                             } else {
