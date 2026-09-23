@@ -3,3 +3,5 @@
 • Modifier la destination et recalculer l'itinéraire des trajets interrompus
 • Modification groupée des trajets sélectionnés (véhicule, type, note)
 • Amélioration du calcul du compteur kilométrique et stabilité générale
+
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0

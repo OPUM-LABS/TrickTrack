@@ -84,12 +84,15 @@ Follow this exact layout:
 *(Standard emojis for section titles: 🚀 New Features, 🎨 UI & Design, ✨ Enhancements, 🛠️ Fixes, 🛡️ Reliability, ⚡ Performance)*
 
 ### Part 2: Google Play Store Release Notes ("What's new")
-Provide concise, plain-text bullet points (**strictly under 500 characters** per language, no markdown or links) in all 4 supported languages:
+Provide concise, plain-text bullet points (**strictly under 500 characters** in total per language including the link, no markdown) in all 4 supported languages:
 * `en-US` (`app/src/main/play/release-notes/en-US/default.txt`)
 * `de-DE` (`app/src/main/play/release-notes/de-DE/default.txt`)
 * `fr-FR` (`app/src/main/play/release-notes/fr-FR/default.txt`)
 * `it-IT` (`app/src/main/play/release-notes/it-IT/default.txt`)
+
 Format:
 • [User benefit / feature 1]
 • [User benefit / feature 2]
 • [Polish / fix]
+
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/vx.x.x

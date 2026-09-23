@@ -3,3 +3,5 @@
 • Ziel bearbeiten & Distanz neu berechnen für unterbrochene Fahrten
 • Mehrfachbearbeitung für ausgewählte Fahrten (Fahrzeug, Typ, Notiz)
 • Verbesserte Kilometerstandsberechnung und Stabilitätsoptimierungen
+
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0

@@ -3,3 +3,5 @@
 • Modifica destinazione e ricalcolo percorso per i viaggi interrotti
 • Modifica multipla per i viaggi selezionati (veicolo, tipo, nota)
 • Calcolo del contachilometri migliorato e ottimizzazioni generali
+
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0

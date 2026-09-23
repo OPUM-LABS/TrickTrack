@@ -3,3 +3,5 @@
 • Edit destination and recalculate route for interrupted trips
 • Bulk-edit selected trips to update vehicle, type, or note together
 • Improved odometer calculations and general stability
+
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0
