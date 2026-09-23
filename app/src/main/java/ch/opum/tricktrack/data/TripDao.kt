@@ -21,6 +21,9 @@ interface TripDao {
     @Update
     suspend fun update(trip: Trip)
 
+    @Update
+    suspend fun updateTrips(trips: List<Trip>)
+
     @Delete
     suspend fun delete(trip: Trip)
 

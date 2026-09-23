@@ -267,6 +267,13 @@
     <string name="merge_trips_same_vehicle_warning">Selected trips must be for the same vehicle.</string>
     <string name="selected_trips_count">%1$d selected</string>
     <string name="action_cancel_selection">Cancel selection</string>
+    <string name="action_bulk_edit_trips">Edit Trips</string>
+    <string name="bulk_edit_trips_title">Edit Selected Trips</string>
+    <string name="bulk_edit_trips_count">%1$d trips selected</string>
+    <string name="bulk_edit_change_type">Update Type</string>
+    <string name="bulk_edit_change_vehicle">Update Vehicle</string>
+    <string name="bulk_edit_change_description">Update Description</string>
+    <string name="bulk_edit_no_vehicle">No vehicle</string>
 
     <!-- Trip Summary Dialog -->
 

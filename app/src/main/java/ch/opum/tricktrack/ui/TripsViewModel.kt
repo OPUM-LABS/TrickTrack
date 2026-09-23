@@ -1288,6 +1288,45 @@ class TripsViewModel(
         }
     }
 
+    fun bulkUpdateSelectedTrips(
+        targetType: String?,
+        updateType: Boolean,
+        targetVehicleId: Int?,
+        updateVehicle: Boolean,
+        targetDescription: String?,
+        updateDescription: Boolean,
+        onComplete: (() -> Unit)? = null
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val selectedIds = _selectedTripIds.value
+            if (selectedIds.isEmpty()) return@launch
+
+            val allTrips = confirmedTrips.value.map { it.trip }
+            val tripsToUpdate = allTrips.filter { it.id in selectedIds }
+
+            val updatedList = tripsToUpdate.map { trip ->
+                var updated = trip
+                if (updateType && targetType != null) {
+                    updated = updated.copy(type = targetType)
+                }
+                if (updateVehicle) {
+                    updated = updated.copy(vehicleId = targetVehicleId)
+                }
+                if (updateDescription) {
+                    updated = updated.copy(description = targetDescription?.takeIf { it.isNotBlank() })
+                }
+                updated
+            }
+
+            repository.updateTrips(updatedList)
+
+            withContext(Dispatchers.Main) {
+                clearTripSelection()
+                onComplete?.invoke()
+            }
+        }
+    }
+
     fun validateMerge(selectedTrips: List<Trip>? = null, allTrips: List<Trip>? = null): MergeValidationResult {
         val tripsSource = allTrips
             ?: confirmedTrips.value.map { it.trip }.ifEmpty { allConfirmedTrips.value.map { it.trip } }

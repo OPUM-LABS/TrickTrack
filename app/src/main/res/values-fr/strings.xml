@@ -260,6 +260,13 @@
     <string name="merge_trips_same_vehicle_warning">Les trajets sélectionnés doivent appartenir au même véhicule.</string>
     <string name="selected_trips_count">%1$d sélectionné(s)</string>
     <string name="action_cancel_selection">Annuler la sélection</string>
+    <string name="action_bulk_edit_trips">Modifier les trajets</string>
+    <string name="bulk_edit_trips_title">Modifier les trajets sélectionnés</string>
+    <string name="bulk_edit_trips_count">%1$d trajets sélectionnés</string>
+    <string name="bulk_edit_change_type">Mettre à jour le type</string>
+    <string name="bulk_edit_change_vehicle">Mettre à jour le véhicule</string>
+    <string name="bulk_edit_change_description">Mettre à jour la description</string>
+    <string name="bulk_edit_no_vehicle">Aucun véhicule</string>
 
     <!-- Trip Summary Dialog -->
 

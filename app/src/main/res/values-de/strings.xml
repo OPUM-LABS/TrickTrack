@@ -259,6 +259,13 @@
     <string name="merge_trips_same_vehicle_warning">Ausgewählte Fahrten müssen zum selben Fahrzeug gehören.</string>
     <string name="selected_trips_count">%1$d ausgewählt</string>
     <string name="action_cancel_selection">Auswahl aufheben</string>
+    <string name="action_bulk_edit_trips">Fahrten bearbeiten</string>
+    <string name="bulk_edit_trips_title">Ausgewählte Fahrten bearbeiten</string>
+    <string name="bulk_edit_trips_count">%1$d Fahrten ausgewählt</string>
+    <string name="bulk_edit_change_type">Typ aktualisieren</string>
+    <string name="bulk_edit_change_vehicle">Fahrzeug aktualisieren</string>
+    <string name="bulk_edit_change_description">Beschreibung aktualisieren</string>
+    <string name="bulk_edit_no_vehicle">Kein Fahrzeug</string>
 
     <!-- Trip Summary Dialog -->
 

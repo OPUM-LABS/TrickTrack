@@ -38,6 +38,10 @@ class TripRepository(
         tripDao.update(trip)
     }
 
+    suspend fun updateTrips(trips: List<Trip>) {
+        tripDao.updateTrips(trips)
+    }
+
     suspend fun updateTripAndCascade(trip: Trip): Double? {
         return tripDao.updateTripAndCascade(trip)
     }

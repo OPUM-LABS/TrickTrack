@@ -65,6 +65,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.FilterList
@@ -193,6 +194,7 @@ import ch.opum.tricktrack.ui.MergeValidationResult
 import ch.opum.tricktrack.ui.TripsViewModel
 import ch.opum.tricktrack.ui.ViewModelFactory
 import ch.opum.tricktrack.ui.clearFocusOnTap
+import ch.opum.tricktrack.ui.components.BulkEditTripsDialog
 import ch.opum.tricktrack.ui.components.FullscreenMapSheet
 import ch.opum.tricktrack.ui.components.MergeTripsDialog
 import ch.opum.tricktrack.ui.components.LocalMapTheme
@@ -572,12 +574,20 @@ fun MainScreen(
                         when (currentRoute) {
                             Screen.TripList.route -> {
                                 if (isSelectionMode) {
+                                    var showBulkEditDialog by remember { mutableStateOf(false) }
                                     var showMergeDialog by remember { mutableStateOf(false) }
                                     var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
                                     val confirmedTrips by tripsViewModel.confirmedTrips.collectAsState()
                                     val distanceUnit by tripsViewModel.distanceUnit.collectAsState()
                                     val isOdometerModeEnabled by tripsViewModel.isOdometerModeEnabled.collectAsState()
                                     val allVehicles by tripsViewModel.allVehicles.collectAsState()
+
+                                    IconButton(onClick = { showBulkEditDialog = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = stringResource(R.string.action_bulk_edit_trips)
+                                        )
+                                    }
 
                                     IconButton(
                                         onClick = {
@@ -627,6 +637,30 @@ fun MainScreen(
                                                 showDeleteConfirmationDialog = false
                                             },
                                             onDismiss = { showDeleteConfirmationDialog = false }
+                                        )
+                                    }
+
+                                    if (showBulkEditDialog) {
+                                        val selectedTripsList = remember(selectedTripIds, confirmedTrips) {
+                                            confirmedTrips
+                                                .map { it.trip }
+                                                .filter { it.id in selectedTripIds }
+                                        }
+                                        BulkEditTripsDialog(
+                                            selectedTrips = selectedTripsList,
+                                            allVehicles = allVehicles,
+                                            onDismiss = { showBulkEditDialog = false },
+                                            onConfirm = { targetType, updateType, targetVehicleId, updateVehicle, targetDescription, updateDescription ->
+                                                tripsViewModel.bulkUpdateSelectedTrips(
+                                                    targetType = targetType,
+                                                    updateType = updateType,
+                                                    targetVehicleId = targetVehicleId,
+                                                    updateVehicle = updateVehicle,
+                                                    targetDescription = targetDescription,
+                                                    updateDescription = updateDescription
+                                                )
+                                                showBulkEditDialog = false
+                                            }
                                         )
                                     }
 
