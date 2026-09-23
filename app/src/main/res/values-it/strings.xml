@@ -373,7 +373,10 @@
     <string name="favourites_car_brand_label">Marca</string>
     <string name="favourites_car_model_label">Modello auto (facoltativo)</string>
     <string name="odometer_label">Chilometraggio iniziale</string>
+    <string name="start_odometer_label">Chilometraggio iniziale</string>
     <string name="end_odometer_label">Chilometraggio finale</string>
+    <string name="error_start_odometer_less_than_previous">Il chilometraggio iniziale non può essere inferiore al chilometraggio finale del viaggio precedente (%s)</string>
+    <string name="error_end_odometer_less_than_start">Il chilometraggio finale non può essere inferiore al chilometraggio iniziale</string>
     <string name="vehicles_selected_count">%1$d veicoli selezionati</string>
     <string name="filter_date_range_label">Intervallo di date</string>
     <string name="schedule_status_inactive">Inattivo</string>

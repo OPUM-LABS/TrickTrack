@@ -280,6 +280,13 @@ class TripsViewModel(
             initialValue = DistanceUnit.KM
         )
 
+    val isOdometerModeEnabled: StateFlow<Boolean> = userPreferencesRepository.isOdometerModeEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     private val _filterState = MutableStateFlow(FilterState())
     val filterState = _filterState.stateIn(
         scope = viewModelScope,
@@ -298,11 +305,8 @@ class TripsViewModel(
     val selectedTripIds: StateFlow<Set<Long>> = _selectedTripIds.asStateFlow()
 
     fun toggleTripSelection(tripId: Long) {
-        _selectedTripIds.value = if (tripId in _selectedTripIds.value) {
-            _selectedTripIds.value - tripId
-        } else {
-            _selectedTripIds.value + tripId
-        }
+        val current = _selectedTripIds.value
+        _selectedTripIds.value = if (tripId in current) current - tripId else current + tripId
     }
 
     fun startTripSelection(tripId: Long) {
@@ -313,26 +317,23 @@ class TripsViewModel(
         _selectedTripIds.value = emptySet()
     }
 
-    val confirmedTrips = combine(repository.confirmedTrips, _filterState, _pendingDeletedTrips) { allTrips, filter, pending ->
+    val confirmedTrips: StateFlow<List<TripWithVehicle>> = combine(
+        repository.confirmedTrips,
+        _filterState,
+        _pendingDeletedTrips
+    ) { trips, filter, pending ->
         val pendingIds = pending.map { it.trip.id }.toSet()
-        val activeTrips = allTrips.filter { it.trip.id !in pendingIds }
-        activeTrips.filter { tripWithVehicle ->
-            val trip = tripWithVehicle.trip
-            val matchesType = when (filter.type) {
-                TripType.ALL -> true
-                TripType.BUSINESS -> trip.type == "Business"
-                TripType.PERSONAL -> trip.type == "Personal"
-            }
+        val activeTrips = trips.filter { it.trip.id !in pendingIds }
+        val filtered = activeTrips.filter { item ->
+            val trip = item.trip
+            val matchesType = (filter.type == TripType.ALL) ||
+                    (filter.type == TripType.BUSINESS && trip.type == "Business") ||
+                    (filter.type == TripType.PERSONAL && trip.type == "Personal")
 
-            val matchesKeyword = if (filter.keyword.isBlank()) {
-                true
-            } else {
-                val keywordLower = filter.keyword.lowercase(Locale.getDefault())
-                trip.startLoc.lowercase(Locale.getDefault()).contains(keywordLower) ||
-                        trip.endLoc.lowercase(Locale.getDefault()).contains(keywordLower) ||
-                        (trip.description?.lowercase(Locale.getDefault())?.contains(keywordLower)
-                            ?: false)
-            }
+            val matchesKeyword = filter.keyword.isEmpty() ||
+                    trip.startLoc.contains(filter.keyword, ignoreCase = true) ||
+                    trip.endLoc.contains(filter.keyword, ignoreCase = true) ||
+                    (trip.description?.contains(filter.keyword, ignoreCase = true) == true)
 
             val matchesStartDate = if (filter.startDate == null) {
                 true
@@ -346,14 +347,12 @@ class TripsViewModel(
                 trip.date.time <= filter.endDate
             }
 
-            val matchesVehicle = if (filter.vehicleIds.isEmpty()) {
-                true
-            } else {
-                (trip.vehicleId != null) && filter.vehicleIds.contains(trip.vehicleId)
-            }
+            val matchesVehicle = filter.vehicleIds.isEmpty() || (trip.vehicleId != null && filter.vehicleIds.contains(trip.vehicleId))
 
             matchesType && matchesKeyword && matchesStartDate && matchesEndDate && matchesVehicle
         }
+
+        filtered
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -363,8 +362,9 @@ class TripsViewModel(
     val groupedTrips: StateFlow<List<TripGroup>> = combine(
         confirmedTrips,
         userPreferencesRepository.isSmartLocationEnabled,
-        userPreferencesRepository.smartLocationRadius
-    ) { trips, isSmartLocationEnabled, smartLocationRadius ->
+        userPreferencesRepository.smartLocationRadius,
+        isOdometerModeEnabled
+    ) { trips, isSmartLocationEnabled, smartLocationRadius, isOdoMode ->
         val savedPlaces = repository.getSavedPlacesList()
         trips.asSequence().map { item ->
             val trip = item.trip
@@ -400,7 +400,7 @@ class TripsViewModel(
             TripGroup(
                 date = date,
                 trips = tripsOnDate,
-                totalDistance = tripsOnDate.sumOf { it.trip.distance }
+                totalDistance = tripsOnDate.sumOf { it.trip.getEffectiveDistance(isOdoMode) }
             )
         }.sortedByDescending { it.date }
     }.stateIn(
@@ -423,8 +423,9 @@ class TripsViewModel(
         unconfirmedTrips,
         _pendingDiscardedTrips,
         userPreferencesRepository.isSmartLocationEnabled,
-        userPreferencesRepository.smartLocationRadius
-    ) { trips, pending, isSmartLocationEnabled, smartLocationRadius ->
+        userPreferencesRepository.smartLocationRadius,
+        isOdometerModeEnabled
+    ) { trips, pending, isSmartLocationEnabled, smartLocationRadius, isOdoMode ->
         val pendingIds = pending.map { it.trip.id }.toSet()
         val activeTrips = trips.filter { it.trip.id !in pendingIds }
         val savedPlaces = repository.getSavedPlacesList()
@@ -462,7 +463,7 @@ class TripsViewModel(
             TripGroup(
                 date = date,
                 trips = tripsOnDate.sortedByDescending { it.trip.date },
-                totalDistance = tripsOnDate.sumOf { it.trip.distance }
+                totalDistance = tripsOnDate.sumOf { it.trip.getEffectiveDistance(isOdoMode) }
             )
         }.sortedByDescending { it.date }
     }.stateIn(
@@ -471,8 +472,8 @@ class TripsViewModel(
         initialValue = emptyList(),
     )
 
-    val totalDistanceFormatted: StateFlow<String> = combine(confirmedTrips, distanceUnit) { filteredTrips, unit ->
-        val total = filteredTrips.sumOf { it.trip.distance }
+    val totalDistanceFormatted: StateFlow<String> = combine(confirmedTrips, distanceUnit, isOdometerModeEnabled) { filteredTrips, unit, isOdoMode ->
+        val total = filteredTrips.sumOf { it.trip.getEffectiveDistance(isOdoMode) }
         DistanceFormatter.formatShort(total, unit)
     }.stateIn(
         scope = viewModelScope,
@@ -703,13 +704,6 @@ class TripsViewModel(
             initialValue = 100
         )
 
-    val isOdometerModeEnabled: StateFlow<Boolean> = userPreferencesRepository.isOdometerModeEnabled
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
-        )
-
     val isDistanceMonitoringEnabled: StateFlow<Boolean> = userPreferencesRepository.isDistanceMonitoringEnabled
         .stateIn(
             scope = viewModelScope,
@@ -833,10 +827,11 @@ class TripsViewModel(
     val totalExpense: StateFlow<Float> = combine(
         confirmedTrips,
         expenseRatePerKm,
-        expenseTrackingEnabled
-    ) { trips, rate, enabled ->
+        expenseTrackingEnabled,
+        isOdometerModeEnabled
+    ) { trips, rate, enabled, isOdoMode ->
         if (enabled) {
-            val totalDistanceKm = trips.sumOf { it.trip.distance }.toFloat()
+            val totalDistanceKm = trips.sumOf { it.trip.getEffectiveDistance(isOdoMode) }.toFloat()
             totalDistanceKm * rate
         } else {
             0.0f
@@ -867,6 +862,47 @@ class TripsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val hasVehicles: StateFlow<Boolean> = allVehicles.map { it.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun getPreviousConfirmedTrip(trip: Trip?, vehicleId: Int?, tripDate: Date): Trip? {
+        if (vehicleId == null) return null
+        val currentTripId = trip?.id ?: 0L
+        val confirmed = confirmedTrips.value
+        return confirmed
+            .asSequence()
+            .map { it.trip }
+            .filter {
+                it.vehicleId == vehicleId &&
+                it.id != currentTripId &&
+                (it.date.time < tripDate.time || (it.date.time == tripDate.time && (currentTripId == 0L || it.id < currentTripId)))
+            }
+            .sortedWith(compareByDescending<Trip> { it.date.time }.thenByDescending { it.id })
+            .firstOrNull()
+    }
+
+    fun getStartOdometerForTrip(trip: Trip?, vehicleId: Int?, tripDate: Date): Double? {
+        if (vehicleId == null) return null
+
+        // 1. If editing an existing trip that already has valid odometer progression:
+        // preserve its recorded start odometer (whether chained or a manual gap)
+        if (trip != null && trip.vehicleId == vehicleId) {
+            if (trip.startOdometer != null) {
+                return trip.startOdometer
+            }
+            if (trip.endOdometer != null && trip.distance > 0) {
+                return (trip.endOdometer - trip.distance).coerceAtLeast(0.0)
+            }
+        }
+
+        // 2. Otherwise (new trip or trip without odometer), default chain of trust is preceding trip's end odometer
+        val preceding = getPreviousConfirmedTrip(trip, vehicleId, tripDate)
+        if (preceding?.endOdometer != null) {
+            return preceding.endOdometer
+        }
+
+        // 3. Fallback to vehicle's currentOdometer
+        val vehicleOdo = allVehicles.value.find { it.id == vehicleId }?.currentOdometer
+        return vehicleOdo ?: 0.0
+    }
 
     val exportIncludeDriver: StateFlow<Boolean> = userPreferencesRepository.exportIncludeDriver
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -1094,15 +1130,15 @@ class TripsViewModel(
 
     fun saveOrUpdateTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (trip.endOdometer != null && trip.vehicleId != null) {
-                favouritesRepository.getVehicleById(trip.vehicleId)?.let { vehicle ->
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, trip.endOdometer)))
-                }
-            }
-            if (trip.id == 0L) {
-                repository.insert(trip)
+            val finalEndOdo = if (trip.id == 0L) {
+                repository.insertTripAndCascade(trip).second
             } else {
-                repository.updateTrip(trip)
+                repository.updateTripAndCascade(trip)
+            }
+            if (finalEndOdo != null && trip.vehicleId != null) {
+                favouritesRepository.getVehicleById(trip.vehicleId)?.let { vehicle ->
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = finalEndOdo))
+                }
             }
             if (trip.isConfirmed) {
                 TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
@@ -1113,12 +1149,12 @@ class TripsViewModel(
 
     fun updateTrip(trip: Trip) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (trip.endOdometer != null && trip.vehicleId != null) {
+            val finalEndOdo = repository.updateTripAndCascade(trip)
+            if (finalEndOdo != null && trip.vehicleId != null) {
                 favouritesRepository.getVehicleById(trip.vehicleId)?.let { vehicle ->
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, trip.endOdometer)))
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = finalEndOdo))
                 }
             }
-            repository.updateTrip(trip)
             if (trip.isConfirmed) {
                 TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
             }
@@ -1298,14 +1334,18 @@ class TripsViewModel(
             val lastTrip = sorted.last()
 
             val totalDistance: Double
+            val finalStartOdometer: Double?
             val finalEndOdometer: Double?
+            val totalGpsDistance = sorted.sumOf { it.gpsDistance ?: it.distance }
 
             if (isOdometerMode && firstTrip.endOdometer != null && lastTrip.endOdometer != null) {
-                val startOdometer = (firstTrip.endOdometer - firstTrip.distance).coerceAtLeast(0.0)
+                val startOdometer = firstTrip.startOdometer ?: (firstTrip.endOdometer - firstTrip.distance).coerceAtLeast(0.0)
+                finalStartOdometer = startOdometer
                 finalEndOdometer = lastTrip.endOdometer
                 totalDistance = (finalEndOdometer - startOdometer).coerceAtLeast(0.0)
             } else {
-                totalDistance = sorted.sumOf { it.distance }
+                totalDistance = totalGpsDistance
+                finalStartOdometer = firstTrip.startOdometer
                 finalEndOdometer = lastTrip.endOdometer
             }
 
@@ -1328,6 +1368,7 @@ class TripsViewModel(
                 startLoc = firstTrip.startLoc,
                 endLoc = lastTrip.endLoc,
                 distance = totalDistance,
+                gpsDistance = totalGpsDistance,
                 type = finalType,
                 description = finalDescription?.takeIf { it.isNotBlank() },
                 date = firstTrip.date,
@@ -1339,19 +1380,20 @@ class TripsViewModel(
                 endLon = lastTrip.endLon,
                 isAutomatic = isAllAutomatic,
                 vehicleId = firstTrip.vehicleId,
+                startOdometer = finalStartOdometer,
                 endOdometer = finalEndOdometer,
                 trigger = mergedTrigger,
                 routePolyline = finalPolyline
             )
 
             val oldIds = sorted.map { it.id }
-            repository.mergeTrips(mergedTrip, oldIds)
+            val (_, finalEndOdo) = repository.mergeTripsAndCascade(mergedTrip, oldIds)
 
             // If in odometer mode, update vehicle odometer to latest reading
-            if (finalEndOdometer != null && firstTrip.vehicleId != null) {
+            if (finalEndOdo != null && firstTrip.vehicleId != null) {
                 val vehicle = favouritesRepository.getVehicleById(firstTrip.vehicleId)
                 if (vehicle != null) {
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, finalEndOdometer)))
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = finalEndOdo))
                 }
             }
 
@@ -1375,7 +1417,12 @@ class TripsViewModel(
                 TripType.ALL -> trip.type // Fallback
             }
             
-            var updatedTrip = trip.copy(type = typeString, isConfirmed = true, description = description)
+            var updatedTrip = trip.copy(
+                type = typeString,
+                isConfirmed = true,
+                description = description,
+                gpsDistance = trip.gpsDistance ?: trip.distance
+            )
             
             if (endOdometer != null && trip.vehicleId != null) {
                 val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
@@ -1383,14 +1430,19 @@ class TripsViewModel(
                     val distance = (endOdometer - vehicle.currentOdometer).coerceAtLeast(0.0)
                     updatedTrip = updatedTrip.copy(
                         distance = distance,
+                        startOdometer = vehicle.currentOdometer,
                         endOdometer = endOdometer
                     )
-                    // Update vehicle odometer to the higher reading
-                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = maxOf(vehicle.currentOdometer, endOdometer)))
                 }
             }
             
-            repository.updateTrip(updatedTrip)
+            val finalEndOdo = repository.updateTripAndCascade(updatedTrip)
+            if (finalEndOdo != null && trip.vehicleId != null) {
+                val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
+                if (vehicle != null) {
+                    favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = finalEndOdo))
+                }
+            }
             TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
         }
     }
@@ -1408,6 +1460,7 @@ class TripsViewModel(
         val rate = expenseRatePerKm.first()
         val includeDriver = exportIncludeDriver.first()
         val includeCompany = exportIncludeCompany.first()
+        val isOdo = userPreferencesRepository.isOdometerModeEnabled.first()
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -1434,6 +1487,7 @@ class TripsViewModel(
         val csvBody = trips.joinToString(separator = "\n") { item ->
             val trip = item.trip
             val row = mutableListOf<String>()
+            val effectiveDist = trip.getEffectiveDistance(isOdo)
 
             if (columns.contains("DATE")) row.add(dateFormat.format(trip.date))
             if (columns.contains("TIME")) {
@@ -1442,10 +1496,10 @@ class TripsViewModel(
             }
             if (columns.contains("START_LOCATION")) row.add(escape(trip.startLoc))
             if (columns.contains("END_LOCATION")) row.add(escape(trip.endLoc))
-            if (columns.contains("DISTANCE")) row.add("%.2f".format(trip.distance))
+            if (columns.contains("DISTANCE")) row.add("%.2f".format(effectiveDist))
             if (columns.contains("TYPE")) row.add(trip.type)
             if (isExpenseEnabled) {
-                val expense = trip.distance * rate
+                val expense = effectiveDist * rate
                 row.add("%.2f".format(expense))
             }
             if (includeDriver) row.add(escape(driverName))
@@ -1479,6 +1533,7 @@ class TripsViewModel(
             val includeCompany = exportIncludeCompany.first()
             val includeVehicle = exportIncludeVehicle.first()
             val filter = filterState.first()
+            val isOdo = userPreferencesRepository.isOdometerModeEnabled.first()
 
             val selectedVeh = if (includeVehicle) {
                 selectedVehicle ?: if (filter.vehicleIds.size == 1) {
@@ -1501,7 +1556,8 @@ class TripsViewModel(
                     companyName = if (includeCompany) selectedCompany?.name else null,
                     vehicleName = activeVehicleName,
                     vehicleBrand = activeVehicleBrand,
-                    distanceUnit = distanceUnit.value
+                    distanceUnit = distanceUnit.value,
+                    isOdometerMode = isOdo
                 )
             }
             pdfFile?.let {

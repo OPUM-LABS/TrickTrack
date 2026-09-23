@@ -38,6 +38,14 @@ class TripRepository(
         tripDao.update(trip)
     }
 
+    suspend fun updateTripAndCascade(trip: Trip): Double? {
+        return tripDao.updateTripAndCascade(trip)
+    }
+
+    suspend fun insertTripAndCascade(trip: Trip): Pair<Long, Double?> {
+        return tripDao.insertTripAndCascade(trip)
+    }
+
     suspend fun deleteTrip(trip: Trip) {
         tripDao.delete(trip)
     }
@@ -50,8 +58,8 @@ class TripRepository(
         tripDao.deleteTripsByIds(ids)
     }
 
-    suspend fun mergeTrips(mergedTrip: Trip, originalTripIds: List<Long>): Long {
-        return tripDao.mergeTrips(mergedTrip, originalTripIds)
+    suspend fun mergeTripsAndCascade(mergedTrip: Trip, originalTripIds: List<Long>): Pair<Long, Double?> {
+        return tripDao.mergeTripsAndCascade(mergedTrip, originalTripIds)
     }
 
     suspend fun getTripsForBackup(): List<Trip> {

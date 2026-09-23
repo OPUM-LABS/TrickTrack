@@ -44,8 +44,20 @@ data class Trip(
     val vehicleId: Int? = null,
     @SerializedName(value = "endOdometer", alternate = ["p"])
     val endOdometer: Double? = null,
+    @SerializedName(value = "startOdometer", alternate = ["s"])
+    val startOdometer: Double? = null,
+    @SerializedName(value = "gpsDistance", alternate = ["t"])
+    val gpsDistance: Double? = null,
     @SerializedName(value = "trigger", alternate = ["q"])
     val trigger: String? = null,
     @SerializedName(value = "routePolyline", alternate = ["r"])
     val routePolyline: String? = null
-)
+) {
+    fun getEffectiveDistance(isOdometerMode: Boolean): Double {
+        return if (isOdometerMode && startOdometer != null && endOdometer != null) {
+            (endOdometer - startOdometer).coerceAtLeast(0.0)
+        } else {
+            gpsDistance ?: distance
+        }
+    }
+}

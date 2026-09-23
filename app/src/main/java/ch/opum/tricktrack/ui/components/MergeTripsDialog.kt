@@ -93,10 +93,10 @@ fun MergeTripsDialog(
     // Distance calculation
     val totalDistanceKm = remember(sorted, isOdometerMode) {
         if (isOdometerMode && firstTrip.endOdometer != null && lastTrip.endOdometer != null) {
-            val startOdo = (firstTrip.endOdometer - firstTrip.distance).coerceAtLeast(0.0)
+            val startOdo = firstTrip.startOdometer ?: (firstTrip.endOdometer - firstTrip.distance).coerceAtLeast(0.0)
             (lastTrip.endOdometer - startOdo).coerceAtLeast(0.0)
         } else {
-            sorted.sumOf { it.distance }
+            sorted.sumOf { it.gpsDistance ?: it.distance }
         }
     }
 
@@ -222,7 +222,7 @@ fun MergeTripsDialog(
 
                     // Odometer info if applicable
                     if (isOdometerMode && firstTrip.endOdometer != null && lastTrip.endOdometer != null) {
-                        val startOdo = (firstTrip.endOdometer - firstTrip.distance).coerceAtLeast(0.0)
+                        val startOdo = firstTrip.startOdometer ?: (firstTrip.endOdometer - firstTrip.distance).coerceAtLeast(0.0)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),

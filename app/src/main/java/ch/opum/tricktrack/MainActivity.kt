@@ -140,6 +140,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -955,6 +956,7 @@ fun TripScreen(
     val totalDistanceFormatted by tripsViewModel.totalDistanceFormatted.collectAsState()
     val tripCount by tripsViewModel.tripCount.collectAsState()
     val pendingDeletedTrips by tripsViewModel.pendingDeletedTrips.collectAsState()
+    val isOdometerModeEnabled by tripsViewModel.isOdometerModeEnabled.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -1264,7 +1266,7 @@ fun TripScreen(
                     val currentHeaderIndex = groupIndexCounter
                     stickyHeader(key = group.date) {
                         val dailyTotalCost = if (expenseTrackingEnabled) {
-                            group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
+                            group.trips.sumOf { it.trip.getEffectiveDistance(isOdometerModeEnabled) }.toFloat() * expenseRatePerKm
                         } else {
                             0.0f
                         }
@@ -1347,6 +1349,7 @@ fun TripScreen(
                                         tripWithVehicle = tripWithVehicle,
                                         isSelectionMode = isSelectionMode,
                                         isSelected = isTripSelected,
+                                        isOdometerMode = isOdometerModeEnabled,
                                         onClick = {
                                             if (isSelectionMode) {
                                                 tripsViewModel.toggleTripSelection(tripWithVehicle.trip.id)
@@ -1509,14 +1512,27 @@ fun EditTripDialog(
     val expenseRatePerKm by tripsViewModel.expenseRatePerKm.collectAsState()
     val expenseCurrency by tripsViewModel.expenseCurrency.collectAsState()
 
-    var odometerText by remember(trip, distanceUnit) {
-        mutableStateOf(
-            value = trip?.endOdometer?.let {
-                val converted = DistanceFormatter.convert(it, distanceUnit)
-                "%.0f".format(converted) // Odometer usually doesn't show decimals in input
-            } ?: ""
-        )
+    // State for Start Date and Time
+    val startCalendar = Calendar.getInstance().apply {
+        trip?.let {
+            time = it.date
+        }
     }
+    val selectedStartDate = remember { mutableStateOf(startCalendar) }
+    val showDatePicker = remember { mutableStateOf(false) }
+    val showStartTimePicker = remember { mutableStateOf(false) }
+
+    // State for End Time
+    val endCalendar = Calendar.getInstance().apply {
+        trip?.let {
+            timeInMillis = it.endDate
+        } ?: run {
+            time = startCalendar.time
+            add(Calendar.MINUTE, 15)
+        }
+    }
+    val selectedEndDate = remember { mutableStateOf(endCalendar) }
+    val showEndTimePicker = remember { mutableStateOf(value = false) }
 
     val allVehicles by tripsViewModel.allVehicles.collectAsState()
     var selectedVehicle by remember(trip, allVehicles) {
@@ -1528,17 +1544,69 @@ fun EditTripDialog(
     }
     var vehicleExpanded by remember { mutableStateOf(false) }
 
-    val startOdometerKm = if (trip != null && trip.endOdometer != null && trip.vehicleId == selectedVehicle?.id) {
-        (trip.endOdometer - trip.distance).coerceAtLeast(0.0)
-    } else {
-        selectedVehicle?.currentOdometer ?: 0.0
+    val previousTrip = remember(selectedVehicle, selectedStartDate.value.timeInMillis, trip) {
+        tripsViewModel.getPreviousConfirmedTrip(
+            trip = trip,
+            vehicleId = selectedVehicle?.id,
+            tripDate = selectedStartDate.value.time
+        )
     }
-    val odometerValue = odometerText.toDoubleOrNull() ?: 0.0
-    val endOdoKm = DistanceFormatter.toKm(odometerValue, distanceUnit)
+    val minAllowedStartOdoKm = previousTrip?.endOdometer
+
+    val initialStartOdoKm = remember(trip, selectedVehicle, distanceUnit, selectedStartDate.value.timeInMillis) {
+        tripsViewModel.getStartOdometerForTrip(
+            trip = trip,
+            vehicleId = selectedVehicle?.id,
+            tripDate = trip?.date ?: selectedStartDate.value.time
+        )
+    }
+
+    var startOdometerText by remember(trip, distanceUnit, selectedVehicle) {
+        mutableStateOf(
+            value = (trip?.startOdometer ?: initialStartOdoKm)?.let {
+                val converted = DistanceFormatter.convert(it, distanceUnit)
+                "%.0f".format(converted)
+            } ?: ""
+        )
+    }
+
+    var odometerText by remember(trip, distanceUnit, selectedVehicle) {
+        mutableStateOf(
+            value = trip?.endOdometer?.let {
+                val converted = DistanceFormatter.convert(it, distanceUnit)
+                "%.0f".format(converted) // Odometer usually doesn't show decimals in input
+            } ?: run {
+                val dist = trip?.gpsDistance ?: trip?.distance ?: 0.0
+                if (trip != null && dist > 0 && initialStartOdoKm != null) {
+                    val endKm = initialStartOdoKm + dist
+                    val converted = DistanceFormatter.convert(endKm, distanceUnit)
+                    "%.0f".format(converted)
+                } else ""
+            }
+        )
+    }
+
+    val defaultChainStartKm = minAllowedStartOdoKm ?: selectedVehicle?.currentOdometer ?: 0.0
+    val defaultChainStartConverted = DistanceFormatter.convert(defaultChainStartKm, distanceUnit)
+    val defaultChainStartFormatted = "%.0f".format(defaultChainStartConverted)
+
+    val startOdometerValue = startOdometerText.toDoubleOrNull()
+    val endOdometerValue = odometerText.toDoubleOrNull()
+
+    val enteredStartOdoKm = startOdometerValue?.let { DistanceFormatter.toKm(it, distanceUnit) }
+    val effectiveStartOdoKm = enteredStartOdoKm ?: if (startOdometerText.isBlank()) defaultChainStartKm else null
+
+    val endOdoKm = endOdometerValue?.let { DistanceFormatter.toKm(it, distanceUnit) }
+
+    val isStartOdoBelowPrevious = minAllowedStartOdoKm != null && effectiveStartOdoKm != null && (effectiveStartOdoKm < minAllowedStartOdoKm - 0.001)
+    val isEndOdoBelowStart = effectiveStartOdoKm != null && endOdoKm != null && (endOdoKm < effectiveStartOdoKm - 0.001)
+
     val isOdoError = isOdometerModeEnabled && (
         selectedVehicle == null ||
-        odometerText.isBlank() ||
-        (endOdoKm < startOdometerKm)
+        effectiveStartOdoKm == null ||
+        endOdoKm == null ||
+        isEndOdoBelowStart ||
+        isStartOdoBelowPrevious
     )
 
     // Use the ViewModel's distanceInput for the text field
@@ -1546,7 +1614,8 @@ fun EditTripDialog(
 
     LaunchedEffect(trip, distanceUnit) {
         trip?.let {
-            val converted = DistanceFormatter.convert(it.distance, distanceUnit)
+            val dist = it.gpsDistance ?: it.distance
+            val converted = DistanceFormatter.convert(dist, distanceUnit)
             distanceText = "%.2f".format(converted)
         }
     }
@@ -1571,28 +1640,6 @@ fun EditTripDialog(
     val calculateNoInternetToast = stringResource(R.string.calculate_no_internet)
     val calculateAddressNotFoundToast = stringResource(R.string.calculate_address_not_found)
     val calculateRoutingFailedToast = stringResource(R.string.calculate_routing_failed)
-
-    // State for Start Date and Time
-    val startCalendar = Calendar.getInstance().apply {
-        trip?.let {
-            time = it.date
-        }
-    }
-    val selectedStartDate = remember { mutableStateOf(startCalendar) }
-    val showDatePicker = remember { mutableStateOf(false) }
-    val showStartTimePicker = remember { mutableStateOf(false) }
-
-    // State for End Time
-    val endCalendar = Calendar.getInstance().apply {
-        trip?.let {
-            timeInMillis = it.endDate
-        } ?: run {
-            time = startCalendar.time
-            add(Calendar.MINUTE, 15)
-        }
-    }
-    val selectedEndDate = remember { mutableStateOf(endCalendar) }
-    val showEndTimePicker = remember { mutableStateOf(value = false) }
 
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
@@ -2023,6 +2070,89 @@ fun EditTripDialog(
             Spacer(modifier = Modifier.height(10.dp))
             if (isOdometerModeEnabled) {
                 TextField(
+                    value = startOdometerText,
+                    onValueChange = { newValue ->
+                        if ((newValue.length <= 8) && newValue.all { char -> char.isDigit() }) {
+                            startOdometerText = newValue
+                            isError = false
+                        }
+                    },
+                    label = { Text(stringResource(R.string.start_odometer_label)) },
+                    placeholder = { Text(defaultChainStartFormatted) },
+                    isError = isError || isStartOdoBelowPrevious,
+                    supportingText = {
+                        if (isStartOdoBelowPrevious) {
+                            val minFormatted = DistanceFormatter.format(minAllowedStartOdoKm, distanceUnit)
+                            Text(
+                                text = stringResource(R.string.error_start_odometer_less_than_previous, minFormatted),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (!focusState.isFocused && startOdometerText.isBlank()) {
+                                startOdometerText = defaultChainStartFormatted
+                                val currentDistKm = if (trip != null) {
+                                    if (trip.startOdometer != null && trip.endOdometer != null) {
+                                        trip.endOdometer - trip.startOdometer
+                                    } else {
+                                        trip.gpsDistance ?: trip.distance
+                                    }
+                                } else null
+                                if (currentDistKm != null && currentDistKm > 0) {
+                                    val newEndKm = defaultChainStartKm + currentDistKm
+                                    val convertedEnd = DistanceFormatter.convert(newEndKm, distanceUnit)
+                                    odometerText = "%.0f".format(convertedEnd)
+                                }
+                            }
+                        },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = ThousandsSeparatorTransformation(),
+                    suffix = { Text(DistanceFormatter.getUnitSuffix(distanceUnit)) },
+                    trailingIcon = {
+                        if (startOdometerText.isNotEmpty()) {
+                            IconButton(onClick = {
+                                if (startOdometerText != defaultChainStartFormatted) {
+                                    val oldStartKm = startOdometerValue?.let { DistanceFormatter.toKm(it, distanceUnit) }
+                                    startOdometerText = defaultChainStartFormatted
+                                    val currentDistKm = if (trip != null) {
+                                        if (trip.startOdometer != null && trip.endOdometer != null) {
+                                            trip.endOdometer - trip.startOdometer
+                                        } else {
+                                            trip.gpsDistance ?: trip.distance
+                                        }
+                                    } else if (oldStartKm != null && endOdoKm != null && endOdoKm >= oldStartKm) {
+                                        endOdoKm - oldStartKm
+                                    } else null
+                                    if (currentDistKm != null && currentDistKm > 0) {
+                                        val newEndKm = defaultChainStartKm + currentDistKm
+                                        val convertedEnd = DistanceFormatter.convert(newEndKm, distanceUnit)
+                                        odometerText = "%.0f".format(convertedEnd)
+                                    }
+                                } else {
+                                    startOdometerText = ""
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = stringResource(R.string.clear_text)
+                                )
+                            }
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                TextField(
                     value = odometerText,
                     onValueChange = { newValue ->
                         if ((newValue.length <= 8) && newValue.all { char -> char.isDigit() }) {
@@ -2031,7 +2161,15 @@ fun EditTripDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.end_odometer_label)) },
-                    isError = isError || (odometerText.isNotBlank() && endOdoKm < startOdometerKm),
+                    isError = isError || isEndOdoBelowStart,
+                    supportingText = {
+                        if (isEndOdoBelowStart) {
+                            Text(
+                                text = stringResource(R.string.error_end_odometer_less_than_start),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
@@ -2056,7 +2194,11 @@ fun EditTripDialog(
                     }
                 )
                 if (selectedVehicle != null) {
-                    val calcDistanceKm = (endOdoKm - startOdometerKm).coerceAtLeast(0.0)
+                    val calcDistanceKm = if (effectiveStartOdoKm != null && endOdoKm != null && endOdoKm >= effectiveStartOdoKm) {
+                        endOdoKm - effectiveStartOdoKm
+                    } else {
+                        0.0
+                    }
                     val formattedCalc = DistanceFormatter.format(calcDistanceKm, distanceUnit)
                     val tripCost = calcDistanceKm.toFloat() * expenseRatePerKm
                     Column(
@@ -2070,7 +2212,7 @@ fun EditTripDialog(
                             style = MaterialTheme.typography.labelSmall,
                             color = if (isOdoError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
-                        if (expenseTrackingEnabled && !isOdoError && odometerText.isNotBlank()) {
+                        if (expenseTrackingEnabled && !isOdoError && odometerText.isNotBlank() && startOdometerText.isNotBlank()) {
                             Text(
                                 text = String.format(LocalLocale.current.platformLocale, "%.2f %s", tripCost, expenseCurrency),
                                 style = MaterialTheme.typography.labelSmall,
@@ -2355,41 +2497,38 @@ fun EditTripDialog(
             ) {
                 DialogDeclineButton(onClick = onDismiss)
                 Spacer(modifier = Modifier.width(12.dp))
-                DialogAcceptButton(onClick = {
-                    if (selectedEndDate.value.before(selectedStartDate.value)) {
-                        Toast.makeText(
-                            context,
-                            endTimeBeforeStartTimeToast,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@DialogAcceptButton
-                    }
-                    val updatedDistance = if (isOdometerModeEnabled) {
-                        val endOdo = odometerText.toDoubleOrNull()
-                        if (endOdo == null || selectedVehicle == null) {
-                            null
-                        } else {
-                            val enteredOdoKm = DistanceFormatter.toKm(endOdo, distanceUnit)
-                            if (enteredOdoKm < startOdometerKm) {
+                DialogAcceptButton(
+                    enabled = !isOdoError,
+                    onClick = {
+                        if (selectedEndDate.value.before(selectedStartDate.value)) {
+                            Toast.makeText(
+                                context,
+                                endTimeBeforeStartTimeToast,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@DialogAcceptButton
+                        }
+                        val updatedDistance = if (isOdometerModeEnabled) {
+                            if (effectiveStartOdoKm == null || endOdoKm == null || selectedVehicle == null || isEndOdoBelowStart || isStartOdoBelowPrevious) {
                                 null
                             } else {
-                                (enteredOdoKm - startOdometerKm).coerceAtLeast(0.0)
+                                (endOdoKm - effectiveStartOdoKm).coerceAtLeast(0.0)
                             }
+                        } else {
+                            val inputDistance = distanceText.toDoubleOrNull()
+                            inputDistance?.let { DistanceFormatter.toKm(it, distanceUnit) }
                         }
-                    } else {
-                        val inputDistance = distanceText.toDoubleOrNull()
-                        inputDistance?.let { DistanceFormatter.toKm(it, distanceUnit) }
-                    }
 
-                    if (updatedDistance == null) {
-                        isError = true
-                    } else {
+                        if (updatedDistance == null) {
+                            isError = true
+                        } else {
                         val tripToSave = trip?.copy(
                             startLoc = startText, // Pass String directly
                             endLoc = endText, // Pass String directly
                             type = tripType,
                             description = description,
                             distance = updatedDistance,
+                            gpsDistance = if (isOdometerModeEnabled) (trip.gpsDistance ?: trip.distance) else updatedDistance,
                             date = selectedStartDate.value.time,
                             endDate = selectedEndDate.value.timeInMillis,
                             startLat = startLat,
@@ -2398,8 +2537,13 @@ fun EditTripDialog(
                             endLon = endLon,
                             routePolyline = routePolyline,
                             vehicleId = selectedVehicle?.id,
+                            startOdometer = if (isOdometerModeEnabled) {
+                                effectiveStartOdoKm
+                            } else {
+                                trip.startOdometer
+                            },
                             endOdometer = if (isOdometerModeEnabled) {
-                                odometerText.toDoubleOrNull()?.let { DistanceFormatter.toKm(it, distanceUnit) }
+                                endOdoKm
                             } else {
                                 trip.endOdometer
                             }
@@ -2407,6 +2551,7 @@ fun EditTripDialog(
                             startLoc = startText,
                             endLoc = endText,
                             distance = updatedDistance,
+                            gpsDistance = updatedDistance,
                             type = tripType,
                             description = description,
                             date = selectedStartDate.value.time,
@@ -2418,8 +2563,13 @@ fun EditTripDialog(
                             routePolyline = routePolyline,
                             isConfirmed = true, // Default for manual add/edit
                             vehicleId = selectedVehicle?.id,
+                            startOdometer = if (isOdometerModeEnabled) {
+                                effectiveStartOdoKm
+                            } else {
+                                null
+                            },
                             endOdometer = if (isOdometerModeEnabled) {
-                                odometerText.toDoubleOrNull()?.let { DistanceFormatter.toKm(it, distanceUnit) }
+                                endOdoKm
                             } else {
                                 null
                             }
@@ -2430,9 +2580,7 @@ fun EditTripDialog(
                             }
                         }
                     }
-                },
-                enabled = !isOdometerModeEnabled || !isOdoError
-                )
+                })
             }
         }
     }
@@ -2451,6 +2599,7 @@ fun TripItem(
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean = false,
     isSelected: Boolean = false,
+    isOdometerMode: Boolean = false,
     onLongClick: (() -> Unit)? = null,
     onUpdatePolyline: ((String) -> Unit)? = null,
     onResolvedCoords: ((Double, Double, Double, Double, String?) -> Unit)? = null,
@@ -2522,14 +2671,15 @@ fun TripItem(
                         }
                     }
 
+                    val effectiveDist = trip.getEffectiveDistance(isOdometerMode)
                     if (expenseTrackingEnabled) {
-                        val tripCost = trip.distance.toFloat() * expenseRatePerKm
+                        val tripCost = effectiveDist.toFloat() * expenseRatePerKm
                         Column(
                             horizontalAlignment = Alignment.End,
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = DistanceFormatter.format(trip.distance, distanceUnit),
+                                text = DistanceFormatter.format(effectiveDist, distanceUnit),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -2543,7 +2693,7 @@ fun TripItem(
                         }
                     } else {
                         Text(
-                            text = DistanceFormatter.format(trip.distance, distanceUnit),
+                            text = DistanceFormatter.format(effectiveDist, distanceUnit),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary

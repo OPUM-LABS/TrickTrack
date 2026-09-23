@@ -41,6 +41,7 @@ class PdfGenerator {
     private var totalPages = 0
     private lateinit var context: Context
     private var distanceUnit: DistanceUnit = DistanceUnit.KM
+    private var isOdometerMode: Boolean = false
 
     fun generateTripReport(
         context: Context,
@@ -53,11 +54,13 @@ class PdfGenerator {
         companyName: String?,
         vehicleName: String?,
         vehicleBrand: String? = null,
-        distanceUnit: DistanceUnit
+        distanceUnit: DistanceUnit,
+        isOdometerMode: Boolean = false
     ): File? {
         if (tripsWithVehicle.isEmpty()) return null
         this.context = context
         this.distanceUnit = distanceUnit
+        this.isOdometerMode = isOdometerMode
 
         // Pass 1: Dry run to measure exact total page count
         totalPages = countPages(
@@ -135,7 +138,7 @@ class PdfGenerator {
             cal.time = it.trip.date
             SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(cal.time)
         }
-        val totalDistance = tripsWithVehicle.sumOf { it.trip.distance }
+        val totalDistance = tripsWithVehicle.sumOf { it.trip.getEffectiveDistance(isOdometerMode) }
         val totalExpenses = if (isExpenseEnabled) totalDistance * expenseRate else 0.0
         val minDate = tripsWithVehicle.minOf { it.trip.date }
         val maxDate = tripsWithVehicle.maxOf { it.trip.date }
@@ -465,8 +468,8 @@ class PdfGenerator {
                 "START_LOCATION" -> trip.startLoc.replace(", ", "\n")
                 "END_LOCATION" -> trip.endLoc.replace(", ", "\n")
                 "TYPE" -> trip.type
-                "DISTANCE" -> DistanceFormatter.formatShort(trip.distance, distanceUnit)
-                "EXPENSES" -> if (isExpenseEnabled) "%.2f %s".format(trip.distance * expenseRate, expenseCurrency) else ""
+                "DISTANCE" -> DistanceFormatter.formatShort(trip.getEffectiveDistance(isOdometerMode), distanceUnit)
+                "EXPENSES" -> if (isExpenseEnabled) "%.2f %s".format(trip.getEffectiveDistance(isOdometerMode) * expenseRate, expenseCurrency) else ""
                 else -> ""
             }
             if (text.isNotEmpty()) {

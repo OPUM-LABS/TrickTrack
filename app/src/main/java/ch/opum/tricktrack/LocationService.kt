@@ -945,10 +945,12 @@ class LocationService : Service() {
             val encodedPolyline = if (recordedWaypoints.size >= 2) PolylineUtils.encode(recordedWaypoints) else null
             recordedWaypoints.clear()
 
+            val distKm = finalDistance / 1000.0
             val trip = Trip(
                 startLoc = startAddress,
                 endLoc = endAddress,
-                distance = finalDistance / 1000.0, // Convert to km
+                distance = distKm,
+                gpsDistance = distKm,
                 type = tripType,
                 description = "",
                 date = tripStartDate ?: Date(),

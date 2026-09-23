@@ -207,7 +207,7 @@ fun ReviewScreen(viewModel: TripsViewModel) {
                 ) {
                     groupedTrips.forEach { group ->
                         val dailyTotalCost = if (expenseTrackingEnabled) {
-                            group.trips.sumOf { it.trip.distance }.toFloat() * expenseRatePerKm
+                            group.trips.sumOf { it.trip.getEffectiveDistance(isOdometerModeEnabled) }.toFloat() * expenseRatePerKm
                         } else {
                             0.0f
                         }
@@ -508,14 +508,15 @@ fun ReviewTripCard(
                         textStyle = MaterialTheme.typography.bodySmall
                     )
                 } else {
+                    val displayDist = trip.getEffectiveDistance(false)
                     if (expenseTrackingEnabled) {
-                        val tripCost = trip.distance.toFloat() * expenseRatePerKm
+                        val tripCost = displayDist.toFloat() * expenseRatePerKm
                         Column(
                             horizontalAlignment = Alignment.End,
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = DistanceFormatter.format(trip.distance, distanceUnit),
+                                text = DistanceFormatter.format(displayDist, distanceUnit),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -529,7 +530,7 @@ fun ReviewTripCard(
                         }
                     } else {
                         Text(
-                            text = DistanceFormatter.format(trip.distance, distanceUnit),
+                            text = DistanceFormatter.format(displayDist, distanceUnit),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
