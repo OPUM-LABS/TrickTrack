@@ -37,6 +37,7 @@
         * Smart Location Snapping (on/off, radius in meters)
         * Stillness Timer (in seconds)
         * Minimum Speed (in km/h)
+        * Movement Sensitivity (on/off, wake-up radius in meters / feet)
         * Minimum Trip Distance (in meters / feet)
         * Default Trip Type (business/personal)
     * **Reporting:**

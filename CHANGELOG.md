@@ -20,6 +20,7 @@ This release brings powerful new workflow enhancements to make managing your tri
 # 🛡️ Reliability
 * **Shutdown Protection & Trip Recovery:** If your phone runs out of battery or shuts down while driving, your active trip is safely cached and restored for review upon restarting.
 * **Interrupted Trip Destination Editing:** Easily adjust the destination and recalculate route distance for any interrupted trip directly from the Review card.
+* **Optimized Battery Life:** Movement Sensitivity is now enabled by default, putting GPS to sleep when stationary to significantly cut battery consumption.
 
 ---
 
