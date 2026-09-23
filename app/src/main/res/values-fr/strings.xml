@@ -269,6 +269,9 @@
     <string name="bulk_edit_no_vehicle">Aucun véhicule</string>
     <string name="trip_interrupted_shutdown_banner">Trajet interrompu suite à l\'extinction de l\'appareil</string>
     <string name="action_edit_interrupted_destination">Modifier la destination</string>
+    <string name="action_accept_all_trips">Tout accepter</string>
+    <string name="accept_all_trips_title">Accepter tous les trajets</string>
+    <string name="accept_all_trips_confirmation">Voulez-vous vraiment accepter tous les %1$d trajets ?</string>
 
     <!-- Trip Summary Dialog -->
 

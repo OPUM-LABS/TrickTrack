@@ -65,6 +65,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.TouchApp
@@ -848,6 +849,34 @@ fun MainScreen(
                             Screen.PlacesList.route -> {
                                 IconButton(onClick = { triggerAddInFavourites++ }) {
                                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.favourites_add_item))
+                                }
+                            }
+                            Screen.Review.route -> {
+                                val reviewTrips by tripsViewModel.groupedReviewTrips.collectAsState()
+                                val totalReviewTripsCount = remember(reviewTrips) { reviewTrips.sumOf { it.trips.size } }
+                                if (totalReviewTripsCount > 0) {
+                                    var showAcceptAllConfirmation by remember { mutableStateOf(false) }
+
+                                    IconButton(onClick = { showAcceptAllConfirmation = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.DoneAll,
+                                            contentDescription = stringResource(R.string.action_accept_all_trips),
+                                            tint = LocalContentColor.current
+                                        )
+                                    }
+
+                                    if (showAcceptAllConfirmation) {
+                                        ConfirmationBottomSheet(
+                                            title = stringResource(R.string.accept_all_trips_title),
+                                            message = stringResource(R.string.accept_all_trips_confirmation, totalReviewTripsCount),
+                                            icon = Icons.Default.DoneAll,
+                                            onConfirm = {
+                                                tripsViewModel.approveAllReviewTrips()
+                                                showAcceptAllConfirmation = false
+                                            },
+                                            onDismiss = { showAcceptAllConfirmation = false }
+                                        )
+                                    }
                                 }
                             }
                         }

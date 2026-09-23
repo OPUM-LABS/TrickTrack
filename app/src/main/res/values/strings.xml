@@ -276,6 +276,9 @@
     <string name="bulk_edit_no_vehicle">No vehicle</string>
     <string name="trip_interrupted_shutdown_banner">Trip interrupted due to device shutdown</string>
     <string name="action_edit_interrupted_destination">Edit Destination</string>
+    <string name="action_accept_all_trips">Accept All</string>
+    <string name="accept_all_trips_title">Accept All Trips</string>
+    <string name="accept_all_trips_confirmation">Are you sure you want to approve all %1$d review trips?</string>
 
     <!-- Trip Summary Dialog -->
 

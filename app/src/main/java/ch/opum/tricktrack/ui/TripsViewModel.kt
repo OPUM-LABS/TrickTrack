@@ -1486,6 +1486,55 @@ class TripsViewModel(
         }
     }
 
+    fun approveAllReviewTrips() {
+        viewModelScope.launch(Dispatchers.IO) {
+            commitPendingDiscards()
+            val pendingDiscardIds = _pendingDiscardedTrips.value.map { it.trip.id }.toSet()
+            val tripsToApprove = repository.unconfirmedTrips.first()
+                .filter { it.trip.id !in pendingDiscardIds }
+                .sortedBy { it.trip.date.time }
+
+            if (tripsToApprove.isEmpty()) return@launch
+
+            val isOdoMode = isOdometerModeEnabled.value
+            val defaultIsBusiness = userPreferencesRepository.defaultIsBusiness.first()
+
+            for (item in tripsToApprove) {
+                val trip = item.trip
+                val finalType = if (trip.type.isNotBlank()) trip.type else (if (defaultIsBusiness) "Business" else "Personal")
+
+                var updatedTrip = trip.copy(
+                    type = finalType,
+                    isConfirmed = true,
+                    gpsDistance = trip.gpsDistance ?: trip.distance
+                )
+
+                if (isOdoMode && trip.vehicleId != null) {
+                    val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
+                    if (vehicle != null) {
+                        val dist = trip.gpsDistance ?: trip.distance
+                        val startOdo = vehicle.currentOdometer
+                        val endOdo = startOdo + dist
+                        updatedTrip = updatedTrip.copy(
+                            distance = dist,
+                            startOdometer = startOdo,
+                            endOdometer = endOdo
+                        )
+                    }
+                }
+
+                val finalEndOdo = repository.updateTripAndCascade(updatedTrip)
+                if (finalEndOdo != null && trip.vehicleId != null) {
+                    val vehicle = favouritesRepository.getVehicleById(trip.vehicleId)
+                    if (vehicle != null) {
+                        favouritesRepository.updateVehicle(vehicle.copy(currentOdometer = finalEndOdo))
+                    }
+                }
+                TripNotificationManager.cancelTripNotification(getApplication(), trip.id)
+            }
+        }
+    }
+
     suspend fun exportAllTripsToCsv(
         context: Context,
         driverName: String?,
