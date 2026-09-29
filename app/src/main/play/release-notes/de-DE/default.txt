@@ -1,4 +1,4 @@
-• "Alle akzeptieren"-Button zum Bestätigen aller Fahrten mit einem Tippen
+• "Alle annehmen"-Button zum Bestätigen aller Fahrten mit einem Tippen
 • Fahrtrettung & Zielbearbeitung bei Akkuabschaltung während der Fahrt
 • Deutlich weniger Akkuverbrauch: Bewegungsempfindlichkeit standardmäßig aktiv
 • Mehrfachbearbeitung für ausgewählte Fahrten (Fahrzeug, Typ, Notiz)
