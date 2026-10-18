@@ -274,25 +274,22 @@ fun PermissionsStep(
             context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        isBackgroundGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        isBackgroundGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
             ContextCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
-        } else true
 
         isBatteryGranted = powerManager.isIgnoringBatteryOptimizations(context.packageName)
 
-        isNotificationsGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        isNotificationsGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
                 context, Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
-        } else true
 
-        isBluetoothGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        isBluetoothGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
             ContextCompat.checkSelfPermission(
                 context, Manifest.permission.BLUETOOTH_CONNECT
             ) == PackageManager.PERMISSION_GRANTED
-        } else true
     }
 
     // Initial check
@@ -874,11 +871,10 @@ fun TrackingPreferenceStep(
         context, Manifest.permission.ACCESS_COARSE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
 
-    val isBluetoothGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val isBluetoothGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
         ContextCompat.checkSelfPermission(
             context, Manifest.permission.BLUETOOTH_CONNECT
         ) == PackageManager.PERMISSION_GRANTED
-    } else true
 
     val isAutoTrackingEnabled by tripsViewModel.isAutoTrackingEnabled.collectAsState()
     val isBluetoothTriggerEnabled by tripsViewModel.isBluetoothTriggerEnabled.collectAsState()

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
     <string name="app_name">TrickTrack</string>
     <string name="trip_review_channel_id">trip_review_channel</string>
 
@@ -32,7 +32,6 @@
     <string name="unit_feet">piedi</string>
     <string name="settings_schedule_title">Programma di tracciamento automatico</string>
     <string name="settings_default_type_title">Tipo predefinito</string>
-    <string name="trip_type_label">Tipo di viaggio</string>
     <string name="trip_type_business">Lavoro</string>
     <string name="trip_type_personal">Personale</string>
     <string name="settings_calculate_expenses_title">Calcola spese di viaggio</string>
@@ -251,8 +250,6 @@
     <string name="delete_selected_trips_confirmation">Sei sicuro di voler eliminare i %1$d viaggi selezionati? Questa azione non può essere annullata.</string>
     <string name="action_merge_trips">Unisci viaggi</string>
     <string name="merge_trips_title">Unisci viaggi</string>
-    <string name="merge_trips_summary_route">Percorso</string>
-    <string name="merge_trips_summary_time">Intervallo di tempo</string>
     <string name="merge_trips_summary_distance">Distanza totale</string>
     <string name="merge_trips_summary_odometer">Contachilometri</string>
     <string name="merge_trips_notes_label">Note combinate (opzionale)</string>
@@ -312,9 +309,6 @@
     <string name="notification_channel_description">Notifiche per i viaggi pronti per la revisione.</string>
     <string name="notification_title">Viaggio pronto per la revisione</string>
     <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
-    <string name="trip_too_short_not_saved">Viaggio troppo breve (%s) - non salvato.</string>
-    <string name="notification_trip_too_short_title">Viaggio non salvato</string>
-    <string name="notification_trip_too_short_text">La distanza (%1$s) era inferiore alla soglia di 100m.</string>
 
     <!-- Offline Failsafe -->
     <string name="address_pending_offline">Indirizzo in attesa (Offline)</string>

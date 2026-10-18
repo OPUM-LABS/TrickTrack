@@ -42,6 +42,8 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -54,6 +56,7 @@ import java.util.Calendar
 import java.util.Date
 import kotlin.math.abs
 import kotlin.math.sqrt
+import kotlin.time.Duration.Companion.milliseconds
 
 data class MovementInfo(
     val timestamp: Long = System.currentTimeMillis(),
@@ -93,6 +96,8 @@ class LocationService : Service() {
     private var lastReportedSpeed: Double = 0.0
     private var currentDistanceUnit: DistanceUnit = DistanceUnit.KM
     private var currentMinSpeed: Int = 10
+    private var currentIsDistanceMonitoringEnabled: Boolean = true
+    private var currentDistanceMonitoringRadius: Int = 50
     private val recordedWaypoints = mutableListOf<GeoPoint>()
 
     private lateinit var sensorManager: SensorManager
@@ -101,6 +106,9 @@ class LocationService : Service() {
     private var triggerEventListener: TriggerEventListener? = null
     private var accelerometerListener: SensorEventListener? = null
     private var isGpsElevated: Boolean = false
+    private var gpsElevationTimeoutJob: Job? = null
+    private var inaccurateElevatedFixCount: Int = 0
+    private var lowSpeedElevatedFixCount: Int = 0
     private var isCarModeConnected: Boolean? = null
     private var isForeground: Boolean = false
     private var lastCheckpointTime: Long = 0L
@@ -153,6 +161,18 @@ class LocationService : Service() {
         applicationScope.launch {
             userPreferencesRepository.minSpeed.collect { speed ->
                 currentMinSpeed = speed
+            }
+        }
+
+        applicationScope.launch {
+            userPreferencesRepository.isDistanceMonitoringEnabled.collect { enabled ->
+                currentIsDistanceMonitoringEnabled = enabled
+            }
+        }
+
+        applicationScope.launch {
+            userPreferencesRepository.distanceMonitoringRadius.collect { radius ->
+                currentDistanceMonitoringRadius = radius
             }
         }
 
@@ -414,11 +434,16 @@ class LocationService : Service() {
         accelerometerListener = null
     }
 
-    private fun onMotionDetected() {
-        if (!isMonitoring || _isTracking.value) return
-        AppLogger.log("LocationService", "Motion sensor triggered! Elevating to High-Accuracy GPS for speed check.")
+    private fun onMotionDetected(triggerSource: String? = null) {
+        if (!isMonitoring || _isTracking.value || isGpsElevated) return
+        AppLogger.log("LocationService", "Motion detected (${triggerSource ?: "Sensor"})! Elevating to High-Accuracy GPS for speed check.")
         isGpsElevated = true
-        val sensorName = if (significantMotionSensor != null) "Hardware Significant Motion" else "Accelerometer"
+        inaccurateElevatedFixCount = 0
+        lowSpeedElevatedFixCount = 0
+        highSpeedCounter = 0
+        previousMonitoringLocation = null
+        disarmMotionSensor()
+        val sensorName = triggerSource ?: if (significantMotionSensor != null) "Hardware Significant Motion" else "Accelerometer"
         _motionSensorInfo.value = MotionSensorInfo(
             timestamp = System.currentTimeMillis(),
             sensorName = sensorName,
@@ -427,6 +452,18 @@ class LocationService : Service() {
             statusText = "Motion Detected! High-Accuracy GPS Active"
         )
         upgradeToHighAccuracyGps()
+        startGpsElevationTimeout()
+    }
+
+    private fun startGpsElevationTimeout() {
+        gpsElevationTimeoutJob?.cancel()
+        gpsElevationTimeoutJob = applicationScope.launch(Dispatchers.Main) {
+            delay(GPS_ELEVATION_TIMEOUT_MS.milliseconds)
+            if (isMonitoring && !_isTracking.value && isGpsElevated) {
+                AppLogger.log("LocationService", "High-Accuracy GPS check timed out after ${GPS_ELEVATION_TIMEOUT_MS / 1000}s without starting a trip. Returning to Low-Power Motion Detection.")
+                downgradeToLowPowerMonitoring()
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -447,23 +484,33 @@ class LocationService : Service() {
     @SuppressLint("MissingPermission")
     private fun downgradeToLowPowerMonitoring() {
         if (!isMonitoring || _isTracking.value) return
-        AppLogger.log("LocationService", "Speed below threshold. Returning to Low-Power Motion Detection.")
+        AppLogger.log("LocationService", "Speed below threshold or timed out. Returning to Low-Power Motion Detection.")
+        gpsElevationTimeoutJob?.cancel()
+        gpsElevationTimeoutJob = null
         isGpsElevated = false
+        inaccurateElevatedFixCount = 0
+        lowSpeedElevatedFixCount = 0
+        highSpeedCounter = 0
+        potentialTripStartLocation = null
+        previousMonitoringLocation = null
         armMotionSensor()
 
         applicationScope.launch {
             val radius = userPreferencesRepository.distanceMonitoringRadius.first()
+            currentDistanceMonitoringRadius = radius
             val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 15000)
                 .setMinUpdateDistanceMeters(radius.toFloat())
                 .build()
 
             withContext(Dispatchers.Main) {
-                fusedLocationClient.removeLocationUpdates(locationCallback)
-                fusedLocationClient.requestLocationUpdates(
-                    locationRequest,
-                    locationCallback,
-                    Looper.getMainLooper(),
-                )
+                if (isMonitoring && !_isTracking.value && !isGpsElevated) {
+                    fusedLocationClient.removeLocationUpdates(locationCallback)
+                    fusedLocationClient.requestLocationUpdates(
+                        locationRequest,
+                        locationCallback,
+                        Looper.getMainLooper(),
+                    )
+                }
             }
         }
     }
@@ -478,7 +525,11 @@ class LocationService : Service() {
         _isTracking.value = false // Ensure trip tracking is off
         previousMonitoringLocation = null
         highSpeedCounter = 0
+        inaccurateElevatedFixCount = 0
+        lowSpeedElevatedFixCount = 0
         isGpsElevated = false
+        gpsElevationTimeoutJob?.cancel()
+        gpsElevationTimeoutJob = null
         AppLogger.log("LocationService", "Starting monitoring and resetting state.")
         val notification = NotificationCompat.Builder(this, "monitoring_channel")
             .setContentTitle(getString(R.string.app_name))
@@ -497,6 +548,8 @@ class LocationService : Service() {
 
         val isDistanceMonitoringEnabled = userPreferencesRepository.isDistanceMonitoringEnabled.first()
         val radius = userPreferencesRepository.distanceMonitoringRadius.first()
+        currentIsDistanceMonitoringEnabled = isDistanceMonitoringEnabled
+        currentDistanceMonitoringRadius = radius
 
         if (isDistanceMonitoringEnabled) {
             armMotionSensor()
@@ -549,6 +602,10 @@ class LocationService : Service() {
             AppLogger.log("LocationService", "Monitoring not active, no need to stop internally.")
             return
         }
+        gpsElevationTimeoutJob?.cancel()
+        gpsElevationTimeoutJob = null
+        inaccurateElevatedFixCount = 0
+        lowSpeedElevatedFixCount = 0
         disarmMotionSensor()
         fusedLocationClient.removeLocationUpdates(locationCallback)
         isMonitoring = false
@@ -562,6 +619,10 @@ class LocationService : Service() {
             AppLogger.log("LocationService", "Trip already active.")
             return
         }
+        gpsElevationTimeoutJob?.cancel()
+        gpsElevationTimeoutJob = null
+        inaccurateElevatedFixCount = 0
+        lowSpeedElevatedFixCount = 0
         isMonitoring = false // Ensure monitoring is off
         _isTracking.value = true
         _startLocation.value = null
@@ -602,68 +663,53 @@ class LocationService : Service() {
             return
         }
 
-        // If location updates fired because of distance displacement, elevate to High-Accuracy GPS
-        val isDistanceMonitoringEnabled = runCatching {
-            runBlocking { userPreferencesRepository.isDistanceMonitoringEnabled.first() }
-        }.getOrDefault(false)
+        val isDistanceMonitoringEnabled = currentIsDistanceMonitoringEnabled
+        val radius = currentDistanceMonitoringRadius.coerceAtLeast(10)
 
-        if (isDistanceMonitoringEnabled && !isGpsElevated && previousMonitoringLocation != null) {
-            val dist = previousMonitoringLocation!!.distanceTo(location)
-            if (dist > 5.0) { // Displaced
-                onMotionDetected()
-            }
-        }
-
-        previousMonitoringLocation?.let { prevLocation ->
-            val timeDifference = (location.time - prevLocation.time) / 1000.0 // in seconds
-            if (timeDifference > 1) { // Guard against zero or near-zero time difference
-                val distance = prevLocation.distanceTo(location)
-                val speed = distance / timeDifference // m/s
-                val speedKmh = speed * 3.6
-
-                // Sanity check: Ignore impossible speeds (> 250 km/h) or poor initial GPS accuracy (> 35m) caused by cell tower jumps or initial lock settling
-                if (speedKmh > 250.0 || (location.hasAccuracy() && location.accuracy > 35f)) {
-                    AppLogger.log("LocationService", "Ignoring inaccurate GPS fix/teleportation. Speed: $speedKmh km/h, Accuracy: ${location.accuracy}")
-                    return@let
-                }
-
-                val minSpeedValue = currentMinSpeed
-                AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h (Threshold: $minSpeedValue km/h)")
-                var currentCounter: Int
-                if (speedKmh >= minSpeedValue) {
-                    if (highSpeedCounter == 0) {
-                        // This is the first detection of high speed. Cache this location.
-                        potentialTripStartLocation = prevLocation
-                        AppLogger.log("LocationService", "Potential trip start detected and cached.")
-                    }
-                    highSpeedCounter++
-                    currentCounter = highSpeedCounter
-                    AppLogger.log("LocationService", "High speed detected. Counter: $highSpeedCounter")
-                    if (highSpeedCounter >= 2) {
-                        isStartingTrip = true
-                        disarmMotionSensor()
-                        startAutoTrip()
-                    }
-                } else {
-                    highSpeedCounter = 0
-                    currentCounter = 0
-                    potentialTripStartLocation = null // Clear the cache if speed drops
-                    AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Resetting counter and clearing potential start location.")
-                    if (isDistanceMonitoringEnabled && isGpsElevated) {
-                        downgradeToLowPowerMonitoring()
-                    }
-                }
-
+        // 1. Low-Power Monitoring Mode: Only elevate to High-Accuracy GPS if displaced beyond user's configured Wake-Up Radius
+        if (isDistanceMonitoringEnabled && !isGpsElevated) {
+            val prevLoc = previousMonitoringLocation
+            if (prevLoc == null) {
+                previousMonitoringLocation = location
                 _lastMovementInfo.value = MovementInfo(
                     timestamp = System.currentTimeMillis(),
-                    distanceMeters = distance,
-                    speedKmh = speedKmh,
-                    speedThresholdKmh = minSpeedValue,
-                    counter = currentCounter
+                    distanceMeters = 0f,
+                    speedKmh = 0.0,
+                    speedThresholdKmh = currentMinSpeed,
+                    counter = 0
                 )
+                return
             }
+
+            val dist = prevLoc.distanceTo(location)
+            if (dist >= radius) {
+                AppLogger.log("LocationService", "Low-power displacement detected: ${dist}m >= Wake-Up Radius (${radius}m). Elevating GPS.")
+                onMotionDetected(triggerSource = "Wake-Up Radius (${radius}m)")
+            } else {
+                AppLogger.log("LocationService", "Low-power fix within Wake-Up Radius (${dist}m < ${radius}m, accuracy: ${location.accuracy}m). Staying asleep.")
+            }
+            return
         }
-        if (previousMonitoringLocation == null) {
+
+        // 2. High-Accuracy GPS Mode: Ignore inaccurate fixes (> 35m) and downgrade if stuck indoors
+        if (location.hasAccuracy() && location.accuracy > 35f) {
+            inaccurateElevatedFixCount++
+            AppLogger.log(
+                "LocationService",
+                "Ignoring inaccurate GPS fix during speed check. Accuracy: ${location.accuracy}m (Count: $inaccurateElevatedFixCount/$MAX_INACCURATE_ELEVATED_FIXES)"
+            )
+            if (isDistanceMonitoringEnabled && isGpsElevated && inaccurateElevatedFixCount >= MAX_INACCURATE_ELEVATED_FIXES) {
+                AppLogger.log("LocationService", "Received $inaccurateElevatedFixCount consecutive inaccurate fixes (>35m) while elevated. Returning to Low-Power Motion Detection.")
+                downgradeToLowPowerMonitoring()
+            }
+            return
+        }
+
+        inaccurateElevatedFixCount = 0
+
+        val prevLocation = previousMonitoringLocation
+        if (prevLocation == null || (prevLocation.hasAccuracy() && prevLocation.accuracy > 35f)) {
+            previousMonitoringLocation = location
             _lastMovementInfo.value = MovementInfo(
                 timestamp = System.currentTimeMillis(),
                 distanceMeters = 0f,
@@ -671,7 +717,72 @@ class LocationService : Service() {
                 speedThresholdKmh = currentMinSpeed,
                 counter = 0
             )
+            return
         }
+
+        val timeDifference = (location.time - prevLocation.time) / 1000.0 // in seconds
+        if (timeDifference <= 1.0) {
+            return
+        }
+
+        // If previousMonitoringLocation is stale (> 30s old from before wakeup), refresh baseline so speed is measured over the next 3-5s fix
+        if (timeDifference > 30.0) {
+            AppLogger.log("LocationService", "Previous monitoring location is stale (${timeDifference}s old). Refreshing baseline for speed check.")
+            previousMonitoringLocation = location
+            return
+        }
+
+        val distance = prevLocation.distanceTo(location)
+        val speed = distance / timeDifference // m/s
+        val speedKmh = speed * 3.6
+
+        // Sanity check: Ignore impossible teleportation speeds (> 250 km/h)
+        if (speedKmh > 250.0) {
+            AppLogger.log("LocationService", "Ignoring impossible teleportation speed: $speedKmh km/h")
+            previousMonitoringLocation = location
+            return
+        }
+
+        val minSpeedValue = currentMinSpeed
+        AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h (Threshold: $minSpeedValue km/h)")
+        val currentCounter: Int
+        if (speedKmh >= minSpeedValue) {
+            lowSpeedElevatedFixCount = 0
+            if (highSpeedCounter == 0) {
+                // This is the first detection of high speed. Cache this location.
+                potentialTripStartLocation = prevLocation
+                AppLogger.log("LocationService", "Potential trip start detected and cached.")
+            }
+            highSpeedCounter++
+            currentCounter = highSpeedCounter
+            AppLogger.log("LocationService", "High speed detected. Counter: $highSpeedCounter")
+            if (highSpeedCounter >= 2) {
+                isStartingTrip = true
+                gpsElevationTimeoutJob?.cancel()
+                gpsElevationTimeoutJob = null
+                disarmMotionSensor()
+                startAutoTrip()
+            } else if (isDistanceMonitoringEnabled && isGpsElevated) {
+                startGpsElevationTimeout()
+            }
+        } else {
+            highSpeedCounter = 0
+            currentCounter = 0
+            potentialTripStartLocation = null // Clear the cache if speed drops
+            lowSpeedElevatedFixCount++
+            AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Low-speed count: $lowSpeedElevatedFixCount/$MAX_LOW_SPEED_ELEVATED_FIXES")
+            if (isDistanceMonitoringEnabled && isGpsElevated && lowSpeedElevatedFixCount >= MAX_LOW_SPEED_ELEVATED_FIXES) {
+                downgradeToLowPowerMonitoring()
+            }
+        }
+
+        _lastMovementInfo.value = MovementInfo(
+            timestamp = System.currentTimeMillis(),
+            distanceMeters = distance,
+            speedKmh = speedKmh,
+            speedThresholdKmh = minSpeedValue,
+            counter = currentCounter
+        )
         previousMonitoringLocation = location
     }
 
@@ -1070,6 +1181,10 @@ class LocationService : Service() {
         super.onDestroy()
         isServiceRunning = false
         isForeground = false
+        gpsElevationTimeoutJob?.cancel()
+        gpsElevationTimeoutJob = null
+        inaccurateElevatedFixCount = 0
+        lowSpeedElevatedFixCount = 0
         disarmMotionSensor()
         fusedLocationClient.removeLocationUpdates(locationCallback)
         _isTracking.value = false
@@ -1153,6 +1268,10 @@ class LocationService : Service() {
     companion object {
         var isServiceRunning: Boolean = false
             private set
+
+        private const val GPS_ELEVATION_TIMEOUT_MS = 60_000L
+        private const val MAX_INACCURATE_ELEVATED_FIXES = 5
+        private const val MAX_LOW_SPEED_ELEVATED_FIXES = 6
 
         const val EXTRA_CAR_MODE_EVENT = "ch.opum.tricktrack.EXTRA_CAR_MODE_EVENT"
         const val EXTRA_CONNECTED_DEVICE_ADDRESS = "ch.opum.tricktrack.EXTRA_CONNECTED_DEVICE_ADDRESS"

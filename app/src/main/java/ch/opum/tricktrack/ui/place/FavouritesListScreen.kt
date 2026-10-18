@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -95,7 +94,6 @@ data class SimpleItem(
     val odometer: Double = 0.0,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlacesListScreen(
     onAddPlace: () -> Unit,
@@ -726,7 +724,6 @@ fun EditSimpleItemBottomSheet(
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GenericGroupedList(
     groupedItems: Map<Char, List<SimpleItem>>,
@@ -944,7 +941,6 @@ fun SimpleListItem(
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SavedPlaceList(
     groupedFavorites: Map<Char, List<SavedPlace>>,

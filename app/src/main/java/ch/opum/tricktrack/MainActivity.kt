@@ -19,7 +19,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -285,7 +284,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     currentIntent: StateFlow<Intent?>,
@@ -999,7 +998,6 @@ fun MainScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TripScreen(
     tripsViewModel: TripsViewModel,
@@ -2654,7 +2652,6 @@ fun EditTripDialog(
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TripItem(
     tripWithVehicle: TripWithVehicle,
@@ -2773,7 +2770,7 @@ fun TripItem(
                     thickness = 0.5.dp
                 )
 
-                val hasMapData = !trip.startLoc.isBlank() || !trip.endLoc.isBlank() || (trip.startLat != null && trip.startLon != null)
+                val hasMapData = trip.startLoc.isNotBlank() || trip.endLoc.isNotBlank() || (trip.startLat != null && trip.startLon != null)
                 var isMapExpanded by remember { mutableStateOf(false) }
                 var showFullscreenMap by remember { mutableStateOf(false) }
                 val bringIntoViewRequester = remember { BringIntoViewRequester() }

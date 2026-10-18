@@ -87,20 +87,17 @@ object DebugExporter {
                 appendLine("ACCESS_FINE_LOCATION: ${ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == 0}")
                 appendLine("ACCESS_COARSE_LOCATION: ${ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == 0}")
                 appendLine("ACCESS_BACKGROUND_LOCATION: ${
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
                         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == 0
-                    else true
                 }")
                 appendLine("Battery Optimizations Ignored: ${pm?.isIgnoringBatteryOptimizations(context.packageName) ?: false}")
                 appendLine("POST_NOTIFICATIONS: ${
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == 0
-                    else true
                 }")
                 appendLine("BLUETOOTH_CONNECT: ${
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
                         ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == 0
-                    else true
                 }")
             }
 

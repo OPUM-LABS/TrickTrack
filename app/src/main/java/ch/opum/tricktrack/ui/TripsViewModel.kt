@@ -1,5 +1,6 @@
 package ch.opum.tricktrack.ui
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -161,6 +162,11 @@ class TripsViewModel(
     }
 
     private val pendingAddressMarkers: Set<String> by lazy {
+        buildPendingAddressMarkers()
+    }
+
+    @SuppressLint("AppBundleLocaleChanges")
+    private fun buildPendingAddressMarkers(): Set<String> {
         val context = getApplication<Application>()
         val supportedLanguageTags = listOf("en", "de", "fr", "it")
         val markers = mutableSetOf("Unknown Start", "Unknown End")
@@ -188,12 +194,11 @@ class TripsViewModel(
                 markers.add(localizedString)
             } catch (_: Exception) {}
         }
-        markers
+        return markers
     }
 
     fun isPendingAddress(address: String?): Boolean {
-        if (address.isNullOrBlank()) return false
-        return pendingAddressMarkers.any { address.contains(it, ignoreCase = true) }
+        return !address.isNullOrBlank() && pendingAddressMarkers.any { address.contains(it, ignoreCase = true) }
     }
 
     fun resolvePendingOfflineAddresses() {
@@ -335,17 +340,9 @@ class TripsViewModel(
                     trip.endLoc.contains(filter.keyword, ignoreCase = true) ||
                     (trip.description?.contains(filter.keyword, ignoreCase = true) == true)
 
-            val matchesStartDate = if (filter.startDate == null) {
-                true
-            } else {
-                trip.date.time >= filter.startDate
-            }
+            val matchesStartDate = filter.startDate == null || trip.date.time >= filter.startDate
 
-            val matchesEndDate = if (filter.endDate == null) {
-                true
-            } else {
-                trip.date.time <= filter.endDate
-            }
+            val matchesEndDate = filter.endDate == null || trip.date.time <= filter.endDate
 
             val matchesVehicle = filter.vehicleIds.isEmpty() || (trip.vehicleId != null && filter.vehicleIds.contains(trip.vehicleId))
 
@@ -922,14 +919,11 @@ class TripsViewModel(
         // Start monitoring on app start if enabled
         viewModelScope.launch {
             val context = getApplication<Application>().applicationContext
-            val hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
                 ContextCompat.checkSelfPermission(
                     context,
                     "android.permission.ACCESS_BACKGROUND_LOCATION"
                 ) == PackageManager.PERMISSION_GRANTED
-            } else {
-                true // Not needed for older versions
-            }
 
             if (userPreferencesRepository.isAutoTrackingEnabled.first() && hasPermission) {
                 AppLogger.log("TripsViewModel", "Initial check: Auto-tracking is enabled, starting monitoring.")
@@ -1397,7 +1391,7 @@ class TripsViewModel(
             val finalPolyline = if (combinedPoints.size >= 2) {
                 PolylineUtils.encode(combinedPoints)
             } else {
-                sorted.mapNotNull { it.routePolyline }.firstOrNull()
+                sorted.firstNotNullOfOrNull { it.routePolyline }
             }
 
             val isAllAutomatic = sorted.all { it.isAutomatic }
@@ -1499,9 +1493,8 @@ class TripsViewModel(
             val isOdoMode = isOdometerModeEnabled.value
             val defaultIsBusiness = userPreferencesRepository.defaultIsBusiness.first()
 
-            for (item in tripsToApprove) {
-                val trip = item.trip
-                val finalType = if (trip.type.isNotBlank()) trip.type else (if (defaultIsBusiness) "Business" else "Personal")
+            for ((trip) in tripsToApprove) {
+                val finalType = trip.type.ifBlank { if (defaultIsBusiness) "Business" else "Personal" }
 
                 var updatedTrip = trip.copy(
                     type = finalType,

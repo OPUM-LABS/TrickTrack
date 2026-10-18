@@ -107,7 +107,7 @@ fun BulkEditTripsDialog(
 
     var updateVehicle by remember { mutableStateOf(false) }
     var selectedVehicle by remember {
-        mutableStateOf<VehicleEntity?>(
+        mutableStateOf(
             unanimousVehicleId?.let { id -> allVehicles.find { it.id == id } }
         )
     }

@@ -1,7 +1,6 @@
 package ch.opum.tricktrack.ui.review
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.background
@@ -45,7 +44,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -101,7 +99,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReviewScreen(
     viewModel: TripsViewModel,
@@ -327,7 +324,6 @@ fun ReviewListHeader(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ReviewTripCard(
     tripWithVehicle: TripWithVehicle,
@@ -718,7 +714,7 @@ fun ReviewTripCard(
             }
 
             var showFullscreenMap by remember { mutableStateOf(false) }
-            val hasMapData = !trip.startLoc.isBlank() || !trip.endLoc.isBlank() || (trip.startLat != null && trip.startLon != null)
+            val hasMapData = trip.startLoc.isNotBlank() || trip.endLoc.isNotBlank() || (trip.startLat != null && trip.startLon != null)
 
             if (hasMapData) {
                 Spacer(modifier = Modifier.height(4.dp))

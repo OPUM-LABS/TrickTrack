@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
     <string name="app_name">TrickTrack</string>
     <string name="trip_review_channel_id">trip_review_channel</string>
 
@@ -32,7 +32,6 @@
     <string name="unit_feet">pieds</string>
     <string name="settings_schedule_title">Calendrier de suivi automatique</string>
     <string name="settings_default_type_title">Type par défaut</string>
-    <string name="trip_type_label">Type de trajet</string>
     <string name="trip_type_business">Professionnel</string>
     <string name="trip_type_personal">Personnel</string>
     <string name="settings_calculate_expenses_title">Calculer les frais de trajet</string>
@@ -251,8 +250,6 @@
     <string name="delete_selected_trips_confirmation">Voulez-vous vraiment supprimer les %1$d trajets sélectionnés ? Cette action est irréversible.</string>
     <string name="action_merge_trips">Fusionner les trajets</string>
     <string name="merge_trips_title">Fusionner les trajets</string>
-    <string name="merge_trips_summary_route">Itinéraire</string>
-    <string name="merge_trips_summary_time">Plage horaire</string>
     <string name="merge_trips_summary_distance">Distance totale</string>
     <string name="merge_trips_summary_odometer">Compteur</string>
     <string name="merge_trips_notes_label">Notes combinées (facultatif)</string>
@@ -312,9 +309,6 @@
     <string name="notification_channel_description">Notifications pour les trajets prêts à être révisés.</string>
     <string name="notification_title">Trajet prêt pour révision</string>
     <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
-    <string name="trip_too_short_not_saved">Trajet trop court (%s) – non enregistré.</string>
-    <string name="notification_trip_too_short_title">Trajet non enregistré</string>
-    <string name="notification_trip_too_short_text">La distance (%1$s) était inférieure au seuil de 100m.</string>
 
     <!-- Offline Failsafe -->
     <string name="address_pending_offline">Adresse en attente (Hors ligne)</string>

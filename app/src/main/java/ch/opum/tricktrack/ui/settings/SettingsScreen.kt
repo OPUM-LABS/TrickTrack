@@ -271,25 +271,19 @@ private fun hasForegroundLocationPermission(context: Context): Boolean {
 }
 
 private fun hasBackgroundLocationPermission(context: Context): Boolean {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
         ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_BACKGROUND_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-    } else {
-        true
-    }
 }
 
 private fun hasBluetoothPermissions(context: Context): Boolean {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    return Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
         ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.BLUETOOTH_CONNECT
         ) == PackageManager.PERMISSION_GRANTED
-    } else {
-        true
-    }
 }
 
 private fun needsBluetoothPermission(trackingMode: TrackingMode): Boolean {

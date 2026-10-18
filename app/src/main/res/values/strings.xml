@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
     <string name="app_name">TrickTrack</string>
     <string name="trip_review_channel_id">trip_review_channel</string>
 
@@ -31,7 +31,6 @@
     <string name="unit_feet">feet</string>
     <string name="settings_schedule_title">Automatic Tracking Schedule</string>
     <string name="settings_default_type_title">Default Type</string>
-    <string name="trip_type_label">Trip Type</string>
     <string name="trip_type_business">Business</string>
     <string name="trip_type_personal">Personal</string>
     <string name="settings_calculate_expenses_title">Calculate Trip Expenses</string>
@@ -258,8 +257,6 @@
     <string name="delete_selected_trips_confirmation">Are you sure you want to delete the %1$d selected trips? This action cannot be undone.</string>
     <string name="action_merge_trips">Merge Trips</string>
     <string name="merge_trips_title">Merge Trips</string>
-    <string name="merge_trips_summary_route">Route</string>
-    <string name="merge_trips_summary_time">Time Span</string>
     <string name="merge_trips_summary_distance">Total Distance</string>
     <string name="merge_trips_summary_odometer">Odometer</string>
     <string name="merge_trips_notes_label">Combined Notes (optional)</string>
@@ -319,9 +316,6 @@
     <string name="notification_channel_description">Notifications for trips that are ready for review.</string>
     <string name="notification_title">Track ready for review</string>
     <string name="notification_content_text">%1$s ➔ %2$s (%3$s)</string>
-    <string name="trip_too_short_not_saved">Trip too short (%s) - not saved.</string>
-    <string name="notification_trip_too_short_title">Trip Discarded</string>
-    <string name="notification_trip_too_short_text">Trip distance (%1$s) was below the 100m threshold.</string>
 
     <!-- Offline Failsafe -->
     <string name="address_pending_offline">Pending address (Offline)</string>
