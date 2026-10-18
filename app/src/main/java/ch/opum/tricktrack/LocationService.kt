@@ -495,24 +495,17 @@ class LocationService : Service() {
         previousMonitoringLocation = null
         armMotionSensor()
 
-        applicationScope.launch {
-            val radius = userPreferencesRepository.distanceMonitoringRadius.first()
-            currentDistanceMonitoringRadius = radius
-            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 15000)
-                .setMinUpdateDistanceMeters(radius.toFloat())
-                .build()
+        val radius = currentDistanceMonitoringRadius
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 15000)
+            .setMinUpdateDistanceMeters(radius.toFloat())
+            .build()
 
-            withContext(Dispatchers.Main) {
-                if (isMonitoring && !_isTracking.value && !isGpsElevated) {
-                    fusedLocationClient.removeLocationUpdates(locationCallback)
-                    fusedLocationClient.requestLocationUpdates(
-                        locationRequest,
-                        locationCallback,
-                        Looper.getMainLooper(),
-                    )
-                }
-            }
-        }
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper(),
+        )
     }
 
     @SuppressLint("MissingPermission")
@@ -693,14 +686,18 @@ class LocationService : Service() {
 
         // 2. High-Accuracy GPS Mode: Ignore inaccurate fixes (> 35m) and downgrade if stuck indoors
         if (location.hasAccuracy() && location.accuracy > 35f) {
-            inaccurateElevatedFixCount++
-            AppLogger.log(
-                "LocationService",
-                "Ignoring inaccurate GPS fix during speed check. Accuracy: ${location.accuracy}m (Count: $inaccurateElevatedFixCount/$MAX_INACCURATE_ELEVATED_FIXES)"
-            )
-            if (isDistanceMonitoringEnabled && isGpsElevated && inaccurateElevatedFixCount >= MAX_INACCURATE_ELEVATED_FIXES) {
-                AppLogger.log("LocationService", "Received $inaccurateElevatedFixCount consecutive inaccurate fixes (>35m) while elevated. Returning to Low-Power Motion Detection.")
-                downgradeToLowPowerMonitoring()
+            if (isDistanceMonitoringEnabled && isGpsElevated) {
+                inaccurateElevatedFixCount++
+                AppLogger.log(
+                    "LocationService",
+                    "Ignoring inaccurate GPS fix during speed check. Accuracy: ${location.accuracy}m (Count: $inaccurateElevatedFixCount/$MAX_INACCURATE_ELEVATED_FIXES)"
+                )
+                if (inaccurateElevatedFixCount >= MAX_INACCURATE_ELEVATED_FIXES) {
+                    AppLogger.log("LocationService", "Received $inaccurateElevatedFixCount consecutive inaccurate fixes (>35m) while elevated. Returning to Low-Power Motion Detection.")
+                    downgradeToLowPowerMonitoring()
+                }
+            } else {
+                AppLogger.log("LocationService", "Ignoring inaccurate GPS fix during speed check. Accuracy: ${location.accuracy}m")
             }
             return
         }
@@ -769,10 +766,22 @@ class LocationService : Service() {
             highSpeedCounter = 0
             currentCounter = 0
             potentialTripStartLocation = null // Clear the cache if speed drops
-            lowSpeedElevatedFixCount++
-            AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Low-speed count: $lowSpeedElevatedFixCount/$MAX_LOW_SPEED_ELEVATED_FIXES")
-            if (isDistanceMonitoringEnabled && isGpsElevated && lowSpeedElevatedFixCount >= MAX_LOW_SPEED_ELEVATED_FIXES) {
-                downgradeToLowPowerMonitoring()
+            if (isDistanceMonitoringEnabled && isGpsElevated) {
+                lowSpeedElevatedFixCount++
+                AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Low-speed count: $lowSpeedElevatedFixCount/$MAX_LOW_SPEED_ELEVATED_FIXES")
+                if (lowSpeedElevatedFixCount >= MAX_LOW_SPEED_ELEVATED_FIXES) {
+                    _lastMovementInfo.value = MovementInfo(
+                        timestamp = System.currentTimeMillis(),
+                        distanceMeters = distance,
+                        speedKmh = speedKmh,
+                        speedThresholdKmh = minSpeedValue,
+                        counter = 0
+                    )
+                    downgradeToLowPowerMonitoring()
+                    return
+                }
+            } else {
+                AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Resetting counter.")
             }
         }
 
