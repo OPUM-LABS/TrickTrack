@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -314,7 +314,7 @@ fun ColorPickerDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (isMaterialYouSelected) Icons.Default.Check else Icons.Default.AutoAwesome,
+                            imageVector = if (isMaterialYouSelected) Icons.Default.Check else Icons.Default.Refresh,
                             contentDescription = "Dynamic Color",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(20.dp)
