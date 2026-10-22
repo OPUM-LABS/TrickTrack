@@ -1,7 +1,7 @@
-• "Alle annehmen"-Button zum Bestätigen aller Fahrten mit einem Tippen
-• Fahrtrettung & Zielbearbeitung bei Akkuabschaltung während der Fahrt
-• Deutlich weniger Akkuverbrauch: Bewegungsempfindlichkeit standardmäßig aktiv
-• Mehrfachbearbeitung für ausgewählte Fahrten (Fahrzeug, Typ, Notiz)
-• Verbesserte Kilometerstandsberechnung und Stabilitätsoptimierungen
+• Akku-Optimierungen: verbesserte GPS-Aktivierung & Bewegungserkennung
+• Bewegungsempfindlichkeit ist jetzt stabil (nicht mehr experimentell)
+• Farbauswahl: klares Reset-/Standardsymbol für Systemfarben
+• Offline-Adressauflösung & Sprachpaket-Korrekturen
+• Allgemeine Leistungs- und Stabilitätsverbesserungen
 
-Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.1

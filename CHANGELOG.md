@@ -4,6 +4,30 @@ All notable changes to TrickTrack will be documented in this file.
 
 ---
 
+## [2.7.1] - 2026-10-22
+
+This update focuses on significant power consumption optimizations for background tracking, refined motion detection, and visual polish across the app settings.
+
+---
+
+# ⚡ Performance & Battery
+* **Smart GPS Wake-up:** Replaced continuous GPS polling with low-power sensor and displacement monitoring, automatically downgrading back to low-power standby if stationary.
+* **Elevation Timeout & Indoor Failsafe:** Added automatic GPS elevation timeouts and indoor accuracy guards so high-accuracy location never drains battery indefinitely when indoors.
+* **Graduated Movement Sensitivity:** Movement Sensitivity is now enabled by default and out of experimental status with user-configurable wake-up radiuses.
+
+---
+
+# 🎨 UI & Design
+* **Color Picker Reset Icon:** Replaced the sparkling icon in the custom color picker with a recognizable reset/default icon for Material You / system colors.
+
+---
+
+# 🛠️ Fixes & Reliability
+* **App Bundle Language Retention:** Disabled language splitting in app bundles to preserve all offline fallback translations across languages.
+* **Inspection & Code Cleanliness:** Addressed lint checks, simplified call chains, and removed obsolete string resources.
+
+---
+
 ## [2.7.0] - 2026-09-23
 
 This release brings powerful new workflow enhancements to make managing your trips faster and more resilient than ever, including one-tap batch approvals and battery shutdown protection.

@@ -1,7 +1,7 @@
-• Bouton "Tout accepter" pour valider tous les trajets en un geste
-• Récupération du trajet et modification en cas de coupure de batterie
-• Économie de batterie : sensibilité au mouvement activée par défaut
-• Modification groupée des trajets sélectionnés (véhicule, type, note)
-• Améliorations du compteur kilométrique et de la stabilité
+• Optimisations de la batterie : veille GPS et réveil améliorés
+• La sensibilité au mouvement n'est plus expérimentale
+• Sélecteur de couleur : icône réinitialiser/défaut plus claire
+• Correction de la résolution d'adresse hors ligne et des langues
+• Améliorations générales de la stabilité et des capteurs
 
-Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.1

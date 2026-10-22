@@ -1,7 +1,7 @@
-• "Accept All" button to approve all pending review trips in one tap
-• Trip recovery & destination editing if phone shuts down while driving
-• Reduced battery drain: Movement Sensitivity enabled by default
-• Bulk-edit selected trips (vehicle, classification, note)
-• Improved odometer calculations and stability fixes
+• Battery life optimizations: improved GPS wake-up and motion standby
+• Movement sensitivity is graduated out of experimental status
+• Color picker icon replaced with clear reset/default symbol
+• Offline address resolution & localization bundle fixes
+• General stability and sensor detection refinements
 
-Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.0
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.1
