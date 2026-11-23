@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
@@ -82,7 +83,11 @@ class LocationService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private val applicationScope by lazy { (application as TripApplication).applicationScope }
+    // App-lifetime scope (work such as saving a trip must finish even if the service is destroyed),
+    // but dispatched on the main thread: GPS and sensor callbacks also run there, so every read and
+    // write of this service's state (isMonitoring, counters, recordedWaypoints, timers, ...) happens
+    // on one thread. Blocking I/O must use withContext(Dispatchers.IO) or a suspending API.
+    private val applicationScope by lazy { (application as TripApplication).applicationScope + Dispatchers.Main }
     // Tied to this service instance; cancelled in onDestroy so preference collectors don't leak across restarts.
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val userPreferencesRepository by lazy { (application as TripApplication).userPreferencesRepository }
@@ -1336,6 +1341,8 @@ class LocationService : Service() {
     }
 
     companion object {
+        // Read from BluetoothReceiver's background thread.
+        @Volatile
         var isServiceRunning: Boolean = false
             private set
 
