@@ -49,6 +49,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import org.osmdroid.util.GeoPoint
 import java.time.LocalTime
@@ -79,6 +82,8 @@ class LocationService : Service() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private val applicationScope by lazy { (application as TripApplication).applicationScope }
+    // Tied to this service instance; cancelled in onDestroy so preference collectors don't leak across restarts.
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val userPreferencesRepository by lazy { (application as TripApplication).userPreferencesRepository }
     private val geocoderHelper by lazy { (application as TripApplication).geocoderHelper }
     private val bluetoothRepository by lazy { (application as TripApplication).bluetoothRepository }
@@ -149,7 +154,7 @@ class LocationService : Service() {
         createNotificationChannels()
         TripNotificationManager.createNotificationChannel(this)
         
-        applicationScope.launch {
+        serviceScope.launch {
             userPreferencesRepository.distanceUnit.collect { unit ->
                 currentDistanceUnit = unit
                 if (_isTracking.value) {
@@ -158,19 +163,19 @@ class LocationService : Service() {
             }
         }
 
-        applicationScope.launch {
+        serviceScope.launch {
             userPreferencesRepository.minSpeed.collect { speed ->
                 currentMinSpeed = speed
             }
         }
 
-        applicationScope.launch {
+        serviceScope.launch {
             userPreferencesRepository.isDistanceMonitoringEnabled.collect { enabled ->
                 currentIsDistanceMonitoringEnabled = enabled
             }
         }
 
-        applicationScope.launch {
+        serviceScope.launch {
             userPreferencesRepository.distanceMonitoringRadius.collect { radius ->
                 currentDistanceMonitoringRadius = radius
             }
@@ -1188,6 +1193,7 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        serviceScope.cancel()
         isServiceRunning = false
         isForeground = false
         gpsElevationTimeoutJob?.cancel()

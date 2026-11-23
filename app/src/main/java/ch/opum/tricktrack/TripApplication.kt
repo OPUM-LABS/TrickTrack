@@ -3,6 +3,7 @@ package ch.opum.tricktrack
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import androidx.room.withTransaction
 import ch.opum.tricktrack.data.AppDatabase
 import ch.opum.tricktrack.data.BluetoothRepository
 import ch.opum.tricktrack.data.TripRepository
@@ -22,7 +23,8 @@ class TripApplication : Application() {
             database.savedPlaceDao(),
             database.driverDao(),
             database.companyDao(),
-            database.vehicleDao()
+            database.vehicleDao(),
+            runInTransaction = { block -> database.withTransaction { block() } }
         )
     }
     val userPreferencesRepository by lazy { UserPreferencesRepository(applicationContext) } // Instantiate UserPreferencesRepository

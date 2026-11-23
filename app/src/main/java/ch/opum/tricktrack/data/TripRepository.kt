@@ -10,7 +10,9 @@ class TripRepository(
     private val savedPlaceDao: SavedPlaceDao,
     private val driverDao: DriverDao,
     private val companyDao: CompanyDao,
-    private val vehicleDao: VehicleDao
+    private val vehicleDao: VehicleDao,
+    // Runs a block atomically. Production passes Room's withTransaction; the default just runs the block.
+    private val runInTransaction: suspend (suspend () -> Unit) -> Unit = { block -> block() }
 ) {
 
     val confirmedTrips: Flow<List<TripWithVehicle>> = tripDao.getConfirmedTrips()
@@ -86,7 +88,8 @@ class TripRepository(
         )
     }
 
-    suspend fun restoreFullBackup(container: BackupContainer) {
+    suspend fun restoreFullBackup(container: BackupContainer) = runInTransaction {
+        // All-or-nothing: if any insert fails, the transaction rolls back and the existing data is kept.
         // Step A: Clear existing data
         tripDao.deleteAll()
         savedPlaceDao.deleteAll()
