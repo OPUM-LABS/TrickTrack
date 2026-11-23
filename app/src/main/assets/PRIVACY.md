@@ -23,9 +23,9 @@ To provide trip recording and logbook features, the Application requests permiss
 
 * **Local Storage:** GPS coordinates are saved directly to Your local device database to calculate driven distances and generate route maps.
 
-* **Map Tiles:** Route maps are rendered using open-source mapping libraries (osmdroid / OpenStreetMap). Tile requests are fetched anonymously over HTTPS.(Self-hostabe and customizable in the settings)
+* **Map Tiles:** Route maps are rendered using open-source mapping libraries (osmdroid / OpenStreetMap). Tile requests are fetched anonymously over HTTPS. (Self-hostable and customizable in the settings)
 
-* **Address Conversion (Geocoding):** To convert coordinates into human-readable street addresses, the Application sends anonymous location queries to the Photon API (operated by Komoot, based on OpenStreetMap data). These requests contain only the coordinates or address query necessary to fetch location names. No personal identifiers, user accounts, or full trip histories are transmitted or stored by Komoot. (Self-hostabe and customizable in the settings)
+* **Address Conversion (Geocoding):** To convert coordinates into human-readable street addresses, and to look up addresses You type, the Application sends anonymous location queries to the Photon API (operated by Komoot, based on OpenStreetMap data). It does not use Google's or Android's built-in geocoding service. These requests contain only the coordinates or address query necessary to fetch location names. No personal identifiers, user accounts, or full trip histories are transmitted or stored by Komoot. (Self-hostable and customizable in the settings)
 
 * **Permission Control:** You can enable or disable location permissions at any time in Your Device settings.
 

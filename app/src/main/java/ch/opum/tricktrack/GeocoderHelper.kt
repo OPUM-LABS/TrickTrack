@@ -1,21 +1,15 @@
 package ch.opum.tricktrack
 
 import android.content.Context
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Build
+import ch.opum.tricktrack.data.PhotonAddressFormatter
+import ch.opum.tricktrack.data.PhotonGeocoder
 import ch.opum.tricktrack.data.place.SavedPlace
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
-import java.util.Locale
-import kotlin.coroutines.resume
 import kotlin.math.abs
-import kotlin.time.Duration.Companion.seconds
 
 class GeocoderHelper(private val context: Context) {
 
@@ -27,44 +21,23 @@ class GeocoderHelper(private val context: Context) {
                 capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
+    // Address lookups go to the user's Photon server (OpenStreetMap), not Android's Geocoder,
+    // which sends coordinates to Google on most devices.
+    private val photon by lazy { PhotonGeocoder(context) }
+
     suspend fun getAddressFromLocation(
         lat: Double?,
         lng: Double?
     ): String = withContext(Dispatchers.IO) {
-        if (lat == null || lng == null) return@withContext context.getString(R.string.address_pending_offline)
-        if (!isNetworkAvailable()) return@withContext context.getString(R.string.address_pending_offline)
+        val pending = context.getString(R.string.address_pending_offline)
+        if (lat == null || lng == null) return@withContext pending
+        if (!isNetworkAvailable()) return@withContext pending
 
         try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-
-            val addresses = withTimeoutOrNull(3.seconds) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    suspendCancellableCoroutine { continuation ->
-                        try {
-                            geocoder.getFromLocation(lat, lng, 1) { list ->
-                                if (continuation.isActive) {
-                                    continuation.resume(list)
-                                }
-                            }
-                        } catch (_: Exception) {
-                            if (continuation.isActive) {
-                                continuation.resume(null)
-                            }
-                        }
-                    }
-                } else {
-                    @Suppress("DEPRECATION")
-                    geocoder.getFromLocation(lat, lng, 1)
-                }
-            }
-            val formatted = formatAddress(addresses?.firstOrNull())
-            if (formatted == "Unknown Address" || formatted == "Address not found" || formatted.isBlank()) {
-                context.getString(R.string.address_pending_offline)
-            } else {
-                formatted
-            }
+            val best = PhotonAddressFormatter.pickBestReverse(photon.reverse(lat, lng), lat, lng)
+            PhotonAddressFormatter.format(best)?.takeIf { it.isNotBlank() } ?: pending
         } catch (_: Exception) {
-            context.getString(R.string.address_pending_offline)
+            pending
         }
     }
 
@@ -73,28 +46,9 @@ class GeocoderHelper(private val context: Context) {
         if (!isNetworkAvailable()) return@withContext context.getString(R.string.address_pending_offline)
 
         try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = withTimeoutOrNull(3.seconds) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    suspendCancellableCoroutine { continuation ->
-                        try {
-                            geocoder.getFromLocationName(locationName, 1) { list ->
-                                if (continuation.isActive) {
-                                    continuation.resume(list)
-                                }
-                            }
-                        } catch (_: Exception) {
-                            if (continuation.isActive) {
-                                continuation.resume(null)
-                            }
-                        }
-                    }
-                } else {
-                    @Suppress("DEPRECATION")
-                    geocoder.getFromLocationName(locationName, 1)
-                }
-            }
-            formatAddress(addresses?.firstOrNull())
+            val first = photon.search(locationName, limit = 1).firstOrNull()
+                ?: return@withContext "Unknown Address"
+            PhotonAddressFormatter.format(first) ?: "Address not found"
         } catch (_: Exception) {
             locationName
         }
@@ -119,97 +73,32 @@ class GeocoderHelper(private val context: Context) {
             }
         }
 
-        val geocoder = Geocoder(context, Locale.getDefault())
+        val useBiasBox = biasLat != null && biasLon != null && (abs(biasLat) > 0.001 || abs(biasLon) > 0.001)
 
         for (candidate in candidates) {
             try {
-                val addresses = withTimeoutOrNull(3.seconds) {
-                    if (biasLat != null && biasLon != null && (abs(biasLat) > 0.001 || abs(biasLon) > 0.001)) {
-                        val lowerLeftLat = (biasLat - 2.0).coerceAtLeast(-90.0)
-                        val lowerLeftLon = (biasLon - 2.0).coerceAtLeast(-180.0)
-                        val upperRightLat = (biasLat + 2.0).coerceAtMost(90.0)
-                        val upperRightLon = (biasLon + 2.0).coerceAtMost(180.0)
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            suspendCancellableCoroutine { continuation ->
-                                try {
-                                    geocoder.getFromLocationName(candidate, 5, lowerLeftLat, lowerLeftLon, upperRightLat, upperRightLon) { list ->
-                                        if (continuation.isActive) {
-                                            continuation.resume(list)
-                                        }
-                                    }
-                                } catch (_: Exception) {
-                                    if (continuation.isActive) {
-                                        continuation.resume(null)
-                                    }
-                                }
-                            }
-                        } else {
-                            @Suppress("DEPRECATION")
-                            geocoder.getFromLocationName(candidate, 5, lowerLeftLat, lowerLeftLon, upperRightLat, upperRightLon)
-                        }
-                    } else {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            suspendCancellableCoroutine { continuation ->
-                                try {
-                                    geocoder.getFromLocationName(candidate, 5) { list ->
-                                        if (continuation.isActive) {
-                                            continuation.resume(list)
-                                        }
-                                    }
-                                } catch (_: Exception) {
-                                    if (continuation.isActive) {
-                                        continuation.resume(null)
-                                    }
-                                }
-                            }
-                        } else {
-                            @Suppress("DEPRECATION")
-                            geocoder.getFromLocationName(candidate, 5)
-                        }
-                    }
+                val places = if (useBiasBox) {
+                    photon.search(candidate, limit = 5, biasLat = biasLat, biasLon = biasLon)
+                } else {
+                    photon.search(candidate, limit = 5)
                 }
 
-                if (!addresses.isNullOrEmpty()) {
-                    for (loc in addresses) {
-                        if (abs(loc.latitude) > 0.001 || abs(loc.longitude) > 0.001) {
-                            if (biasLat != null && biasLon != null) {
-                                val results = FloatArray(1)
-                                Location.distanceBetween(biasLat, biasLon, loc.latitude, loc.longitude, results)
-                                if (results[0] > 300_000f) {
-                                    continue
-                                }
+                for (loc in places) {
+                    if (abs(loc.lat) > 0.001 || abs(loc.lon) > 0.001) {
+                        if (biasLat != null && biasLon != null) {
+                            val results = FloatArray(1)
+                            Location.distanceBetween(biasLat, biasLon, loc.lat, loc.lon, results)
+                            if (results[0] > 300_000f) {
+                                continue
                             }
-                            return@withContext Pair(loc.latitude, loc.longitude)
                         }
+                        return@withContext Pair(loc.lat, loc.lon)
                     }
                 }
             } catch (_: Exception) {
             }
         }
         null
-    }
-
-    private fun formatAddress(address: Address?): String {
-        if (address == null) {
-            return "Unknown Address"
-        }
-        val street = address.thoroughfare ?: ""
-        val number = address.subThoroughfare ?: ""
-        val postalCode = address.postalCode ?: ""
-        val city = address.locality ?: ""
-
-        val streetPart =
-            if (street.isNotEmpty() && number.isNotEmpty()) "$street $number" else street
-        val cityPart =
-            if (postalCode.isNotEmpty() && city.isNotEmpty()) "$postalCode $city" else city
-
-        return when {
-            streetPart.isNotEmpty() && cityPart.isNotEmpty() -> "$streetPart, $cityPart"
-            streetPart.isNotEmpty() -> streetPart
-            cityPart.isNotEmpty() -> cityPart
-            else -> "Address not found"
-        }
     }
 
     fun getSmartAddress(
