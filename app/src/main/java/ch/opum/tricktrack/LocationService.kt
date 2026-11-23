@@ -128,6 +128,8 @@ class LocationService : Service() {
     // Quiet-fix summary: while stationary, monitoring fixes are counted and summarised every
     // QUIET_LOG_INTERVAL_MS instead of logging two lines per fix (which filled the 2 MB log in a day or two).
     private var quietFixCount = 0
+    // Stillness logging: only changes between moving and slow are logged, not every fix while driving.
+    private var wasMovingAtLastStillnessCheck = true
     private var quietMaxSpeedKmh = 0.0
     private var quietMaxDistanceM = 0f
     private var quietSinceTime = 0L
@@ -637,6 +639,7 @@ class LocationService : Service() {
         inaccurateElevatedFixCount = 0
         lowSpeedElevatedFixCount = 0
         isMonitoring = false // Ensure monitoring is off
+        wasMovingAtLastStillnessCheck = true
         _isTracking.value = true
         _startLocation.value = null
         _lastLocation.value = null
@@ -990,7 +993,6 @@ class LocationService : Service() {
                             }
                         }
                     }.start()
-                    AppLogger.log("LocationService", "Stillness timer started.")
                 }
 
                 // Now, decide if the new location update should reset the timer.
@@ -1016,17 +1018,33 @@ class LocationService : Service() {
                     }
 
                     lastReportedSpeed = speedKmh
+                    val isMoving = speedKmh > minSpeedValue
 
-                    AppLogger.log(
-                        "LocationService",
-                        "Stillness check. Calculated Speed: %.2f km/h. TimeDelta: %.2fs. DistDelta: %.2fm.".format(
-                            speedKmh, timeDeltaSeconds, distanceMeters
+                    // Logging only: while driving the timer is restarted on every fix, so log the
+                    // transitions and the slow fixes (which decide when the trip ends), not every fix.
+                    if (!isMoving && wasMovingAtLastStillnessCheck) {
+                        AppLogger.log(
+                            "LocationService",
+                            "Slowed below $minSpeedValue km/h. Stillness countdown running (${stillnessTimerValue / 1000}s)."
                         )
-                    )
+                    }
+                    if (!isMoving) {
+                        AppLogger.log(
+                            "LocationService",
+                            "Stillness check. Calculated Speed: %.2f km/h. TimeDelta: %.2fs. DistDelta: %.2fm.".format(
+                                Locale.US, speedKmh, timeDeltaSeconds, distanceMeters
+                            )
+                        )
+                    } else if (!wasMovingAtLastStillnessCheck) {
+                        AppLogger.log(
+                            "LocationService",
+                            "Moving again (%.1f km/h > $minSpeedValue km/h). Stillness timer reset.".format(Locale.US, speedKmh)
+                        )
+                    }
+                    wasMovingAtLastStillnessCheck = isMoving
 
                     // If speed is high, we are definitely driving. Reset the timer.
-                    if (speedKmh > minSpeedValue) {
-                        AppLogger.log("LocationService", "Speed is > $minSpeedValue km/h. Resetting stillness timer.")
+                    if (isMoving) {
                         stillnessTimer?.cancel()
                         stillnessTimer = null // A new timer will start on the next location update.
                     }
