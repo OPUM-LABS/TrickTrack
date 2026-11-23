@@ -123,8 +123,10 @@ class LocationService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
             AppLogger.log("LocationService", "Shutdown broadcast received: ${intent?.action}")
             if (_isTracking.value) {
+                // Mark the trip as ended first so onDestroy doesn't save it a second time.
+                _isTracking.value = false
                 runBlocking {
-                    saveTrip(stopReason = "SHUTDOWN")
+                    saveTrip(stopReason = STOP_REASON_SHUTDOWN)
                 }
             }
         }
@@ -1194,6 +1196,9 @@ class LocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+        val wasTracking = _isTracking.value
+        stillnessTimer?.cancel()
+        stillnessTimer = null
         isServiceRunning = false
         isForeground = false
         gpsElevationTimeoutJob?.cancel()
@@ -1208,7 +1213,19 @@ class LocationService : Service() {
         try {
             unregisterReceiver(shutdownReceiver)
         } catch (_: Exception) {}
-        if (!_isTracking.value) {
+        if (wasTracking) {
+            // The service was stopped while a trip was still running (e.g. by the system).
+            // Save it for review instead of discarding it. The checkpoint stays in place until
+            // saveTrip finishes, so if the process dies mid-save, the trip is recovered on next start.
+            AppLogger.log("LocationService", "Service destroyed during an active trip. Saving it for review.")
+            applicationScope.launch {
+                try {
+                    saveTrip(stopReason = STOP_REASON_SERVICE_STOPPED)
+                } catch (e: Exception) {
+                    AppLogger.log("LocationService", "Failed to save trip after service stop: ${e.message}")
+                }
+            }
+        } else {
             ActiveTripCheckpointManager.clearCheckpoint(applicationContext)
         }
         AppLogger.log("LocationService", "Service destroyed.")
@@ -1283,6 +1300,9 @@ class LocationService : Service() {
     companion object {
         var isServiceRunning: Boolean = false
             private set
+
+        const val STOP_REASON_SHUTDOWN = "SHUTDOWN"
+        const val STOP_REASON_SERVICE_STOPPED = "SERVICE_STOPPED"
 
         private const val GPS_ELEVATION_TIMEOUT_MS = 60_000L
         private const val MAX_INACCURATE_ELEVATED_FIXES = 5

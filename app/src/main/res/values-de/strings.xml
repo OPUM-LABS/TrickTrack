@@ -264,6 +264,7 @@
     <string name="bulk_edit_change_description">Beschreibung aktualisieren</string>
     <string name="bulk_edit_no_vehicle">Kein Fahrzeug</string>
     <string name="trip_interrupted_shutdown_banner">Fahrt durch Abschalten des Geräts unterbrochen</string>
+    <string name="trip_interrupted_service_stopped_banner">Fahrt unterbrochen, da die Aufzeichnung unerwartet beendet wurde</string>
     <string name="action_edit_interrupted_destination">Ziel bearbeiten</string>
     <string name="action_accept_all_trips">Alle annehmen</string>
     <string name="accept_all_trips_title">Alle Fahrten annehmen</string>

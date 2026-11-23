@@ -80,6 +80,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import ch.opum.tricktrack.LocationService
 import ch.opum.tricktrack.R
 import ch.opum.tricktrack.data.CarBrandHelper
 import ch.opum.tricktrack.data.DistanceUnit
@@ -612,7 +613,12 @@ fun ReviewTripCard(
                 }
             }
 
-            if (trip.stopReason == "SHUTDOWN") {
+            val interruptedBannerRes = when (trip.stopReason) {
+                LocationService.STOP_REASON_SHUTDOWN -> R.string.trip_interrupted_shutdown_banner
+                LocationService.STOP_REASON_SERVICE_STOPPED -> R.string.trip_interrupted_service_stopped_banner
+                else -> null
+            }
+            if (interruptedBannerRes != null) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -634,7 +640,7 @@ fun ReviewTripCard(
                                 modifier = Modifier.size(20.dp)
                             )
                             Text(
-                                text = stringResource(R.string.trip_interrupted_shutdown_banner),
+                                text = stringResource(interruptedBannerRes),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface
                             )

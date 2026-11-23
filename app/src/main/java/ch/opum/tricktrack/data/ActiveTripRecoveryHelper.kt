@@ -84,7 +84,7 @@ object ActiveTripRecoveryHelper {
                     vehicleId = checkpoint.vehicleId,
                     trigger = checkpoint.trigger ?: TripTrigger.AUTOMATIC.name,
                     routePolyline = checkpoint.routePolyline,
-                    stopReason = "SHUTDOWN"
+                    stopReason = ch.opum.tricktrack.LocationService.STOP_REASON_SHUTDOWN
                 )
 
                 val newId = repository.insert(trip)

@@ -272,6 +272,7 @@
     <string name="bulk_edit_change_description">Update Description</string>
     <string name="bulk_edit_no_vehicle">No vehicle</string>
     <string name="trip_interrupted_shutdown_banner">Trip interrupted due to device shutdown</string>
+    <string name="trip_interrupted_service_stopped_banner">Trip interrupted because tracking was stopped unexpectedly</string>
     <string name="action_edit_interrupted_destination">Edit Destination</string>
     <string name="action_accept_all_trips">Accept All</string>
     <string name="accept_all_trips_title">Accept All Trips</string>

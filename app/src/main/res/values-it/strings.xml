@@ -265,6 +265,7 @@
     <string name="bulk_edit_change_description">Aggiorna descrizione</string>
     <string name="bulk_edit_no_vehicle">Nessun veicolo</string>
     <string name="trip_interrupted_shutdown_banner">Viaggio interrotto per spegnimento del dispositivo</string>
+    <string name="trip_interrupted_service_stopped_banner">Viaggio interrotto perché la registrazione si è interrotta inaspettatamente</string>
     <string name="action_edit_interrupted_destination">Modifica destinazione</string>
     <string name="action_accept_all_trips">Accetta tutti</string>
     <string name="accept_all_trips_title">Accetta tutti i viaggi</string>
