@@ -25,3 +25,10 @@
 -keep class ch.opum.tricktrack.backup.BackupMetadata { *; }
 -keep class ch.opum.tricktrack.data.Trip { *; }
 -keep class ch.opum.tricktrack.data.place.SavedPlace { *; }
+
+# Strip debug/verbose logcat output from release builds. Some of it can contain locations or
+# addresses. The in-app log file (AppLogger) is unaffected: only the Log.d/Log.v calls are removed.
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}

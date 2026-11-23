@@ -2,7 +2,6 @@ package ch.opum.tricktrack.data
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
@@ -10,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 class ServerValidator {
 
-    private val client = OkHttpClient.Builder()
+    private val client = AppHttpClient.client.newBuilder()
         .connectTimeout(5, TimeUnit.SECONDS)
         .readTimeout(5, TimeUnit.SECONDS)
         .writeTimeout(5, TimeUnit.SECONDS)

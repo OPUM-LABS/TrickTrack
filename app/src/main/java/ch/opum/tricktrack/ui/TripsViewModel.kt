@@ -973,7 +973,6 @@ class TripsViewModel(
         onSuccess: ((distanceKm: Double, startLat: Double, startLon: Double, endLat: Double, endLon: Double, routePolyline: String?) -> Unit)? = null,
         onError: ((reason: CalculationError) -> Unit)? = null
     ) {
-        Log.d("TripsViewModel", "calculateDistance called with start: $startAddress, end: $endAddress")
         if (startAddress.isBlank() || endAddress.isBlank()) {
             return
         }

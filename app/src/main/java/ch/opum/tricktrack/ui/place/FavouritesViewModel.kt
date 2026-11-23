@@ -35,9 +35,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 import java.net.URLEncoder
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import ch.opum.tricktrack.data.AppHttpClient
+import okhttp3.Request
 import kotlin.time.Duration.Companion.milliseconds
 
 class FavouritesViewModel(
@@ -49,6 +51,13 @@ class FavouritesViewModel(
     private val geocoderHelper: GeocoderHelper, // Inject GeocoderHelper
     private val userPreferencesRepository: UserPreferencesRepository
 ) : AndroidViewModel(application) {
+
+    // Search-as-you-type: keep the short 3s timeouts it had before, but share the app's connection pool.
+    private val photonClient = AppHttpClient.client.newBuilder()
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS)
+        .callTimeout(5, TimeUnit.SECONDS)
+        .build()
 
     private val _selectedTabIndex = MutableStateFlow(0)
     val selectedTabIndex: StateFlow<Int> = _selectedTabIndex.asStateFlow()
@@ -228,18 +237,12 @@ class FavouritesViewModel(
                 if (lastLocation != null) {
                     urlString += "&lat=${lastLocation.latitude}&lon=${lastLocation.longitude}"
                 }
-                Log.d("PhotonSearch", "URL: $urlString")
-
-                val url = URL(urlString)
-                val connection = (url.openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 3000
-                    readTimeout = 3000
-                }
-
-                val response = try {
-                    connection.inputStream.bufferedReader().use { it.readText() }
-                } finally {
-                    connection.disconnect()
+                val request = Request.Builder().url(urlString).build()
+                val response = photonClient.newCall(request).execute().use { httpResponse ->
+                    if (!httpResponse.isSuccessful) {
+                        throw IOException("Photon request failed with code ${httpResponse.code}")
+                    }
+                    httpResponse.body.string()
                 }
 
                 val jsonResponse = JSONObject(response)
@@ -249,7 +252,6 @@ class FavouritesViewModel(
                 for (i in 0 until features.length()) {
                     val feature = features.getJSONObject(i)
                     val properties = feature.getJSONObject("properties")
-                    Log.d("PhotonSearch", "Properties: $properties") // Log the properties object
                     val geometry = feature.getJSONObject("geometry")
                     val coordinates = geometry.getJSONArray("coordinates")
 
@@ -296,7 +298,7 @@ class FavouritesViewModel(
                 }
                 suggestions
             } catch (e: Exception) {
-                Log.e("PhotonSearch", "Error fetching from Photon API", e)
+                Log.e("PhotonSearch", "Photon search failed: ${e.javaClass.simpleName}")
                 emptyList()
             }
 
