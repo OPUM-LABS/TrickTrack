@@ -11,8 +11,6 @@ import ch.opum.tricktrack.logging.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 class TroubleshootingViewModel(application: Application) :
     AndroidViewModel(application) {
@@ -25,44 +23,24 @@ class TroubleshootingViewModel(application: Application) :
 
     fun loadLogs() {
         viewModelScope.launch {
-            val content = getLogcatLogs()
+            // Show the app's own log file rather than logcat: release builds strip Log.d from
+            // logcat, and the file is also exactly what "Share" exports.
+            val content = withContext(Dispatchers.IO) { AppLogger.getAllLogs().lines().filter { it.isNotBlank() } }
             logLines.clear()
             logLines.addAll(content)
         }
     }
 
-    private suspend fun getLogcatLogs(): List<String> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val process = Runtime.getRuntime().exec("logcat -d")
-                val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
-                val log = mutableListOf<String>()
-                var line: String?
-                while (bufferedReader.readLine().also { line = it } != null) {
-                    log.add(line!!)
-                }
-                log
-            } catch (e: Exception) {
-                e.printStackTrace()
-                emptyList()
-            }
-        }
-    }
-
     fun clearLogs() {
         viewModelScope.launch {
-            try {
-                Runtime.getRuntime().exec("logcat -c")
-                loadLogs() // Refresh to show empty logs
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            withContext(Dispatchers.IO) { AppLogger.clearLogs() }
+            loadLogs() // Refresh to show empty logs
         }
     }
 
     fun shareLogs(activityContext: Context) { // Accept Activity Context here
         viewModelScope.launch {
-            val uri = AppLogger.exportLogs(getApplication()) // Use application context for file operations
+            val uri = withContext(Dispatchers.IO) { AppLogger.exportLogs(getApplication()) } // Application context for file operations
             uri?.let {
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"

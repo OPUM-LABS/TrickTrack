@@ -1,19 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Backup rules for Android 12 (API 31) and newer.
    See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+
+   Privacy: trip data is location history, so it is never uploaded to Google's cloud backup.
+   Users back it up themselves with the in-app backup feature. Settings are still backed up.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Trip database: trips, routes, favourite places, vehicles -->
+        <exclude domain="database" path="." />
+        <!-- In-progress trip checkpoint (contains coordinates) -->
+        <exclude domain="sharedpref" path="active_trip_checkpoint.xml" />
+        <!-- App log files and cached map tiles (reveal where the user has been) -->
+        <exclude domain="file" path="logs/" />
+        <exclude domain="file" path="osmdroid/" />
     </cloud-backup>
     <!--
-    <device-transfer>
-        <include .../>
-        <exclude .../>
-    </device-transfer>
+       Direct phone-to-phone transfer (cable or local Wi-Fi when setting up a new phone) does not
+       go through the cloud, so it keeps everything and users don't lose their logbook when switching phones.
     -->
 </data-extraction-rules>
