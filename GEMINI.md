@@ -9,27 +9,32 @@
 ## 2. Architecture & Tech Stack
 * **UI:** Jetpack Compose (Material 3).
 * **Navigation:** Jetpack Compose Navigation.
-* **DI (Dependency Injection):** Hilt (Dagger).
-* **Database:** Room Database.
+* **DI (Dependency Injection):** None (no Hilt/Dagger). Shared singletons live in `TripApplication` (database, `TripRepository`, `UserPreferencesRepository`, `GeocoderHelper`, `BluetoothRepository`); ViewModels are created via `ViewModelFactory` / `SettingsViewModelFactory`.
+* **Database:** Room Database (`AppDatabase`). Schemas are exported to `app/schemas/`; every version bump needs a `Migration` and the new schema JSON committed.
 * **Network:** OkHttp (No Retrofit).
-    * *Reason:* Lightweight, only 2 endpoints used.
+    * *Reason:* Lightweight, only 2 services used.
+    * Always use the shared client `AppHttpClient.client` (or `.newBuilder()` for other timeouts). It sets the TrickTrack User-Agent: photon.komoot.io rejects OkHttp's default agent with HTTP 403.
+    * Close responses with `execute().use { }`.
+* **Logging:** `AppLogger.log()` writes the in-app log file on a background thread (also shown in Settings > Diagnostics > Logs). Never log full coordinates, addresses or request URLs; use `AppLogger.sanitizeLocation()`. Release builds strip `Log.d`/`Log.v` via R8.
 * **Async:** Kotlin Coroutines & Flow.
 
 ## 3. External Services (Self-Hostable)
 * **Routing (Distance):** OSRM (Open Source Routing Machine).
-    * *Default:* `http://router.project-osrm.org/route/v1/driving`
+    * *Default:* `https://router.project-osrm.org/route/v1/driving`
     * *Validation:* Must check for JSON `code: "Ok"`.
-* **Geocoding (Address Search):** Photon (OpenStreetMap).
-    * *Default:* `https://photon.komoot.io/api`
+* **Geocoding:** Photon (OpenStreetMap), for BOTH address search and coordinates-to-address (reverse).
+    * *Default:* `https://photon.komoot.io/api` (reverse endpoint derived as `.../reverse`).
+    * Implemented in `PhotonGeocoder` + `PhotonAddressFormatter`, used via `GeocoderHelper`.
+    * Do NOT use Android's `android.location.Geocoder`: it sends data to Google, which the privacy policy rules out.
     * *Validation:* Must check for GeoJSON `type: "FeatureCollection"`.
 * **User Control:** Users can change these URLs in "Advanced Settings".
 
 ## 4. Key Implementation Details
-* **Distance Calculation:** Not automatic. Triggered by an "Auto" button in the `ManualTripDialog`.
-    * Logic resides in `ManualTripViewModel` -> `DistanceRepository`.
+* **Distance Calculation (manual trips):** Not automatic. Triggered by the "Calculate" button in the manual trip sheet.
+    * Logic resides in `TripsViewModel.calculateDistance()` -> `GeocoderHelper` (address to coordinates) -> `DistanceRepository` (OSRM).
 * **Settings UI:**
     * Uses `ExpandableSettingsGroup` composable for accordion-style layout.
-    * Data stored in `AppPreferences` (SharedPreferences wrapper).
+    * Most settings are stored in `UserPreferencesRepository` (DataStore). Server URLs (OSRM/Photon) are in `AppPreferences` (SharedPreferences).
     * **Tracking Settings:**
         * Automatic Tracking (on/off)
         * Bluetooth Trigger (on/off, select device)
@@ -53,13 +58,15 @@
     * **Diagnostics:**
         * Permissions Check
         * View Logs
+* **Background tracking:** `LocationService` (foreground service). Active trips are checkpointed (`ActiveTripCheckpointManager`) and recovered by `ActiveTripRecoveryHelper` after a crash or shutdown; trips still running when the service is destroyed are saved with `stopReason = SERVICE_STOPPED`.
 * **Data Safety:**
     * Strict privacy. "Background Location" permission is required for automatic tracking.
+    * Trip data (database, checkpoint, logs, map tiles) is excluded from Google cloud backup (`res/xml/data_extraction_rules.xml`, `backup_rules.xml`). Keep it that way and keep `PRIVACY.md` in sync with any data flow change.
+    * Backup restore runs in a single Room transaction (all-or-nothing).
 
 ## 5. Current Status / Known Constraints
 * **API Limits:** 
 * Public OSRM/Photon APIs have rate limits; user agent must be set correctly.
-* **Hilt State:** Hilt is fully active.
 * **Localization:** The app is localized in English, German, Italian and French.
 
 ## 6. Changelog & Release Notes Format

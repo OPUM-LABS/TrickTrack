@@ -55,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import org.osmdroid.util.GeoPoint
 import java.time.LocalTime
+import java.util.Locale
 import java.util.Calendar
 import java.util.Date
 import kotlin.math.abs
@@ -118,6 +119,13 @@ class LocationService : Service() {
     private var isForeground: Boolean = false
     private var lastCheckpointTime: Long = 0L
     private var lastCheckpointDistance: Float = 0f
+
+    // Quiet-fix summary: while stationary, monitoring fixes are counted and summarised every
+    // QUIET_LOG_INTERVAL_MS instead of logging two lines per fix (which filled the 2 MB log in a day or two).
+    private var quietFixCount = 0
+    private var quietMaxSpeedKmh = 0.0
+    private var quietMaxDistanceM = 0f
+    private var quietSinceTime = 0L
 
     private val shutdownReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -686,7 +694,7 @@ class LocationService : Service() {
                 AppLogger.log("LocationService", "Low-power displacement detected: ${dist}m >= Wake-Up Radius (${radius}m). Elevating GPS.")
                 onMotionDetected(triggerSource = "Wake-Up Radius (${radius}m)")
             } else {
-                AppLogger.log("LocationService", "Low-power fix within Wake-Up Radius (${dist}m < ${radius}m, accuracy: ${location.accuracy}m). Staying asleep.")
+                noteQuietFix(speedKmh = null, distanceM = dist)
             }
             return
         }
@@ -748,7 +756,12 @@ class LocationService : Service() {
         }
 
         val minSpeedValue = currentMinSpeed
-        AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h (Threshold: $minSpeedValue km/h)")
+        // Log every fix while above the threshold or during the short elevated-GPS speed check;
+        // routine stationary fixes are only summarised (see noteQuietFix).
+        val isElevatedCheck = isDistanceMonitoringEnabled && isGpsElevated
+        if (speedKmh >= minSpeedValue || isElevatedCheck) {
+            AppLogger.log("LocationService", "Monitoring: TimeDiff: ${timeDifference}s, Distance: ${distance}m, Speed: $speedKmh km/h (Threshold: $minSpeedValue km/h)")
+        }
         val currentCounter: Int
         if (speedKmh >= minSpeedValue) {
             lowSpeedElevatedFixCount = 0
@@ -770,6 +783,7 @@ class LocationService : Service() {
                 startGpsElevationTimeout()
             }
         } else {
+            val wasCounting = highSpeedCounter > 0
             highSpeedCounter = 0
             currentCounter = 0
             potentialTripStartLocation = null // Clear the cache if speed drops
@@ -787,8 +801,10 @@ class LocationService : Service() {
                     downgradeToLowPowerMonitoring()
                     return
                 }
-            } else {
+            } else if (wasCounting) {
                 AppLogger.log("LocationService", "Speed below threshold ($minSpeedValue km/h). Resetting counter.")
+            } else {
+                noteQuietFix(speedKmh = speedKmh, distanceM = distance)
             }
         }
 
@@ -800,6 +816,28 @@ class LocationService : Service() {
             counter = currentCounter
         )
         previousMonitoringLocation = location
+    }
+
+    /** Counts a routine stationary monitoring fix and writes one summary line per interval. */
+    private fun noteQuietFix(speedKmh: Double?, distanceM: Float) {
+        val now = System.currentTimeMillis()
+        if (quietFixCount == 0) quietSinceTime = now
+        quietFixCount++
+        if (speedKmh != null && speedKmh > quietMaxSpeedKmh) quietMaxSpeedKmh = speedKmh
+        if (distanceM > quietMaxDistanceM) quietMaxDistanceM = distanceM
+
+        if (now - quietSinceTime >= QUIET_LOG_INTERVAL_MS) {
+            val minutes = (now - quietSinceTime) / 60_000
+            val speedPart = if (quietMaxSpeedKmh > 0.0) ", max speed %.1f km/h".format(Locale.US, quietMaxSpeedKmh) else ""
+            AppLogger.log(
+                "LocationService",
+                "Stationary: $quietFixCount monitoring fixes in the last $minutes min, all below threshold" +
+                    "$speedPart, max displacement %.0f m".format(Locale.US, quietMaxDistanceM)
+            )
+            quietFixCount = 0
+            quietMaxSpeedKmh = 0.0
+            quietMaxDistanceM = 0f
+        }
     }
 
     private fun handleTripLocation(location: Location) {
@@ -1305,6 +1343,7 @@ class LocationService : Service() {
         const val STOP_REASON_SERVICE_STOPPED = "SERVICE_STOPPED"
 
         private const val GPS_ELEVATION_TIMEOUT_MS = 60_000L
+        private const val QUIET_LOG_INTERVAL_MS = 10 * 60_000L
         private const val MAX_INACCURATE_ELEVATED_FIXES = 5
         private const val MAX_LOW_SPEED_ELEVATED_FIXES = 6
 

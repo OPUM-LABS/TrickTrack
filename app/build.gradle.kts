@@ -19,8 +19,8 @@ android {
         applicationId = "ch.opum.tricktrack"
         minSdk = 26
         targetSdk = 37
-        versionCode = 34
-        versionName = "2.7.1"
+        versionCode = 35
+        versionName = "2.7.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -56,6 +56,11 @@ android {
             enableSplit = false
         }
     }
+}
+
+// Export Room database schemas so each version is recorded in git and migrations can be tested.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 androidComponents.onVariants { variant ->

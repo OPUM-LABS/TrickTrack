@@ -13,7 +13,7 @@ import ch.opum.tricktrack.data.place.SavedPlaceDao
 @Database(
     entities = [Trip::class, SavedPlace::class, DriverEntity::class, CompanyEntity::class, VehicleEntity::class],
     version = 16,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

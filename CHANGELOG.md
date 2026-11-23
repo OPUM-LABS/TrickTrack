@@ -4,6 +4,33 @@ All notable changes to TrickTrack will be documented in this file.
 
 ---
 
+## [2.7.2] - 2026-11-23
+
+This update puts your privacy and your logbook first: address lookups no longer go through Google, trip data stays out of cloud backups, and several edge cases that could lose trips or data are now handled safely.
+
+---
+
+# 🛡️ Privacy
+* **No More Google Geocoding:** Converting coordinates into street addresses (and looking up typed addresses) now uses Photon / OpenStreetMap — the same self-hostable server you can configure in the settings — instead of Android's built-in Google service.
+* **Trip Data Stays Out of Cloud Backup:** Your trips, routes, places and logs are no longer included in Android's automatic Google Drive backup. Use the in-app backup to save your logbook.
+* **No Location Data in System Logs:** Release builds no longer write coordinates, addresses or server requests to the Android system log.
+
+---
+
+# 🛠️ Fixes & Reliability
+* **Safe Restore:** Restoring a backup is now all-or-nothing. If a backup file is damaged, your existing data is kept instead of being wiped.
+* **Interrupted Trips Are Saved:** If tracking is stopped unexpectedly while you're driving, the trip is saved for review with an "interrupted" notice instead of being lost.
+* **Server Check Fixed:** The Photon server check in the server settings works again, and all server requests now identify the app correctly.
+* **Network Timeouts:** Route and address requests now time out properly instead of hanging on a bad connection.
+
+---
+
+# ⚡ Performance
+* **Lighter Background Logging:** Log entries are written in the background, and routine "standing still" checks are summarised every 10 minutes, so the log keeps days of useful history instead of hours.
+* **Diagnostics Logs:** Settings > Diagnostics > Logs now shows the app's own log file, exactly what you share when reporting a problem.
+
+---
+
 ## [2.7.1] - 2026-10-22
 
 This update focuses on significant power consumption optimizations for background tracking, refined motion detection, and visual polish across the app settings.

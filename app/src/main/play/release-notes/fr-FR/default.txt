@@ -1,7 +1,8 @@
-• Optimisations de la batterie : veille GPS et réveil améliorés
-• La sensibilité au mouvement n'est plus expérimentale
-• Sélecteur de couleur : icône réinitialiser/défaut plus claire
-• Correction de la résolution d'adresse hors ligne et des langues
-• Améliorations générales de la stabilité et des capteurs
+• Confidentialité : adresses via OpenStreetMap (Photon) au lieu de Google
+• Les trajets ne sont plus inclus dans la sauvegarde Google Drive
+• Une sauvegarde endommagée n'efface plus vos données
+• Les trajets interrompus sont enregistrés pour vérification
+• Vérification du serveur Photon corrigée, réseau plus fiable
+• Journalisation plus légère, journaux de diagnostic plus clairs
 
-Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.1
+Full changelog: https://github.com/OPUM-LABS/TrickTrack/releases/tag/v2.7.2
