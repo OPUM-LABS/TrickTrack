@@ -1,6 +1,6 @@
 # Privacy Policy for TrickTrack
 
-**Last updated:** September 17, 2026
+**Last updated:** November 23, 2026
 
 This Privacy Policy describes the policies and procedures of **OPUM-Labs** ("We", "Us", or "Our") regarding the collection, use, and protection of Your information when You use the **TrickTrack** mobile application (the "Application").
 
@@ -11,6 +11,8 @@ This Privacy Policy describes the policies and procedures of **OPUM-Labs** ("We"
 TrickTrack is designed with a privacy-first approach. All trip logs, route coordinates, vehicle information, category records, expense entries and exported logbook reports (PDF/CSV) are stored locally on Your device using an internal database.
 
 * **No Server Uploads:** We do not operate remote application servers to collect, upload, or back up Your logbook records.
+
+* **No Cloud Backup of Trip Data:** Your trip data (trips, routes, places, vehicles) is excluded from Android's automatic Google Drive backup; only app settings are included. Use the in-app backup function to save Your logbook.
 
 * **No User Accounts:** You are not required to create an account, register, or sign in to use the Application.
 
