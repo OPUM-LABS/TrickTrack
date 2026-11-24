@@ -1,0 +1,68 @@
+name: CI
+
+# Runs unit tests, Android lint and an (unsigned) release build with R8 on every push
+# and on pull requests into main. Nothing is signed or published.
+on:
+  push:
+    branches: ["**"]
+    paths-ignore:
+      - "**.md"
+      - ".github/FUNDING.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test, lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      # Same major version as the JDK bundled with Android Studio, which builds the app locally.
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      # Caches Gradle dependencies and the build cache between runs.
+      # Also checks that gradle-wrapper.jar is a genuine Gradle release.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Unit tests
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
+
+      - name: Lint
+        run: ./gradlew :app:lintDebug --stacktrace
+
+      # Builds the release variant so R8 shrinking and the ProGuard/keep rules are checked too.
+      - name: Release build (unsigned)
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+            app/build/reports/lint-results-debug.html
+          retention-days: 14
+          if-no-files-found: ignore
