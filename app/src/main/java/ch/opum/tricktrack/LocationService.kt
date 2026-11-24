@@ -134,6 +134,14 @@ class LocationService : Service() {
     private var quietMaxDistanceM = 0f
     private var quietSinceTime = 0L
 
+    // Trip progress summary: instead of two lines per GPS fix while driving, one line is written
+    // every TRIP_LOG_DISTANCE_M or TRIP_LOG_INTERVAL_MS, whichever comes first.
+    private var tripLogFixes = 0
+    private var tripLogSkipped = 0
+    private var tripLogWorstAccuracy = 0f
+    private var tripLogSinceTime = 0L
+    private var tripLogSinceDistance = 0.0
+
     private val shutdownReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             AppLogger.log("LocationService", "Shutdown broadcast received: ${intent?.action}")
@@ -150,11 +158,9 @@ class LocationService : Service() {
     override fun onCreate() {
         super.onCreate()
         isServiceRunning = true
-        val shutdownFilter = IntentFilter().apply {
-            addAction(Intent.ACTION_SHUTDOWN)
-            addAction("android.intent.action.QUICKBOOT_POWEROFF")
-            addAction("com.htc.intent.action.QUICKBOOT_POWEROFF")
-        }
+        // Only the system's ACTION_SHUTDOWN: it is a protected broadcast that other apps can't send.
+        // The vendor QUICKBOOT_POWEROFF actions are not protected, so any app could end the trip early.
+        val shutdownFilter = IntentFilter(Intent.ACTION_SHUTDOWN)
         ContextCompat.registerReceiver(
             this,
             shutdownReceiver,
@@ -640,6 +646,7 @@ class LocationService : Service() {
         lowSpeedElevatedFixCount = 0
         isMonitoring = false // Ensure monitoring is off
         wasMovingAtLastStillnessCheck = true
+        resetTripLogSummary(System.currentTimeMillis(), 0.0)
         _isTracking.value = true
         _startLocation.value = null
         _lastLocation.value = null
@@ -848,17 +855,36 @@ class LocationService : Service() {
         }
     }
 
-    private fun handleTripLocation(location: Location) {
-        AppLogger.log(
-            "LocationService",
-            "New location: ${
-                AppLogger.sanitizeLocation(
-                    location.latitude,
-                    location.longitude
-                )
-            }, Accuracy: ${location.accuracy}"
-        )
+    private fun resetTripLogSummary(now: Long, distance: Double) {
+        tripLogFixes = 0
+        tripLogSkipped = 0
+        tripLogWorstAccuracy = 0f
+        tripLogSinceTime = now
+        tripLogSinceDistance = distance
+    }
 
+    /** Counts a trip fix and writes one progress line per TRIP_LOG_DISTANCE_M or TRIP_LOG_INTERVAL_MS. */
+    private fun noteTripFix(location: Location, skipped: Boolean, now: Long) {
+        tripLogFixes++
+        if (skipped) tripLogSkipped++
+        if (location.hasAccuracy() && location.accuracy > tripLogWorstAccuracy) tripLogWorstAccuracy = location.accuracy
+
+        val total = _distance.value
+        if (total - tripLogSinceDistance >= TRIP_LOG_DISTANCE_M || now - tripLogSinceTime >= TRIP_LOG_INTERVAL_MS) {
+            val seconds = (now - tripLogSinceTime) / 1000
+            val skippedPart = if (tripLogSkipped > 0) ", $tripLogSkipped skipped as inaccurate" else ""
+            AppLogger.log(
+                "LocationService",
+                "Trip progress: %.2f km total (+%.0f m in %ds), %d fixes%s, worst accuracy %.0f m".format(
+                    Locale.US, total / 1000.0, total - tripLogSinceDistance, seconds,
+                    tripLogFixes, skippedPart, tripLogWorstAccuracy
+                )
+            )
+            resetTripLogSummary(now, total)
+        }
+    }
+
+    private fun handleTripLocation(location: Location) {
         val previousLocation = _lastLocation.value
         val now = System.currentTimeMillis()
         val prevLocationTime = lastLocationTime
@@ -899,14 +925,11 @@ class LocationService : Service() {
                 if (distance > 2) { // Filter out GPS jitter
                     _distance.value += distance
                     recordedWaypoints.add(GeoPoint(location.latitude, location.longitude))
-                    AppLogger.log(
-                        "LocationService",
-                        "Distance since last point: ${distance}m. Total distance: ${_distance.value}m."
-                    )
                 }
                 _lastLocation.value = location
+                noteTripFix(location, skipped = false, now = now)
             } else {
-                AppLogger.log("LocationService", "Skipping distance accumulation for inaccurate fix: ${location.accuracy}m")
+                noteTripFix(location, skipped = true, now = now)
             }
         }
         updateNotification(_distance.value)
@@ -1369,6 +1392,8 @@ class LocationService : Service() {
 
         private const val GPS_ELEVATION_TIMEOUT_MS = 60_000L
         private const val QUIET_LOG_INTERVAL_MS = 10 * 60_000L
+        private const val TRIP_LOG_DISTANCE_M = 1_000.0
+        private const val TRIP_LOG_INTERVAL_MS = 2 * 60_000L
         private const val MAX_INACCURATE_ELEVATED_FIXES = 5
         private const val MAX_LOW_SPEED_ELEVATED_FIXES = 6
 
